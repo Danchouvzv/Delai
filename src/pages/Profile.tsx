@@ -49,17 +49,17 @@ const Profile: React.FC = () => {
           
           // Если это профиль текущего пользователя, инициализируем форму данными
           if (isCurrentUserProfile) {
-            setFormData({
-              displayName: data.displayName,
-              interests: data.interests,
-              skills: data.skills,
-              education: data.education,
-              experience: data.experience,
-              // Add these properties only if they exist in the data
-              ...(data.age !== undefined && { age: data.age }),
-              ...(data.field !== undefined && { field: data.field })
-            });
-          }
+          setFormData({
+            displayName: data.displayName,
+            interests: data.interests,
+            skills: data.skills,
+            education: data.education,
+            experience: data.experience,
+            // Add these properties only if they exist in the data
+            ...(data.age !== undefined && { age: data.age }),
+            ...(data.field !== undefined && { field: data.field })
+          });
+        }
         } else {
           setError('Профиль пользователя не найден');
         }
@@ -261,7 +261,7 @@ const Profile: React.FC = () => {
           {/* Profile Header */}
           <div className="bg-gradient-to-r from-purple-900 to-blue-900 p-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center">
                 <motion.div 
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -274,14 +274,14 @@ const Profile: React.FC = () => {
                     userData?.displayName?.charAt(0) || (userData?.email?.charAt(0) || '?')
                   )}
                 </motion.div>
-                <div className="ml-6">
+              <div className="ml-6">
                   <motion.h1 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                     className="text-2xl font-bold"
                   >
-                    {userData?.displayName || 'Пользователь'}
+                  {userData?.displayName || 'Пользователь'}
                   </motion.h1>
                   <motion.p 
                     initial={{ opacity: 0 }}
@@ -297,14 +297,14 @@ const Profile: React.FC = () => {
                     transition={{ delay: 0.5 }}
                     className="mt-2 flex items-center"
                   >
-                    <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                       {userData?.role === 'student' ? 'Студент' : userData?.role === 'school' ? 'Учебное заведение' : 'Работодатель'}
+                  </span>
+                  {userData?.premium && (
+                    <span className="ml-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+                      Premium
                     </span>
-                    {userData?.premium && (
-                      <span className="ml-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                        Premium
-                      </span>
-                    )}
+                  )}
                   </motion.div>
                 </div>
               </div>
@@ -534,7 +534,7 @@ const Profile: React.FC = () => {
                         <p className="text-white">{userData.position}</p>
                       </div>
                     )}
-                  </div>
+                      </div>
                 </motion.div>
                 
                 {userData?.skills && userData.skills.length > 0 && (
@@ -713,16 +713,16 @@ const Profile: React.FC = () => {
                                     <li key={index}>{lang}</li>
                                   ))}
                                 </ul>
-                              </div>
+                </div>
                             )}
                             
                             {userData.resumeData.portfolio && (
                               <div className="mb-6">
                                 <h2 className="text-xl font-bold text-gray-800 border-b-2 border-primary pb-2 mb-3">Портфолио</h2>
                                 <p className="text-gray-700 whitespace-pre-line">{userData.resumeData.portfolio}</p>
-                              </div>
-                            )}
-                            
+              </div>
+            )}
+
                             {userData.email && (
                               <div className="mb-6">
                                 <h2 className="text-xl font-bold text-gray-800 border-b-2 border-primary pb-2 mb-3">Контакты</h2>

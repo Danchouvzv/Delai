@@ -101,12 +101,12 @@ interface AIResumeData {
 // Resume View Component Props
 interface ResumeViewProps {
   resumeData: {
-    education: string;
-    skills: string;
-    experience: string;
-    achievements: string;
-    languages: string[];
-    portfolio: string;
+  education: string;
+  skills: string;
+  experience: string;
+  achievements: string;
+  languages: string[];
+  portfolio: string;
   };
   displayName: string;
   template: ResumeTemplate;
@@ -116,7 +116,7 @@ interface ResumeViewProps {
 const ResumeView: React.FC<ResumeViewProps> = ({ resumeData, displayName, template }) => {
   const getTemplateClasses = () => ({
     container: 'max-w-4xl mx-auto p-8 bg-white shadow-lg rounded-lg',
-    section: 'mb-6',
+          section: 'mb-6',
     heading: 'text-xl font-bold mb-2 text-gray-800',
     content: 'text-gray-600'
   });
@@ -127,11 +127,11 @@ const ResumeView: React.FC<ResumeViewProps> = ({ resumeData, displayName, templa
     <div className={classes.container}>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{displayName}</h1>
-        {resumeData.education && (
+      {resumeData.education && (
           <p className="text-gray-600 mt-2">{resumeData.education}</p>
-        )}
+      )}
       </div>
-
+      
       {resumeData.skills && (
         <div className={classes.section}>
           <h2 className={classes.heading}>Skills</h2>
@@ -933,7 +933,7 @@ const Profile: React.FC = () => {
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             <p>{error}</p>
-          </div>
+                  </div>
           <button 
             onClick={() => setError(null)}
             className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium underline focus:outline-none transition duration-300"
@@ -962,7 +962,7 @@ const Profile: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsEditing(!isEditing)}
+              onClick={() => setIsEditing(!isEditing)}
                     className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transform transition duration-300"
                   >
                     Редактировать
@@ -987,11 +987,11 @@ const Profile: React.FC = () => {
                     </motion.button>
                   </div>
                 )}
-              </div>
+          </div>
 
               {/* Profile Content */}
               <AnimatePresence mode="wait">
-                {isEditing ? (
+          {isEditing ? (
                   <motion.div
                     key="editing"
                     initial={{ opacity: 0, y: 20 }}
@@ -1000,162 +1000,162 @@ const Profile: React.FC = () => {
                     transition={{ duration: 0.3 }}
                     className="space-y-8"
                   >
-                    <div className="flex items-center gap-6">
-                      <div className="relative group">
+              <div className="flex items-center gap-6">
+                <div className="relative group">
                         <div className="w-28 h-28 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-200 to-gray-100 dark:from-gray-800 dark:to-gray-900 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 ring-purple-500 transition-all duration-300">
-                          {(avatarPreview || editedData?.photoURL) ? (
-                            <img 
-                              src={avatarPreview || editedData?.photoURL} 
-                              alt="Profile" 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                          )}
+                    {(avatarPreview || editedData?.photoURL) ? (
+                      <img 
+                        src={avatarPreview || editedData?.photoURL} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
                           <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-sm">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleAvatarChange}
-                              className="hidden"
-                            />
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex-1 space-y-4">
-                        <input
-                          type="text"
-                          value={editedData?.displayName || ''}
-                          onChange={(e) => setEditedData({...editedData!, displayName: e.target.value})}
-                          placeholder="Display Name"
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                      />
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </label>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-4">
+                  <input
+                    type="text"
+                    value={editedData?.displayName || ''}
+                    onChange={(e) => setEditedData({...editedData!, displayName: e.target.value})}
+                    placeholder="Display Name"
                           className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                        />
-                        <input
-                          type="text"
-                          value={editedData?.location || ''}
-                          onChange={(e) => setEditedData({...editedData!, location: e.target.value})}
-                          placeholder="Location"
+                  />
+                  <input
+                    type="text"
+                    value={editedData?.location || ''}
+                    onChange={(e) => setEditedData({...editedData!, location: e.target.value})}
+                    placeholder="Location"
                           className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                        />
-                      </div>
-                    </div>
+                  />
+                </div>
+              </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Bio</label>
-                        <textarea
-                          value={editedData?.bio || ''}
-                          onChange={(e) => setEditedData({...editedData!, bio: e.target.value})}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Bio</label>
+                  <textarea
+                    value={editedData?.bio || ''}
+                    onChange={(e) => setEditedData({...editedData!, bio: e.target.value})}
                           className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[120px]"
-                          placeholder="Tell us about yourself..."
-                        />
-                      </div>
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Education</label>
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={editedData?.university || ''}
-                            onChange={(e) => setEditedData({...editedData!, university: e.target.value})}
-                            placeholder="University"
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Education</label>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editedData?.university || ''}
+                      onChange={(e) => setEditedData({...editedData!, university: e.target.value})}
+                      placeholder="University"
                             className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                          />
-                          <input
-                            type="text"
-                            value={editedData?.major || ''}
-                            onChange={(e) => setEditedData({...editedData!, major: e.target.value})}
-                            placeholder="Major"
+                    />
+                    <input
+                      type="text"
+                      value={editedData?.major || ''}
+                      onChange={(e) => setEditedData({...editedData!, major: e.target.value})}
+                      placeholder="Major"
                             className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                          />
-                          <input
-                            type="text"
-                            value={editedData?.graduationYear || ''}
-                            onChange={(e) => setEditedData({...editedData!, graduationYear: e.target.value})}
-                            placeholder="Graduation Year"
+                    />
+                    <input
+                      type="text"
+                      value={editedData?.graduationYear || ''}
+                      onChange={(e) => setEditedData({...editedData!, graduationYear: e.target.value})}
+                      placeholder="Graduation Year"
                             className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    />
+                  </div>
+                </div>
+              </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">Skills</label>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {editedData?.skills?.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-primary/20 rounded-full text-sm flex items-center group hover:bg-primary/30 transition-all"
-                          >
-                            {skill}
-                            <button
-                              onClick={() => handleRemoveSkill(skill)}
-                              className="ml-2 text-primary/70 hover:text-primary/100 transition-colors"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={newSkill}
-                          onChange={(e) => setNewSkill(e.target.value)}
-                          placeholder="Add a skill"
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Skills</label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {editedData?.skills?.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-primary/20 rounded-full text-sm flex items-center group hover:bg-primary/30 transition-all"
+                    >
+                      {skill}
+                      <button
+                        onClick={() => handleRemoveSkill(skill)}
+                        className="ml-2 text-primary/70 hover:text-primary/100 transition-colors"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newSkill}
+                    onChange={(e) => setNewSkill(e.target.value)}
+                    placeholder="Add a skill"
                           className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                        />
-                        <button
-                          onClick={handleAddSkill}
-                          className="px-4 py-2 bg-primary/80 hover:bg-primary rounded-xl transition-all hover:scale-105"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
+                  />
+                  <button
+                    onClick={handleAddSkill}
+                    className="px-4 py-2 bg-primary/80 hover:bg-primary rounded-xl transition-all hover:scale-105"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">Experience</label>
-                      <div className="space-y-3 mb-3">
-                        {editedData?.experience?.map((exp, index) => (
-                          <div key={index} className="flex items-center gap-2 group">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Experience</label>
+                <div className="space-y-3 mb-3">
+                  {editedData?.experience?.map((exp, index) => (
+                    <div key={index} className="flex items-center gap-2 group">
                             <span className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-xl">{exp}</span>
-                            <button
-                              onClick={() => setEditedData({
-                                ...editedData!,
-                                experience: editedData.experience?.filter((_, i) => i !== index)
-                              })}
-                              className="text-primary/70 hover:text-primary/100 transition-colors"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={newExperience}
-                          onChange={(e) => setNewExperience(e.target.value)}
-                          placeholder="Add experience"
-                          className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                        />
-                        <button
-                          onClick={handleAddExperience}
-                          className="px-4 py-2 bg-primary/80 hover:bg-primary rounded-xl transition-all hover:scale-105"
-                        >
-                          Add
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setEditedData({
+                          ...editedData!,
+                          experience: editedData.experience?.filter((_, i) => i !== index)
+                        })}
+                        className="text-primary/70 hover:text-primary/100 transition-colors"
+                      >
+                        ×
+                      </button>
                     </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newExperience}
+                    onChange={(e) => setNewExperience(e.target.value)}
+                    placeholder="Add experience"
+                          className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                  />
+                  <button
+                    onClick={handleAddExperience}
+                    className="px-4 py-2 bg-primary/80 hover:bg-primary rounded-xl transition-all hover:scale-105"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-2">Education</label>
@@ -1196,20 +1196,20 @@ const Profile: React.FC = () => {
                     <div className="flex flex-col items-center text-center">
                       <div className="relative mb-4 group">
                         <div className="w-36 h-36 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-100 dark:from-gray-800 dark:to-gray-900 ring-4 ring-offset-4 ring-offset-white dark:ring-offset-gray-800 ring-purple-500 shadow-lg">
-                          {userData.photoURL ? (
-                            <img 
-                              src={userData.photoURL} 
-                              alt="Profile" 
+                  {userData.photoURL ? (
+                    <img 
+                      src={userData.photoURL} 
+                      alt="Profile" 
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
                               <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
+                      </svg>
+                    </div>
+                  )}
+                </div>
                       </div>
                       <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500 mb-1">
                         {userData.displayName || 'Anonymous User'}
@@ -1217,18 +1217,18 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3 mt-2 justify-center">
                         <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-full text-sm font-medium text-purple-800 dark:text-purple-300">
                           {userData.role === 'school' ? 'Студент' : 'Компания'}
-                        </span>
-                        {userData.location && (
-                          <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1 text-sm">
+                    </span>
+                    {userData.location && (
+                      <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1 text-sm">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             {userData.location}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                      </span>
+                    )}
+                </div>
+              </div>
 
                     <motion.div 
                       className="grid grid-cols-1 gap-6 mt-6"
@@ -1244,7 +1244,7 @@ const Profile: React.FC = () => {
                           </svg>
                           О себе
                         </h4>
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                           {userData.bio || 'Информация не добавлена'}
                         </p>
                       </motion.div>
@@ -1259,21 +1259,21 @@ const Profile: React.FC = () => {
                           </svg>
                           Навыки
                         </h4>
-                        {userData.skills && userData.skills.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {userData.skills.map((skill, index) => (
+                  {userData.skills && userData.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {userData.skills.map((skill, index) => (
                               <motion.span
-                                key={index}
+                          key={index}
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.05 }}
                                 className="px-3 py-1 bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-500/20 dark:to-blue-500/20 rounded-full text-sm font-medium text-purple-700 dark:text-purple-300 hover:from-purple-500/20 hover:to-blue-500/20 transition-all duration-300"
-                              >
-                                {skill}
+                        >
+                          {skill}
                               </motion.span>
-                            ))}
-                          </div>
-                        ) : (
+                      ))}
+                    </div>
+                  ) : (
                           <p className="text-gray-500 dark:text-gray-400">Навыки не добавлены</p>
                         )}
                       </motion.div>
@@ -1288,21 +1288,21 @@ const Profile: React.FC = () => {
                           </svg>
                           Опыт работы
                         </h4>
-                        {userData.experience && userData.experience.length > 0 ? (
+                  {userData.experience && userData.experience.length > 0 ? (
                           <div className="space-y-3">
-                            {userData.experience.map((exp, index) => (
+                      {userData.experience.map((exp, index) => (
                               <motion.div
-                                key={index}
+                          key={index}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:shadow-md transition-all duration-300"
-                              >
-                                {exp}
+                        >
+                          {exp}
                               </motion.div>
-                            ))}
-                          </div>
-                        ) : (
+                      ))}
+                    </div>
+                  ) : (
                           <p className="text-gray-500 dark:text-gray-400">Опыт работы не добавлен</p>
                         )}
                       </motion.div>
@@ -1322,9 +1322,9 @@ const Profile: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                 <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">Резюме</h2>
                 <div className="flex flex-wrap items-center gap-4">
-                  <select
-                    value={resumeTemplate}
-                    onChange={(e) => setResumeTemplate(e.target.value as ResumeTemplate)}
+                      <select
+                        value={resumeTemplate}
+                        onChange={(e) => setResumeTemplate(e.target.value as ResumeTemplate)}
                     className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
@@ -1333,11 +1333,11 @@ const Profile: React.FC = () => {
                       backgroundSize: '1.5em 1.5em',
                       paddingRight: '2.5rem'
                     }}
-                  >
-                    <option value="standard">Стандартный</option>
-                    <option value="professional">Профессиональный</option>
-                    <option value="academic">Академический</option>
-                  </select>
+                      >
+                        <option value="standard">Стандартный</option>
+                        <option value="professional">Профессиональный</option>
+                        <option value="academic">Академический</option>
+                      </select>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -1366,9 +1366,9 @@ const Profile: React.FC = () => {
                       </span>
                     )}
                   </motion.button>
-                </div>
-              </div>
-
+                    </div>
+                  </div>
+                  
               {/* Resume Preview */}
               <AnimatePresence mode="wait">
                 {generatedHtml ? (
@@ -1405,7 +1405,7 @@ const Profile: React.FC = () => {
                         </svg>
                         Сбросить
                       </motion.button>
-                    </div>
+                      </div>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -1442,9 +1442,9 @@ const Profile: React.FC = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+                  </div>
           </motion.div>
-        </div>
+                </div>
       </motion.div>
     </div>
   );

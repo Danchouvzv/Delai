@@ -114,6 +114,13 @@ const Navbar = () => {
         Главная
       </Link>
       <Link
+        to="/company"
+        className={`text-sm font-medium transition-colors ${isActive('/company')}`}
+        onClick={() => setMenuOpen(false)}
+      >
+        Для компаний
+      </Link>
+      <Link
         to="/jobs"
         className={`text-sm font-medium transition-colors ${isActive('/jobs')}`}
         onClick={() => setMenuOpen(false)}

@@ -190,7 +190,7 @@ const CreatePost = (): React.ReactElement => {
       // Show success message
       setSuccess(true);
       setError(null);
-      
+
       // Reset form
       setPostData({
         title: '',
@@ -271,9 +271,9 @@ const CreatePost = (): React.ReactElement => {
               i + 1 < currentStep ? 'bg-green-500' : 'bg-gray-600'
             }`} />
           )}
-        </div>
+            </div>
       ))}
-    </div>
+          </div>
   );
 
   const renderStepContent = () => {
@@ -362,7 +362,7 @@ const CreatePost = (): React.ReactElement => {
                 </svg>
               }
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <AnimatedSelect
                   label="Местоположение"
                   value={postData.location}
@@ -380,9 +380,9 @@ const CreatePost = (): React.ReactElement => {
                   placeholder="Выберите тип занятости"
                   required
                 />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <AnimatedSelect
                   label="Формат работы"
                   value={postData.format}
@@ -399,8 +399,8 @@ const CreatePost = (): React.ReactElement => {
                   options={experienceLevelOptions}
                   placeholder="Выберите уровень"
                 />
-              </div>
-              
+            </div>
+
               <AnimatedInput
                 label="Зарплата"
                 value={postData.salary}
@@ -482,13 +482,13 @@ const CreatePost = (): React.ReactElement => {
                     whileTap={{ scale: 0.9 }}
                     className="mr-2"
                   >
-                    <input
-                      type="checkbox"
-                      id="forSchoolStudents"
-                      checked={postData.aiMatching || false}
-                      onChange={(e) => handleInputChange('aiMatching', e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                    />
+              <input
+                type="checkbox"
+                id="forSchoolStudents"
+                checked={postData.aiMatching || false}
+                onChange={(e) => handleInputChange('aiMatching', e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              />
                   </motion.div>
                   <label htmlFor="forSchoolStudents" className="text-sm font-medium text-blue-300 flex items-center">
                     Включить AI-подбор кандидатов
@@ -499,11 +499,11 @@ const CreatePost = (): React.ReactElement => {
                     >
                       🤖
                     </motion.div>
-                  </label>
-                </div>
-                
+              </label>
+            </div>
+
                 <AnimatePresence>
-                  {postData.aiMatching && (
+            {postData.aiMatching && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -511,16 +511,16 @@ const CreatePost = (): React.ReactElement => {
                       transition={{ duration: 0.3 }}
                       className="space-y-4"
                     >
-                      <p className="text-blue-300 text-sm">
-                        AI автоматически подберет наиболее подходящих кандидатов по указанным критериям
-                      </p>
-                      
+                <p className="text-blue-300 text-sm">
+                  AI автоматически подберет наиболее подходящих кандидатов по указанным критериям
+                </p>
+                
                       <AnimatedInput
                         label="Обязательные навыки (через запятую)"
-                        value={postData.skillsRequired.join(', ')}
-                        onChange={(e) => handleArrayInput('skillsRequired', e.target.value)}
-                        placeholder="React, Redux, TypeScript"
-                      />
+                    value={postData.skillsRequired.join(', ')}
+                    onChange={(e) => handleArrayInput('skillsRequired', e.target.value)}
+                    placeholder="React, Redux, TypeScript"
+                  />
                       
                       <AnimatedSelect
                         label="Минимальный уровень знаний"
@@ -541,7 +541,7 @@ const CreatePost = (): React.ReactElement => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+                </div>
             </FormSection>
             
             <div className="flex justify-between">
@@ -569,7 +569,7 @@ const CreatePost = (): React.ReactElement => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </motion.button>
-            </div>
+                </div>
           </motion.div>
         );
       

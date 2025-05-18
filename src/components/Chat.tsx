@@ -86,7 +86,7 @@ const Chat: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [initialized, setInitialized] = useState(false);
-  
+
   // Расширенные состояния
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [audioRecording, setAudioRecording] = useState<AudioRecording>({
@@ -119,9 +119,9 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
   // Main effect for loading chat data and setting up listeners
   useEffect(() => {
@@ -362,7 +362,7 @@ const Chat: React.FC = () => {
       }
     };
   }, [audioRecording.isRecording]);
-  
+
   // Update unread message count
   const updateUnreadMessages = async () => {
     if (!id || !user) return;
@@ -864,14 +864,14 @@ const Chat: React.FC = () => {
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 </motion.div>
-                {otherUser?.status === 'online' && (
+            {otherUser?.status === 'online' && (
                   <motion.span 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-sm"
                   />
-                )}
-              </div>
+            )}
+          </div>
               
               <div className="ml-3">
                 <motion.div
@@ -907,9 +907,9 @@ const Chat: React.FC = () => {
                   }
                 </motion.div>
               </div>
-            </div>
           </div>
-          
+        </div>
+
           <div className="flex items-center space-x-1">
             {/* Кнопки навигации по разным представлениям */}
             <div className="hidden sm:flex p-1 rounded-lg bg-gray-100 dark:bg-gray-700">
@@ -994,7 +994,7 @@ const Chat: React.FC = () => {
             >
               {/* Сообщения чата */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 chat-scrollbar">
-                {messages.length === 0 ? (
+          {messages.length === 0 ? (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -1005,15 +1005,15 @@ const Chat: React.FC = () => {
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-primary dark:text-accent-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
-                    </div>
+            </div>
                     <p className="text-gray-600 dark:text-gray-300">Нет сообщений. Начните беседу!</p>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Отправьте первое сообщение, чтобы начать общение</p>
                   </motion.div>
-                ) : (
+          ) : (
                   <AnimatePresence initial={false}>
                     {messages.map((message, index) => (
                       <motion.div 
-                        key={message.id}
+                key={message.id}
                         initial={{ opacity: 0, x: message.senderId === user?.uid ? 20 : -20, scale: 0.95 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
@@ -1069,7 +1069,7 @@ const Chat: React.FC = () => {
                           
                           <div
                             className={`rounded-xl p-3 shadow-sm ${
-                              message.senderId === user?.uid
+                    message.senderId === user?.uid
                                 ? 'bg-gradient-to-r from-primary to-primary-dark text-white message-sent'
                                 : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white message-received'
                             } ${message.isDeleted ? 'opacity-60' : ''}`}
@@ -1086,7 +1086,7 @@ const Chat: React.FC = () => {
                               <>
                                 {/* Аудио */}
                                 {message.fileUrl && message.fileType?.startsWith('audio/') && (
-                                  <div className="mb-2">
+                    <div className="mb-2">
                                     <audio controls className="w-full max-w-[200px] h-10 rounded-lg">
                                       <source src={message.fileUrl} type="audio/mpeg" />
                                       Ваш браузер не поддерживает аудио
@@ -1097,9 +1097,9 @@ const Chat: React.FC = () => {
                                 {/* Изображение */}
                                 {message.fileUrl && message.fileType?.startsWith('image/') && (
                                   <div className="mb-2">
-                                    <img
-                                      src={message.fileUrl}
-                                      alt="Image"
+                        <img
+                          src={message.fileUrl}
+                          alt="Image"
                                       className="max-w-full rounded-lg transition-all duration-200 hover:scale-105 shadow-sm cursor-pointer"
                                     />
                                   </div>
@@ -1108,35 +1108,35 @@ const Chat: React.FC = () => {
                                 {/* Файл */}
                                 {message.fileUrl && !message.fileType?.startsWith('image/') && !message.fileType?.startsWith('audio/') && (
                                   <div className="mb-2">
-                                    <a
-                                      href={message.fileUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
+                        <a
+                          href={message.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
                                       className="flex items-center bg-white/20 dark:bg-gray-600/30 p-2 rounded-lg transition-all duration-200 hover:bg-white/30 dark:hover:bg-gray-600/40"
-                                    >
+                        >
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                      </svg>
+                          </svg>
                                       <span className="truncate max-w-[150px]">Скачать файл</span>
-                                    </a>
+                        </a>
                                   </div>
-                                )}
+                      )}
                                 
                                 {/* Текст сообщения */}
                                 {message.text && (
                                   <div className={message.fileUrl ? 'mt-2' : ''}>
                                     <p className="whitespace-pre-wrap break-words">{message.text}</p>
-                                  </div>
+                    </div>
                                 )}
                               </>
-                            )}
-                            
+                  )}
+                  
                             {/* Метаинформация */}
                             <div className={`flex items-center justify-between mt-1 text-xs ${
-                              message.senderId === user?.uid
-                                ? 'text-blue-100 dark:text-gray-300'
-                                : 'text-gray-500 dark:text-gray-400'
-                            }`}>
+                    message.senderId === user?.uid
+                      ? 'text-blue-100 dark:text-gray-300'
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>
                               <span>
                                 {message.createdAt && typeof message.createdAt === 'object' && 'toDate' in message.createdAt
                                   ? new Date(message.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
@@ -1145,7 +1145,7 @@ const Chat: React.FC = () => {
                                 {message.editedAt && <span className="ml-1">(ред.)</span>}
                               </span>
                               
-                              {message.senderId === user?.uid && (
+                    {message.senderId === user?.uid && (
                                 <div className="flex items-center space-x-1">
                                   {message.deliveryStatus === 'read' ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-primary-lighter dark:text-accent-300" viewBox="0 0 20 20" fill="currentColor">
@@ -1154,16 +1154,16 @@ const Chat: React.FC = () => {
                                   ) : message.deliveryStatus === 'delivered' ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  ) : (
+                          </svg>
+                        ) : (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                    </svg>
-                                  )}
+                          </svg>
+                        )}
                                 </div>
-                              )}
-                            </div>
-                          </div>
+                    )}
+                  </div>
+                </div>
                           
                           {/* Реакции */}
                           {message.reactions && message.reactions.length > 0 && (
@@ -1177,7 +1177,7 @@ const Chat: React.FC = () => {
                                 <div key={emoji} className="flex items-center">
                                   <span className="text-sm">{emoji}</span>
                                   {count > 1 && <span className="text-xs ml-0.5">{count}</span>}
-                                </div>
+              </div>
                               ))}
                             </div>
                           )}
@@ -1246,7 +1246,7 @@ const Chat: React.FC = () => {
                     ))}
                     
                     {/* Индикатор набора текста */}
-                    {isTyping && (
+          {isTyping && (
                       <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1259,21 +1259,21 @@ const Chat: React.FC = () => {
                             alt="Avatar"
                             className="w-full h-full object-cover"
                           />
-                        </div>
+                </div>
                         <div className="bg-white dark:bg-gray-700 rounded-xl p-3 shadow-sm">
                           <div className="flex space-x-1 items-center">
                             <div className="w-2 h-2 rounded-full bg-primary/60 dark:bg-accent/60 animate-bounce"></div>
                             <div className="w-2 h-2 rounded-full bg-primary/60 dark:bg-accent/60 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                             <div className="w-2 h-2 rounded-full bg-primary/60 dark:bg-accent/60 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                          </div>
-                        </div>
+              </div>
+            </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                )}
-                
-                <div ref={messagesEndRef} />
-              </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
             </motion.div>
           )}
           
@@ -1383,8 +1383,8 @@ const Chat: React.FC = () => {
               <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mr-2">
                 <div
                   className="bg-gradient-to-r from-primary to-primary-dark dark:from-accent dark:to-accent-600 h-2.5 rounded-full"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
               </div>
               <span className="text-xs whitespace-nowrap text-gray-500 dark:text-gray-400">
                 {Math.round(uploadProgress)}%
@@ -1423,7 +1423,7 @@ const Chat: React.FC = () => {
                           : 'Файл'}</span>
                       ) : replyingTo.text}
                     </span>
-                  </div>
+          </div>
                 </div>
                 <button
                   onClick={() => setReplyingTo(null)}
@@ -1440,15 +1440,15 @@ const Chat: React.FC = () => {
 
         {/* Область предварительного просмотра файла */}
         <AnimatePresence>
-          {file && !isUploading && (
+        {file && !isUploading && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
                   {file.type.startsWith('image/') ? (
                     <div className="h-10 w-10 mr-3 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
                       <img 
@@ -1461,27 +1461,27 @@ const Chat: React.FC = () => {
                     <div className="h-10 w-10 mr-3 rounded flex items-center justify-center bg-primary/10 dark:bg-accent/20 text-primary dark:text-accent">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                </svg>
                     </div>
                   )}
                   <div>
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
-                      {file.name}
+                  {file.name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
-                </div>
-                <button
-                  onClick={() => setFile(null)}
-                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
+              <button
+                onClick={() => setFile(null)}
+                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1499,7 +1499,7 @@ const Chat: React.FC = () => {
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
                   <span className="text-gray-700 dark:text-gray-300">Запись аудио: {formatAudioTime(audioRecording.recordingTime)}</span>
-                </div>
+          </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={cancelRecording}
@@ -1541,7 +1541,7 @@ const Chat: React.FC = () => {
                   </audio>
                 </div>
                 <div className="flex space-x-2">
-                  <button
+            <button
                     onClick={cancelRecording}
                     className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
                   >
@@ -1577,7 +1577,7 @@ const Chat: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={triggerFileInput}
+              onClick={triggerFileInput}
                   className="flex flex-col items-center justify-center p-2 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1671,10 +1671,10 @@ const Chat: React.FC = () => {
             />
             
             <div className="relative flex-1">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
                 placeholder={editingMessage ? "Редактирование сообщения..." : "Сообщение..."}
                 disabled={audioRecording.isRecording || isUploading}
                 className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-full pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-accent/50 focus:border-primary dark:focus:border-accent text-gray-800 dark:text-white shadow-inner"
@@ -1686,8 +1686,8 @@ const Chat: React.FC = () => {
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 text-gray-500 hover:text-amber-500 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </motion.button>
@@ -1702,8 +1702,8 @@ const Chat: React.FC = () => {
                 className="p-2 ml-1 rounded-full bg-gradient-to-r from-primary to-primary-dark dark:from-accent dark:to-accent-dark hover:from-primary-dark hover:to-primary dark:hover:from-accent-dark dark:hover:to-accent text-white shadow-md disabled:opacity-50"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
               </motion.button>
             ) : (
               <motion.button
@@ -1729,7 +1729,7 @@ const Chat: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 <span>Редактирование сообщения</span>
-              </div>
+      </div>
               <button
                 type="button"
                 onClick={() => {
@@ -1740,7 +1740,7 @@ const Chat: React.FC = () => {
               >
                 Отмена
               </button>
-            </div>
+    </div>
           )}
         </motion.form>
       </div>

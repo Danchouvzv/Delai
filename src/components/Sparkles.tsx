@@ -8,7 +8,7 @@ const Sparkles = (): React.ReactElement => {
       {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-blue-400/30 dark:bg-yellow-300/50 rounded-full"
+          className="absolute w-1 h-1 bg-blue-400/30 dark:bg-blue-300/30 rounded-full"
           initial={{ 
             scale: 0,
             x: `${Math.random() * 100}%`, 

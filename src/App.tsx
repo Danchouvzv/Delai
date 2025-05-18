@@ -8,6 +8,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import Profile from './components/Profile';
 import Home from './components/Home';
+import CompanyHome from './components/CompanyHome';
 import JobsWithErrorBoundary from './components/Jobs';
 import PostDetail from './components/PostDetail';
 import About from './components/About';
@@ -65,6 +66,7 @@ const App: React.FC = () => {
             <Navbar />
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/company" element={<CompanyHome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/jobs" element={<JobsWithErrorBoundary />} />
