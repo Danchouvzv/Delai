@@ -22,7 +22,7 @@ interface FormSectionProps {
   icon?: React.ReactNode;
 }
 
-const FormSection: React.FC<FormSectionProps> = ({ title, children, icon }) => {
+const FormSection = ({ title, children, icon }: FormSectionProps): React.ReactElement => {
   return (
     <motion.div 
       variants={itemVariants} 

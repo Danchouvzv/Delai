@@ -11,14 +11,14 @@ interface AnimatedSelectProps {
   required?: boolean;
 }
 
-const AnimatedSelect: React.FC<AnimatedSelectProps> = ({
+const AnimatedSelect = ({
   label,
   value,
   onChange,
   options,
   placeholder = "Выберите...",
   required = false
-}) => {
+}: AnimatedSelectProps): React.ReactElement => {
   return (
     <motion.div 
       className="relative" 

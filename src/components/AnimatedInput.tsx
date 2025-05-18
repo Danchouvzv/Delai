@@ -13,7 +13,7 @@ interface AnimatedInputProps {
   rows?: number;
 }
 
-const AnimatedInput: React.FC<AnimatedInputProps> = ({ 
+const AnimatedInput = ({ 
   label, 
   type = "text", 
   value, 
@@ -22,7 +22,7 @@ const AnimatedInput: React.FC<AnimatedInputProps> = ({
   required = false,
   multiline = false,
   rows = 3
-}) => {
+}: AnimatedInputProps): React.ReactElement => {
   return (
     <motion.div 
       className="relative" 

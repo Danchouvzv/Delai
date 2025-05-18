@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 // Sparkle effect component for visual flair
-const Sparkles: React.FC = () => {
+const Sparkles = (): React.ReactElement => {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {[...Array(20)].map((_, i) => (

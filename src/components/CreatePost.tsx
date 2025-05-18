@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -33,49 +33,7 @@ const pageTransition = {
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { 
-      type: "spring", 
-      stiffness: 100, 
-      damping: 15 
-    }
-  }
-};
-
-// Sparkle effect component for visual flair
-const Sparkles: FC = (): JSX.Element => {
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-yellow-300 rounded-full"
-          initial={{ 
-            scale: 0,
-            x: `${Math.random() * 100}%`, 
-            y: `${Math.random() * 100}%` 
-          }}
-          animate={{ 
-            scale: [0, 1, 0],
-            opacity: [0, 1, 0]
-          }}
-          transition={{ 
-            duration: 2 + Math.random() * 3,
-            repeat: Infinity,
-            repeatType: "loop",
-            ease: "easeInOut",
-            delay: Math.random() * 5
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
+// Define the form data interface
 interface PostFormData {
   title: string;
   description: string;
@@ -96,128 +54,7 @@ interface PostFormData {
   otherCriteria: string;
 }
 
-// Create a component for form sections to improve readability
-interface FormSectionProps {
-  title: string;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}
-
-const FormSection: FC<FormSectionProps> = ({ title, children, icon }): JSX.Element => {
-  return (
-    <motion.div 
-      variants={itemVariants} 
-      className="mb-8 bg-gray-800/60 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 shadow-lg"
-    >
-      <h3 className="text-xl font-semibold mb-4 flex items-center text-blue-400">
-        {icon && <span className="mr-2">{icon}</span>}
-        {title}
-      </h3>
-      <div className="space-y-4">
-        {children}
-      </div>
-    </motion.div>
-  );
-};
-
-// Input field component with animation
-interface AnimatedInputProps {
-  label: string;
-  type?: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  placeholder?: string;
-  required?: boolean;
-  multiline?: boolean;
-  rows?: number;
-}
-
-const AnimatedInput: FC<AnimatedInputProps> = ({ 
-  label, 
-  type = "text", 
-  value, 
-  onChange, 
-  placeholder, 
-  required = false,
-  multiline = false,
-  rows = 3
-}): JSX.Element => {
-  return (
-    <motion.div 
-      className="relative" 
-      whileHover={{ scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-    >
-      <label className="block text-sm font-medium text-gray-300 mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      
-      {multiline ? (
-        <textarea
-          value={value}
-          onChange={onChange}
-          rows={rows}
-          className="w-full bg-gray-700/70 rounded-lg px-4 py-3 text-white border border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-inner"
-          placeholder={placeholder}
-          required={required}
-        />
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={onChange}
-          className="w-full bg-gray-700/70 rounded-lg px-4 py-3 text-white border border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-inner"
-          placeholder={placeholder}
-          required={required}
-        />
-      )}
-    </motion.div>
-  );
-};
-
-// Select component with animation
-interface AnimatedSelectProps {
-  label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: string[];
-  placeholder?: string;
-  required?: boolean;
-}
-
-const AnimatedSelect: FC<AnimatedSelectProps> = ({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder = "Выберите...",
-  required = false
-}): JSX.Element => {
-  return (
-    <motion.div 
-      className="relative" 
-      whileHover={{ scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-    >
-      <label className="block text-sm font-medium text-gray-300 mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <select
-        value={value}
-        onChange={onChange}
-        className="w-full bg-gray-700/70 rounded-lg px-4 py-3 text-white border border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-inner"
-        required={required}
-      >
-        <option value="">{placeholder}</option>
-        {options.map(option => (
-          <option key={option} value={option}>{option}</option>
-        ))}
-      </select>
-    </motion.div>
-  );
-};
-
-const CreatePost: React.FC = () => {
+const CreatePost = (): React.ReactElement => {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
