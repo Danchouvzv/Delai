@@ -5,6 +5,10 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { triggerCandidateMatching } from '../api/aiRecruit';
 import { motion, AnimatePresence } from 'framer-motion';
+import FormSection from './FormSection';
+import AnimatedInput from './AnimatedInput';
+import AnimatedSelect from './AnimatedSelect';
+import Sparkles from './Sparkles';
 
 // Animation variants
 const pageTransition = {
@@ -738,7 +742,7 @@ const CreatePost: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-black text-white px-4 py-12 pt-32">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-black text-gray-800 dark:text-white px-4 py-12 pt-32">
       <Sparkles />
       
       <div className="max-w-4xl mx-auto relative">
@@ -748,10 +752,10 @@ const CreatePost: React.FC = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4">
+          <h2 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-500 mb-4">
             Создание вакансии
           </h2>
-          <p className="text-xl text-center text-blue-200 mb-8">
+          <p className="text-xl text-center text-blue-700 dark:text-blue-200 mb-8">
             Помогите школьникам сделать первые карьерные шаги
           </p>
 
@@ -759,14 +763,14 @@ const CreatePost: React.FC = () => {
             initial={{ width: 0 }}
             animate={{ width: "40%" }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-            className="h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-8 rounded-full"
+            className="h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-8 rounded-full shadow-md"
           />
         </motion.div>
 
         <AnimatePresence mode="wait">
           {success && (
             <motion.div 
-              className="mb-8 bg-green-900/50 border border-green-700 text-white p-6 rounded-lg shadow-xl"
+              className="mb-8 bg-green-50 dark:bg-green-900/50 border border-green-200 dark:border-green-700 text-green-800 dark:text-white p-6 rounded-lg shadow-xl"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -782,29 +786,29 @@ const CreatePost: React.FC = () => {
                     damping: 10,
                     delay: 0.2
                   }}
-                  className="bg-green-500 rounded-full p-2 mr-4"
+                  className="bg-green-500 rounded-full p-2 mr-4 shadow-lg"
                 >
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </motion.div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-400 mb-1">Вакансия успешно создана!</h3>
-                  <p className="text-green-300">
+                  <h3 className="text-xl font-bold text-green-700 dark:text-green-400 mb-1">Вакансия успешно создана!</h3>
+                  <p className="text-green-600 dark:text-green-300">
                     Вы будете перенаправлены на страницу вакансий через несколько секунд.
                   </p>
                 </div>
               </div>
               
-              <div className="bg-green-800/30 rounded-lg p-4 mb-4">
-                <p className="text-sm text-green-300 mb-1">ID вакансии:</p>
-                <p className="font-mono bg-green-800/50 p-2 rounded text-green-200">{lastCreatedPostId}</p>
+              <div className="bg-green-100/70 dark:bg-green-800/30 rounded-lg p-4 mb-4 backdrop-blur-sm">
+                <p className="text-sm text-green-700 dark:text-green-300 mb-1">ID вакансии:</p>
+                <p className="font-mono bg-green-200/50 dark:bg-green-800/50 p-2 rounded text-green-800 dark:text-green-200">{lastCreatedPostId}</p>
               </div>
               
               <div className="flex justify-center">
                 <motion.button 
                   onClick={() => navigate('/jobs')} 
-                  className="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded-lg shadow-md flex items-center"
+                  className="bg-green-600 hover:bg-green-500 dark:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-2 rounded-lg shadow-md flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -822,24 +826,24 @@ const CreatePost: React.FC = () => {
         <AnimatePresence mode="wait">
           {error && (
             <motion.div 
-              className="mb-8 bg-red-900/50 border border-red-700 text-white p-4 rounded-lg"
+              className="mb-8 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 text-red-700 dark:text-white p-4 rounded-lg"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
             >
               <div className="flex items-center">
-                <svg className="w-6 h-6 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-red-500 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-red-200">{error}</p>
+                <p className="text-red-700 dark:text-red-200">{error}</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {!success && (
-          <div className="bg-gray-800/60 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50">
+          <div className="bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
             {renderStepIndicator()}
             <form onSubmit={(e) => { e.preventDefault(); if (currentStep === totalSteps) handleSubmit(e); }}>
               <AnimatePresence mode="wait">
