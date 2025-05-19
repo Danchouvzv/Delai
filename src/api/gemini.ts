@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
+import axios from 'axios';
 
 // Initialize the Google Generative AI client
 // Use a fallback for API_KEY to prevent runtime errors if environment variable is missing
@@ -144,199 +145,353 @@ export async function generateText(prompt: string, role: string = 'career adviso
 // Simple in-memory cache for generated resumes
 const resumeCache = new Map<string, {html: string, timestamp: number}>();
 
-// Helper function to get model based on circumstances
-const getModelForResume = (requestedModel: string) => {
-  // Always use fallback model if rate limited
-  if (rateLimitInfo.fallbackMode) {
-    return 'gemini-1.5-flash';
+// Fallback model chain - sorted by priority
+const AVAILABLE_MODELS = [
+  'gemini-1.5-pro',      // First choice - best quality
+  'gemini-1.5-flash',    // Second choice - faster but still good
+  'gemini-pro',          // Older model, more widely available
+  'gemini-pro-latest'    // Last resort fallback
+];
+
+// Function to select next fallback model
+function getNextFallbackModel(currentModel: string): string | null {
+  const currentIndex = AVAILABLE_MODELS.indexOf(currentModel);
+  if (currentIndex === -1 || currentIndex >= AVAILABLE_MODELS.length - 1) {
+    return null; // No more fallbacks available
   }
-  
-  // If backoff period is active, use fallback model
-  if (Date.now() < rateLimitInfo.backoffUntil) {
-    return 'gemini-1.5-flash';
-  }
-  
-  // Otherwise use requested model
-  return requestedModel;
-};
+  return AVAILABLE_MODELS[currentIndex + 1];
+}
 
-// Generate a professional resume with detailed formatting
-export async function generateResume(profileData: any, requestedModel: string = 'gemini-1.5-pro') {
-  try {
-    if (!profileData?.displayName) {
-      return { success: false, error: 'Недостаточно данных для генерации резюме.' };
-    }
+export interface ResumeGenerationResult {
+  html: string;
+  error?: string;
+}
 
-    // Check if API key is configured
-    if (!API_KEY) {
-      console.error('Gemini API key is not configured');
-      return {
-        success: false,
-        error: 'Для генерации резюме необходим API ключ. Пожалуйста, обратитесь к администратору.'
-      };
-    }
+interface ProfileData {
+  name?: string;
+  email?: string;
+  position?: string;
+  location?: string;
+  photo?: string | null;
+  bio?: string;
+  skills?: string[];
+  experience?: string[];
+  education?: string[];
+  languages?: string[];
+  interests?: string[];
+  university?: string;
+  graduationYear?: string;
+  linkedIn?: string;
+}
 
-    // Check if client is initialized
-    if (!genAI) {
-      console.error('Gemini client initialization failed');
-      return {
-        success: false,
-        error: 'Не удалось инициализировать AI сервис. Пожалуйста, попробуйте позже.'
-      };
-    }
+/**
+ * Creates a style-specific prompt for resume generation
+ * @param profileData User profile information
+ * @param style Resume style (modern, professional, standard, academic)
+ * @returns Specialized prompt for the Gemini API
+ */
+function createStylePrompt(profileData: ProfileData, style: string): string {
+  // Basic profile information formatted for all styles
+  const basicInfo = `
+    Name: ${profileData.name || 'Not provided'}
+    Email: ${profileData.email || 'Not provided'}
+    Position: ${profileData.position || 'Not provided'}
+    Location: ${profileData.location || 'Not provided'}
+    Photo: ${profileData.photo ? 'Provided' : 'Not provided'}
+    Bio: ${profileData.bio || 'Not provided'}
     
-    // Generate a cache key based on profile data and model
-    const cacheKey = JSON.stringify(profileData) + requestedModel;
+    Skills: ${profileData.skills?.join(', ') || 'Not provided'}
     
-    // Check cache first (cache valid for 24 hours)
-    const cachedResult = resumeCache.get(cacheKey);
-    if (cachedResult && (Date.now() - cachedResult.timestamp < 24 * 60 * 60 * 1000)) {
-      console.log('Using cached resume');
-      return {
-        success: true,
-        data: cachedResult.html,
-        fromCache: true
-      };
-    }
-
-    // Determine which model to use considering rate limits
-    const modelToUse = getModelForResume(requestedModel);
-    if (modelToUse !== requestedModel) {
-      console.log(`Switching to ${modelToUse} due to rate limits or backoff period`);
-    }
-
-    // Select the model based on parameter
-    const model = genAI.getGenerativeModel({ 
-      model: modelToUse,
-      safetySettings,
-    });
-
-    const prompt = `
-You are a professional resume writer. Generate a **PDF‑ready**, **two‑column** resume layout in **plain HTML + Tailwind CSS classes**, based on the following JSON.  
-**Output only the HTML fragment**, without any markdown or extra comments.
-
-**Input JSON**:
-${JSON.stringify(profileData, null, 2)}
-
-**Requirements**:
-1. **Container**:  
-   \`<div class="grid grid-cols-[250px_1fr] gap-8 p-8 bg-white text-gray-800">\`
-
-2. **Left column** (dark background):
-   - Photo:  
-     \`<img class="w-32 h-32 rounded-full border-4 border-teal-400 mx-auto mb-6" src="...">\`
-   - **Contact** section (icon + text, small uppercase header).
-   - **Skills** as pills:  
-     \`<span class="px-2 py-1 bg-gray-800 text-teal-400 rounded-full text-xs">Skill</span>\`
-   - **Education** entries: degree, school, dates.
-   - **Languages** list with proficiency badges.
-   - **Interests** list with bullets.
-
-3. **Right column** (light background):
-   - **Header** with name (\`<h1 class="text-3xl font-bold">\`) и должность (\`<h2 class="text-xl text-gray-600">\`).
-   - **Professional Summary** paragraph (\`<p class="mt-4 text-gray-700 leading-relaxed">\`).
-   - **Experience**:
-     - For each job:
-       \`\`\`html
-       <div class="mb-6">
-         <h3 class="font-semibold text-lg">Job Title</h3>
-         <span class="text-sm text-gray-500">Company • Dates • Location</span>
-         <ul class="list-disc list-inside mt-2 text-gray-700">
-           <li>Achievement or responsibility</li>
-           <!-- ... -->
-         </ul>
-       </div>
-       \`\`\`
-   - **Certifications / Courses**:
-     \`\`\`html
-     <p class="mt-3">
-       <strong>Course Name</strong>
-       <span class="text-sm text-gray-500">(Provider, Type)</span>
-     </p>
-     \`\`\`
-
-4. **Styling**:  
-   - Только Tailwind‑классы, без inline‑стилей  
-   - Чёткое разделение секций: \`border-b pb-2 mb-4\` для заголовков
-
-5. **Output**:  
-   Верни **только** готовый HTML‑фрагмент.
-`;
-
-    // Get response from the model with timeout handling
-    const result = await Promise.race([
-      model.generateContent(prompt),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timed out')), 45000) // Extended timeout
-      )
-    ]) as any;
+    Work Experience:
+    ${profileData.experience?.map(exp => `- ${exp}`).join('\\n') || 'Not provided'}
     
-    // Reset rate limit info on successful request
-    rateLimitInfo.failedRequests = 0;
-    if (modelToUse === requestedModel) {
-      rateLimitInfo.fallbackMode = false;
-    }
+    Education:
+    ${profileData.education?.map(edu => `- ${edu}`).join('\\n') || 'Not provided'}
     
-    const response = await result.response;
-    const text = response.text();
+    Languages: ${profileData.languages?.join(', ') || 'Not provided'}
+    Interests: ${profileData.interests?.join(', ') || 'Not provided'}
+    University: ${profileData.university || 'Not provided'}
+    Graduation Year: ${profileData.graduationYear || 'Not provided'}
+    LinkedIn: ${profileData.linkedIn || 'Not provided'}
+  `;
 
-    // Validate the generated HTML
-    if (!text || !text.includes('<div') || !text.includes('</div>') || text.length < 500) {
-      throw new Error('Generated HTML is invalid or incomplete');
-    }
-    
-    // Store in cache
-    resumeCache.set(cacheKey, {
-      html: text, 
-      timestamp: Date.now()
-    });
-
-    return {
-      success: true,
-      data: text,
-      model: modelToUse
-    };
-
-  } catch (error: any) {
-    console.error('Error generating resume:', error);
-
-    // Check for rate limit error
-    if (error.message?.includes('429') || 
-        error.message?.includes('quota') || 
-        error.message?.toLowerCase().includes('rate limit')) {
-      
-      rateLimitInfo.lastErrorTime = Date.now();
-      rateLimitInfo.failedRequests += 1;
-      rateLimitInfo.fallbackMode = true;
-      
-      // If using pro model, try fallback model
-      if (requestedModel === 'gemini-1.5-pro') {
-        console.log('Switching to gemini-1.5-flash due to rate limit...');
+  // Style-specific prompts with different visual directions
+  switch (style) {
+    case 'standard':
+      return `
+        Create a beautiful, clean, professional HTML resume using Tailwind CSS classes.
         
-        try {
-          // Automatically retry with fallback model
-          return await generateResume(profileData, 'gemini-1.5-flash');
-        } catch (fallbackError) {
-          console.error('Error with fallback model:', fallbackError);
-          return { 
-            success: false, 
-            error: 'Превышен лимит запросов к AI. Пожалуйста, попробуйте позже.' 
-          };
+        PROFILE DATA:
+        ${basicInfo}
+        
+        DESIGN REQUIREMENTS:
+        1. Create a simple, traditional resume layout that's easy to scan and print
+        2. Use a clean white background with subtle gray accents and light blue highlights (#e0f2fe)
+        3. Use a professional sans-serif font (font-sans) with clear hierarchy
+        4. Create a distinct header with name, title, contact info, and a small border or underline separator
+        5. Organize content in a single column with clear section headers that stand out
+        6. Use navy blue (#1e3a8a) for section headers and accents with subtle transitions
+        7. Include these sections in order: Summary, Experience, Skills, Education, Languages
+        8. For skills, create a visually appealing grid of skill tags with subtle backgrounds
+        9. For experience and education, create a timeline style with dates clearly aligned
+        10. Add subtle spacing, padding and dividers between sections for excellent readability
+        11. Include subtle hover effects on interactive elements
+        12. Ensure excellent typography with proper line heights, letter spacing and font weights
+        
+        SPECIFIC STYLING DETAILS:
+        - Header: Large name (text-3xl), position underneath (text-xl), contact info with icons
+        - Section titles: text-xl font-semibold text-blue-800 with bottom border
+        - Skills: flex flex-wrap with gap-2, each skill as rounded-lg bg-blue-50 px-3 py-1
+        - Experience: Each job with position (font-semibold), company/dates (text-gray-600)
+        - Add subtle rounded corners (rounded-md) and gentle shadows (shadow-sm) to containers
+        
+        OUTPUT:
+        Create only the HTML with Tailwind CSS classes - no external CSS. Make it look polished and professional, like it was designed by a professional resume designer. Focus on excellent typography, spacing, and visual hierarchy.
+      `;
+    
+    case 'professional':
+      return `
+        Create a sophisticated, executive-level HTML resume using Tailwind CSS classes.
+        
+        PROFILE DATA:
+        ${basicInfo}
+        
+        DESIGN REQUIREMENTS:
+        1. Create an elegant, premium resume design suited for senior professionals and executives
+        2. Use a sophisticated color scheme with deep navy (#0f172a), gold accents (#ca8a04), and slate gray (#475569)
+        3. Implement a two-column layout with left sidebar (~30% width) for contact info and skills
+        4. Use elegant typography with serif fonts for headings (font-serif) and sans-serif for body text
+        5. Create a distinctive header with the person's name prominently displayed with perfect spacing
+        6. Add subtle shadows (shadow-md), refined borders and premium visual effects
+        7. Include professional icons for contact information and section headings
+        8. Create visually distinctive skills section with elegant proficiency indicators (bars or dots)
+        9. Use refined decorative elements to separate sections (gradient lines, subtle patterns)
+        10. If photo available, incorporate a professional square photo with subtle border
+        11. Add gold accents for key achievements or statistics (numbers, percentages)
+        12. Create an executive summary section that stands out visually
+        
+        SPECIFIC STYLING DETAILS:
+        - Header: Elegant spacing with name (text-4xl font-serif font-bold) and position underneath
+        - Left sidebar: bg-slate-50 with contact info at top, skills and languages below
+        - Skills: Each with elegant proficiency bar using gold gradient
+        - Main column: Experience and education with refined spacing and typography
+        - Company names: font-semibold text-navy-900
+        - Dates: text-sm text-gold-600 font-medium
+        - Section dividers: h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent
+        
+        OUTPUT:
+        Create only the HTML with Tailwind CSS classes - no external CSS. Focus on creating a resume that conveys authority, experience, and executive presence. The design should feel premium and refined, like it was created by a high-end design agency.
+      `;
+    
+    case 'academic':
+      return `
+        Create a formal academic CV/resume using Tailwind CSS classes.
+        
+        PROFILE DATA:
+        ${basicInfo}
+        
+        DESIGN REQUIREMENTS:
+        1. Create a scholarly CV suitable for academic positions, research roles, and higher education
+        2. Use a formal layout with traditional styling and excellent information hierarchy
+        3. Implement serif fonts (font-serif) for headings and sans-serif for body with optimal readability
+        4. Use a conservative color scheme with dark green accents (#166534) and ivory background (#fffef0)
+        5. Focus on detailed presentation of education, research, and academic achievements
+        6. Create clear hierarchical sections with formal headings and appropriate spacing
+        7. Emphasize education details, research interests, and academic publications
+        8. Use a structured, formal layout with minimal but effective decorative elements
+        9. Include dedicated sections for publications, research interests, and teaching experience
+        10. Format languages with clear proficiency levels in a visually organized manner
+        11. Use traditional academic styling with attention to proper citation formatting
+        12. Include a formal header with complete contact information and institutional affiliation
+        
+        SPECIFIC STYLING DETAILS:
+        - Header: Centered design with name (text-3xl font-serif) and academic position
+        - Section headings: text-green-800 font-serif font-semibold text-xl uppercase tracking-wide
+        - Education: Detailed format with degree, institution, date and honors clearly distinguished
+        - Publications: Formatted in an academic citation style with proper indentation
+        - Skills: Organized by category (Research Methods, Technical Skills, etc.)
+        - Experience: Chronological with emphasis on academic and research positions
+        - Add subtle parchment-like background to main content (bg-amber-50)
+        
+        OUTPUT:
+        Create only the HTML with Tailwind CSS classes - no external CSS. The design should look scholarly and traditional with emphasis on academic credentials and accomplishments. The final result should be suitable for academic job applications and grant proposals.
+      `;
+    
+    case 'modern':
+    default:
+      return `
+        Create a visually stunning and creative HTML resume using Tailwind CSS.
+        
+        PROFILE DATA:
+        ${basicInfo}
+        
+        DESIGN REQUIREMENTS:
+        1. Create a visually impressive, contemporary resume design with excellent visual appeal
+        2. Use a vibrant gradient color scheme with purples (#8B5CF6), blues (#3B82F6), and accent colors
+        3. Implement creative layout with cards, grid patterns, and modern UI components
+        4. Use animation-friendly structure (compatible with CSS transitions and transforms)
+        5. Add decorative elements like dot patterns, subtle polygons, or geometric accents
+        6. Create visually distinctive skills section with modern badges or tags and visual skill levels
+        7. Include modern icons for contact info and section headings (using SVG or emoji)
+        8. Add creative timeline elements for experience history with visual connectors
+        9. Use generous white space and asymmetrical layouts for visual interest
+        10. Add layered elements with shadows, rounded corners, and overlapping components
+        11. Include an eye-catching header area with modern typography and gradient backgrounds
+        12. Incorporate a circular profile photo with decorative border or overlay effects
+        13. Use micro-interactions and hover effects that enhance the experience
+        
+        SPECIFIC STYLING DETAILS:
+        - Background: Subtle gradient or pattern (bg-gradient-to-br from-purple-50 to-blue-50)
+        - Header: Asymmetric design with bold name (text-4xl font-bold) and gradient accents
+        - Profile image: rounded-full with border or glow effect (ring-2 ring-purple-500/50)
+        - Contact info: Horizontal list with icons and hover effects
+        - Skills: Interactive tags with gradient backgrounds and visual skill levels
+          (bg-gradient-to-r from-indigo-500 to-purple-500)
+        - Experience: Card-based timeline with shadow-lg rounded-xl and connector elements
+        - Section headings: Gradient text (text-transparent bg-clip-text bg-gradient-to-r)
+        - Add decorative floating shapes in background using absolute positioning
+        
+        OUTPUT:
+        Create only the HTML with Tailwind CSS classes - no external CSS. Focus on creating a resume that feels contemporary, visually exciting, and creatively designed while maintaining professional appearance. The final result should look like it was created by a UI/UX design specialist with attention to both aesthetics and usability.
+      `;
+  }
+}
+
+export async function generateResume(
+  profileData: ProfileData,
+  model: string = AVAILABLE_MODELS[0],
+  style: string = 'modern'
+): Promise<ResumeGenerationResult> {
+  try {
+    // Validate the requested model is in our list
+    const selectedModel = AVAILABLE_MODELS.includes(model) ? model : AVAILABLE_MODELS[0];
+    
+    // Use the same API key variable as defined at the top of the file
+    const apiKey = API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('API key for Gemini is missing');
+    }
+    
+    // Construct the API endpoint
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+    
+    // Get a style-specific prompt for better results
+    const prompt = createStylePrompt(profileData, style || 'modern');
+    
+    // Configuration for API request
+    const requestConfig = {
+      contents: [
+        {
+          parts: [
+            { text: prompt }
+          ]
+        }
+      ],
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }
+      ],
+      // Adjust generation parameters for better creativity
+      generationConfig: {
+        temperature: 0.7, // Higher temperature for more creativity
+        maxOutputTokens: 4096, // Limit output size
+        topP: 0.95,  // Increased for more variety
+        topK: 40
+      }
+    };
+    
+    // Try-catch for the main API request
+    try {
+      console.log(`Attempting to generate resume using model: ${selectedModel} with style: ${style}`);
+      
+      // Make the API request
+      const response = await axios.post(apiUrl, requestConfig);
+      
+      // Extract the generated text from the response
+      const responseData = response.data;
+      
+      if (
+        responseData &&
+        responseData.candidates &&
+        responseData.candidates[0] &&
+        responseData.candidates[0].content &&
+        responseData.candidates[0].content.parts &&
+        responseData.candidates[0].content.parts[0] &&
+        responseData.candidates[0].content.parts[0].text
+      ) {
+        // Extract and clean HTML content
+        let html = responseData.candidates[0].content.parts[0].text;
+        
+        // Remove any markdown code block indicators if present
+        html = html.replace(/```html/g, '').replace(/```/g, '').trim();
+        
+        // Reset rate limit counters since we succeeded
+        rateLimitInfo.failedRequests = 0;
+        rateLimitInfo.fallbackMode = false;
+        
+        return { html };
+      } else {
+        throw new Error('Invalid response format from Gemini API');
+      }
+    } catch (apiError: any) {
+      console.error('Error with model:', selectedModel, apiError);
+      
+      // Get the next fallback model
+      const nextModel = getNextFallbackModel(selectedModel);
+      
+      // If we have a next model to try and it's not a non-recoverable error
+      if (nextModel) {
+        // Handle rate limiting (429) or other errors that might benefit from retrying
+        if (apiError.response && (apiError.response.status === 429 || apiError.response.status === 404)) {
+          // Update rate limit tracking
+          rateLimitInfo.lastErrorTime = Date.now();
+          rateLimitInfo.failedRequests += 1;
+          rateLimitInfo.fallbackMode = true;
+          
+          // Try with fallback model
+          console.log(`Trying fallback model: ${nextModel}`);
+          
+          // Implement exponential backoff with delay
+          const backoffTime = Math.min(1000 * Math.pow(2, rateLimitInfo.failedRequests), 8000);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+          
+          // Retry with the fallback model and the same style
+          return generateResume(profileData, nextModel, style);
         }
       }
       
-      return { 
-        success: false, 
-        error: 'Превышен лимит запросов к AI. Пожалуйста, попробуйте позже.',
-        rateLimited: true
-      };
+      // If we're out of fallbacks or it's another kind of error, rethrow
+      if (apiError.response && apiError.response.status === 429) {
+        throw new Error('Превышен лимит запросов к AI. Пожалуйста, попробуйте позже.');
+      } else if (apiError.response && apiError.response.status === 404) {
+        throw new Error('Модель AI временно недоступна. Пожалуйста, попробуйте позже.');
+      }
+      
+      // For other errors, rethrow
+      throw apiError;
     }
-
-    return { 
-      success: false, 
-      error: error instanceof Error 
-        ? error.message 
-        : 'Ошибка генерации резюме.' 
+  } catch (error: any) {
+    console.error('Error generating resume:', error);
+    
+    // Return a more specific error message
+    return {
+      html: '',
+      error: error.message || 'Failed to generate resume'
     };
   }
 } 

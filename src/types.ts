@@ -115,6 +115,44 @@ export interface UserData {
   field?: string;
   age?: number;
   resumes?: any[]; // Collection of generated resumes
+  resume?: {
+    generatedHtml?: string;
+    lastGenerated?: string;
+    template?: string;
+    languages?: string[];
+    certifications?: string[];
+    interests?: string[];
+  };
+  // New fields for JWT compatibility
+  picture?: string;
+  nickname?: string;
+  sub?: string;
+  updated_at?: string;
+  email_verified?: boolean;
+  family_name?: string;
+  given_name?: string;
+  locale?: string;
+  address?: string;
+  phone_number?: string;
+  faculty?: string;
+  specialty?: string;
+  connections?: string[];
+  resumeUrl?: string;
+  savedMentors?: string[];
+  lastSeen?: string;
+  isOnline?: boolean;
+  pushToken?: string;
+  preferences?: {
+    darkMode?: boolean;
+    emailNotifications?: boolean;
+    pushNotifications?: boolean;
+    language?: string;
+    timezone?: string;
+    colorScheme?: string;
+  };
+  certifications?: string[];
+  projects?: string[];
+  degree?: string;
 }
 
 export interface Filters {
