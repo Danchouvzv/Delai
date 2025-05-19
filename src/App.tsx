@@ -21,7 +21,9 @@ import ChatList from './components/ChatList';
 import CreatePost from './components/CreatePost';
 import { initializeTheme } from './utils/theme';
 import MinimalJobsList from './components/MinimalJobsList';
-import UserProfile from './pages/Profile';
+import { default as UserProfile } from './pages/Profile';
+import EmployerDashboard from './pages/EmployerDashboard';
+import Subscription from './pages/Subscription';
 
 // Initialize theme as early as possible
 initializeTheme();
@@ -109,20 +111,22 @@ const App: React.FC = () => {
                 path="/profile" 
                 element={
                   <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Маршрут для просмотра профиля пользователя по ID */}
-              <Route 
-                path="/profile/:userId" 
-                element={
-                  <ProtectedRoute>
                     <UserProfile />
                   </ProtectedRoute>
                 }
               />
+
+              {/* Маршрут для дашборда работодателя */}
+              <Route 
+                path="/employer/dashboard" 
+                element={
+                  <ProtectedRoute allowedRoles={['employer', 'business']}>
+                    <EmployerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route path="/subscription" element={<Subscription />} />
               
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
