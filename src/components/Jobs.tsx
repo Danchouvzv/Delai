@@ -5,6 +5,26 @@ import { db, auth } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Post } from '../types';
 import CreateChat from './CreateChat';
+import { motion } from 'framer-motion';
+
+// Custom icon components to replace MUI dependency
+const BookmarkIcon = () => (
+  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+  </svg>
+);
+
+const BookmarkBorderIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+  </svg>
+);
+
+const LocationOnIcon = () => (
+  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+  </svg>
+);
 
 // Demo employer ID that will be used for all demo jobs
 const DEMO_EMPLOYER_ID = 'demo-employer-official';
@@ -169,7 +189,7 @@ class JobsErrorBoundary extends Component<{children: React.ReactNode}, {hasError
             <div className="flex justify-center">
               <button 
                 onClick={() => window.location.reload()} 
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
               >
                 Попробовать снова
               </button>
@@ -314,6 +334,225 @@ const ensurePostType = (post: any): Post => {
   };
 };
 
+// Update the Job component design and layout
+const Job = ({
+  job,
+  isSaved,
+  onSave,
+  onApply,
+  onContact
+}: {
+  job: Post;
+  isSaved: boolean;
+  onSave: (job: Post) => void;
+  onApply: (job: Post) => void;
+  onContact: (job: Post) => void;
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+    >
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <Link 
+              to={`/jobs/${job.id}`} 
+              className="text-xl font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              {job.title}
+            </Link>
+          </div>
+          <button
+            onClick={() => onSave(job)}
+            className={`ml-2 p-2 rounded-full transition-colors ${
+              isSaved 
+                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300' 
+                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+            aria-label={isSaved ? "Удалить из сохраненных" : "Сохранить вакансию"}
+          >
+            {isSaved ? (
+              <BookmarkIcon />
+            ) : (
+              <BookmarkBorderIcon />
+            )}
+          </button>
+        </div>
+        
+        <div className="flex items-center mb-4">
+          <div className="w-10 h-10 flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-full mr-3 overflow-hidden flex-shrink-0">
+            {job.companyLogo ? (
+              <img src={job.companyLogo} alt={`${job.companyName} logo`} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-blue-600 dark:text-blue-300 font-bold">
+                {(job.companyName || 'C').charAt(0)}
+              </span>
+            )}
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">{job.companyName || 'Компания'}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+              <LocationOnIcon />
+              {job.location}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 rounded-full">
+            {job.employmentType}
+          </span>
+          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded-full">
+            {job.experience || 'Опыт не указан'}
+          </span>
+          {job.salary && (
+            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 rounded-full">
+              {job.salary}
+            </span>
+          )}
+        </div>
+        
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+          {job.description}
+        </p>
+        
+        <div className="flex justify-between items-center pt-3 border-t border-gray-100 dark:border-gray-700">
+          <Link 
+            to={`/jobs/${job.id}`} 
+            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            Подробнее
+          </Link>
+          
+          <div className="flex space-x-2">
+            <button
+              onClick={() => onContact(job)}
+              className="text-sm px-3 py-1 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Связаться
+            </button>
+            <button
+              onClick={() => onApply(job)}
+              className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Откликнуться
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Create a modern filter component
+const FilterSection = ({ filter, setFilter, locations, employmentTypes, experienceLevels, onApplyFilters }: {
+  filter: {
+    search?: string;
+    location: string;
+    employmentType: string;
+    experience: string;
+  },
+  setFilter: (filter: {
+    search?: string;
+    location: string;
+    employmentType: string;
+    experience: string;
+  }) => void,
+  locations: string[],
+  employmentTypes: string[],
+  experienceLevels: string[],
+  onApplyFilters: () => void
+}) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5 mb-6"
+    >
+      <div className="mb-5">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
+          <svg className="w-5 h-5 mr-2 text-primary dark:text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          Фильтры поиска
+        </h3>
+        <input
+          type="text"
+          placeholder="Поиск по должности или компании..."
+          value={filter.search || ''}
+          onChange={e => setFilter({ ...filter, search: e.target.value })}
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Локация</label>
+          <select
+            value={filter.location || ''}
+            onChange={e => setFilter({ ...filter, location: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Все локации</option>
+            {locations.map(location => (
+              <option key={location} value={location}>{location}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Тип занятости</label>
+          <select
+            value={filter.employmentType || ''}
+            onChange={e => setFilter({ ...filter, employmentType: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Все типы</option>
+            {employmentTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Опыт</label>
+          <select
+            value={filter.experience || ''}
+            onChange={e => setFilter({ ...filter, experience: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Любой опыт</option>
+            {experienceLevels.map(level => (
+              <option key={level} value={level}>{level}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <div className="flex justify-end">
+        <button
+          onClick={() => setFilter({ search: '', location: '', employmentType: '', experience: '' })}
+          className="px-4 py-2 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg mr-2 text-sm transition-colors"
+        >
+          Сбросить
+        </button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onApplyFilters}
+          className="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-dark shadow-sm transition-colors"
+        >
+          Применить фильтры
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+};
+
 const Jobs = () => {
   console.log("💥 JOBS COMPONENT FUNCTION BODY EXECUTING 💥");
   
@@ -334,10 +573,12 @@ const Jobs = () => {
     const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState<{
+      search?: string;
       location: string;
       employmentType: string;
       experience: string;
     }>({
+      search: '',
       location: '',
       employmentType: '',
       experience: ''
@@ -346,6 +587,11 @@ const Jobs = () => {
 
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    // Add these at the appropriate location in the Jobs component
+    const [showContactModal, setShowContactModal] = useState(false);
+    const [showChatModal, setShowChatModal] = useState(false);
+    const [selectedJob, setSelectedJob] = useState<Post | null>(null);
 
     // Функция для принудительного обновления
     const forceUpdate = useCallback(() => {
@@ -435,11 +681,12 @@ const Jobs = () => {
               
               // ИЗМЕНЕНИЕ 2: Фильтруем программно, чтобы видеть какие посты есть, но не проходят фильтр
               const jobsData = allPosts.filter(post => {
-                // Включаем вакансии с type = 'job' или без указания типа (для обратной совместимости)
-                const postType = post.type;
+                // Ensure the post has all required properties to be of type Post
+                // Safely check if the post has a type property
+                const postType = (post as any).type;
                 console.log(`Post ${post.id} has type: ${postType}`);
                 return postType === 'job' || postType === undefined || postType === null;
-              }).map(post => ensurePostType(post)); // Используем функцию для обеспечения правильной типизации
+              }).map(post => ensurePostType(post)); // Use function to ensure proper typing
               
               console.log("Filtered job posts:", jobsData.length);
               
@@ -556,7 +803,6 @@ const Jobs = () => {
           const matchLocation = !filter.location || job?.location === filter.location;
           const matchType = !filter.employmentType || job?.employmentType === filter.employmentType;
           const matchExperience = !filter.experience || 
-                                job?.experienceLevel === filter.experience ||
                                 job?.experience === filter.experience;
 
           return matchSearch && matchLocation && matchType && matchExperience;
@@ -598,200 +844,279 @@ const Jobs = () => {
       }
     };
 
+    // Handle contact employer action
+    const handleContactEmployer = (job: Post) => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      
+      setSelectedJob(job);
+      setShowContactModal(true);
+    };
+
+    // Add these functions within the Jobs component
+    const handleSaveJob = (job: Post) => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      
+      if (savedJobIds.includes(job.id)) {
+        setSavedJobIds(savedJobIds.filter(id => id !== job.id));
+      } else {
+        setSavedJobIds([...savedJobIds, job.id]);
+      }
+    };
+    
+    const handleApplyForJob = (job: Post) => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      
+      setSelectedJob(job);
+      setShowChatModal(true);
+    };
+
     // The main render
     return (
-      <div className="relative min-h-screen bg-gray-50 dark:bg-dark overflow-hidden pt-16">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-pulse"></div>
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] dark:opacity-[0.05] pointer-events-none"></div>
-        <div className="absolute top-40 right-[10%] w-64 h-64 bg-primary/5 rounded-full filter blur-3xl animate-pulse opacity-70 dark:opacity-10"></div>
-        <div className="absolute bottom-40 left-[5%] w-64 h-64 bg-accent/5 rounded-full filter blur-3xl animate-pulse opacity-70 dark:opacity-10"></div>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 pt-20 pb-12">
+        {/* Декоративные элементы */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500"></div>
+        <div className="absolute top-40 right-[10%] w-64 h-64 bg-purple-300/10 rounded-full filter blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-[5%] w-64 h-64 bg-blue-300/10 rounded-full filter blur-3xl animate-pulse"></div>
         
-        {/* Error message banner if needed */}
-        {error && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-8"
+          >
+            <div className="inline-block mb-4 p-2 bg-white/30 dark:bg-white/5 backdrop-blur-sm rounded-full">
+              <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-3 rounded-full">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <p className="text-yellow-700 dark:text-yellow-200">{error}</p>
               </div>
-              <button
-                onClick={handleRetryFetch}
-                className="ml-4 px-3 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Повторить попытку
-              </button>
             </div>
-          </div>
-        )}
-        
-        {/* Loading state */}
-        {loading ? (
-          <div className="min-h-screen bg-gray-50 dark:bg-dark flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary dark:border-accent mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-300">Загрузка вакансий...</p>
-            </div>
-          </div>
-        ) : (
-          /* Main content */
-          <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 animate-fadeInUp">
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl text-center">
-              <span className="block text-primary dark:text-accent">Вакансии</span>
-              <span className="block text-2xl font-medium mt-2 text-gray-500 dark:text-gray-400">
-                Найдите работу своей мечты
-              </span>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Найдите свою идеальную работу
             </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Просматривайте последние вакансии от ведущих компаний и фильтруйте их согласно вашим предпочтениям
+            </p>
+          </motion.div>
 
-            {/* Search and filters */}
-            <div className="mt-12 bg-white dark:bg-gray-800 shadow-xl rounded-xl p-6">
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Поиск по ключевым словам..."
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-primary dark:focus:ring-accent focus:border-primary dark:focus:border-accent"
-                  />
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Left sidebar */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-24">
+                <FilterSection 
+                  filter={filter}
+                  setFilter={setFilter}
+                  locations={Array.from(new Set(jobs?.map(job => job.location) || []))}
+                  employmentTypes={Array.from(new Set(jobs?.map(job => job.employmentType) || []))}
+                  experienceLevels={Array.from(new Set(jobs?.map(job => job.experience || job.experienceLevel || '')
+                    .filter(Boolean)))
+                  }
+                  onApplyFilters={() => {
+                    console.log("Applying filters:", filter);
+                    // The actual filtering happens in the useEffect
+                  }}
+                />
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto">
-                  <select
-                    value={filter.location}
-                    onChange={(e) => setFilter({...filter, location: e.target.value})}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Все города</option>
-                    <option value="Алматы">Алматы</option>
-                    <option value="Астана">Астана</option>
-                    <option value="Шымкент">Шымкент</option>
-                    <option value="Караганда">Караганда</option>
-                    <option value="Удаленно">Удаленно</option>
-                  </select>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-6 text-white shadow-xl relative overflow-hidden"
+                >
+                  <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full"></div>
+                  <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full"></div>
                   
-                  <select
-                    value={filter.employmentType}
-                    onChange={(e) => setFilter({...filter, employmentType: e.target.value})}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Тип занятости</option>
-                    <option value="Полная">Полная</option>
-                    <option value="Частичная">Частичная</option>
-                    <option value="Проектная">Проектная</option>
-                    <option value="Стажировка">Стажировка</option>
-                  </select>
+                  <h3 className="text-lg font-bold mb-4 relative">Не нашли подходящую вакансию?</h3>
+                  <p className="text-white/90 text-sm mb-4 relative">
+                    Загрузите свое резюме, и мы поможем вам найти идеальную работу.
+                  </p>
                   
-                  <select
-                    value={filter.experience}
-                    onChange={(e) => setFilter({...filter, experience: e.target.value})}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg relative"
                   >
-                    <option value="">Опыт работы</option>
-                    <option value="Без опыта">Без опыта</option>
-                    <option value="1-3 года">1-3 года</option>
-                    <option value="3-5 лет">3-5 лет</option>
-                    <option value="5+ лет">5+ лет</option>
-                  </select>
-                </div>
+                    Загрузить резюме
+                  </motion.button>
+                </motion.div>
               </div>
+            </div>
 
-              {/* Job listings */}
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredJobs.length > 0 ? (
-                  filteredJobs.map(job => (
-                    <div key={job.id} className="py-6">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between">
-                        <div>
-                          <Link to={`/jobs/${job.id}`} className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary dark:hover:text-accent">
-                            {job.title}
-                          </Link>
-                          <div className="mt-1 flex flex-wrap gap-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
-                              {job.location}
-                            </span>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100">
-                              {job.employmentType}
-                            </span>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                              {job.experience}
-                            </span>
-                            {job.salary && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
-                                {job.salary}
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                            {job.description}
-                          </p>
-                        </div>
-
-                        <div className="mt-4 md:mt-0 flex items-center space-x-3">
-                          <button
-                            onClick={() => toggleSaveJob(job.id)}
-                            className={`flex items-center justify-center w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                              savedJobIds.includes(job.id)
-                                ? 'text-red-600 bg-red-50 hover:bg-red-100 focus:ring-red-500 dark:bg-red-900/20 dark:hover:bg-red-800/30 dark:text-red-400'
-                                : 'text-gray-400 bg-gray-100 hover:bg-gray-200 focus:ring-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300'
-                            }`}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={savedJobIds.includes(job.id) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                          </button>
-                          
-                          {job.userId && (
-                            <CreateChat
-                              recipientId={job.userId}
-                              postId={job.id}
-                              postTitle={job.title || 'Вакансия'}
-                              initiateButtonText="Откликнуться"
-                              buttonClassName="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark dark:bg-accent dark:hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-accent"
-                            />
-                          )}
-                        </div>
-                      </div>
+            {/* Main content */}
+            <div className="lg:col-span-3">
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="loader">
+                    <div className="relative w-24 h-24">
+                      <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+                      <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-t-primary dark:border-t-accent animate-spin"></div>
                     </div>
-                  ))
-                ) : (
-                  <div className="py-12 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <p className="mt-4 text-gray-600 dark:text-gray-300">Загрузка вакансий...</p>
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Ошибка загрузки</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+                  <button
+                    onClick={handleRetryFetch}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                  >
+                    Попробовать снова
+                  </button>
+                </div>
+              ) : filteredJobs.length === 0 ? (
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 text-center">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <svg className="w-10 h-10 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Вакансии не найдены</h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Попробуйте изменить параметры поиска или сбросить фильтры.
-                    </p>
-                    <div className="mt-6">
-                      <button
-                        onClick={() => {
-                          setSearch('');
-                          setFilter({
-                            location: '',
-                            employmentType: '',
-                            experience: ''
-                          });
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Вакансии не найдены</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    К сожалению, по вашему запросу ничего не найдено. Попробуйте изменить параметры поиска или сбросить фильтры.
+                  </p>
+                  <button
+                    onClick={() => setFilter({ search: '', location: '', employmentType: '', experience: '' })}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                  >
+                    Сбросить фильтры
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Найдено {filteredJobs.length} вакансий
+                    </h2>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-300 mr-2">Сортировать по:</span>
+                      <select
+                        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        onChange={(e) => {
+                          // Here we would implement sorting logic
+                          console.log("Sort by:", e.target.value);
                         }}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary dark:text-accent bg-primary/10 dark:bg-accent/10 hover:bg-primary/20 dark:hover:bg-accent/20"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Сбросить все фильтры
-                      </button>
+                        <option value="newest">Новые</option>
+                        <option value="relevance">По релевантности</option>
+                        <option value="salaryDesc">Зарплата (выс-низ)</option>
+                        <option value="salaryAsc">Зарплата (низ-выс)</option>
+                      </select>
                     </div>
                   </div>
-                )}
-              </div>
+                  
+                  <div className="grid gap-6">
+                    {filteredJobs.map((job) => (
+                      <Job 
+                        key={job.id} 
+                        job={job} 
+                        isSaved={savedJobIds.includes(job.id)}
+                        onSave={handleSaveJob}
+                        onApply={handleApplyForJob}
+                        onContact={handleContactEmployer}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
-          </main>
+          </div>
+        </div>
+        
+        {showContactModal && selectedJob && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4"
+            >
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Связаться с {selectedJob.companyName}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Вы собираетесь откликнуться на вакансию "{selectedJob.title}". 
+                Вы хотите отправить сообщение работодателю?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setShowContactModal(false)}
+                  className="px-4 py-2 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                >
+                  Отмена
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowContactModal(false);
+                    setShowChatModal(true);
+                  }}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                >
+                  Отправить сообщение
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
+        
+        {showChatModal && selectedJob && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4"
+            >
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Отправить сообщение</h3>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  Вакансия: {selectedJob.title}
+                </p>
+              </div>
+              
+              <CreateChat 
+                recipientId={selectedJob.userId || ''}
+              />
+              
+              <div className="mt-4 flex justify-end">
+                <button 
+                  onClick={() => setShowChatModal(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Закрыть
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        
+        {/* Contact and Application Modals */}
+        <ContactEmployerModal 
+          isOpen={showContactModal} 
+          onClose={() => setShowContactModal(false)} 
+          job={selectedJob} 
+        />
+        <CreateChatModal 
+          isOpen={showChatModal} 
+          onClose={() => setShowChatModal(false)} 
+          job={selectedJob} 
+        />
       </div>
     );
   } catch (error) {
@@ -816,4 +1141,188 @@ export default function JobsWithErrorBoundary() {
     // Return an absolute minimal component
     return createMinimalJobsList();
   }
+};
+
+// Add these components below the Jobs component
+
+const ContactEmployerModal = ({ 
+  isOpen, 
+  onClose, 
+  job 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  job: Post | null;
+}) => {
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  
+  const handleSend = () => {
+    if (!message.trim() || !job) return;
+    
+    setSending(true);
+    // Simulate sending - replace with actual API call
+    setTimeout(() => {
+      setSending(false);
+      setSent(true);
+      setTimeout(() => {
+        onClose();
+        setMessage('');
+        setSent(false);
+      }, 1500);
+    }, 1000);
+  };
+  
+  if (!isOpen || !job) return null;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-xl"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Связаться с работодателем</h3>
+        <p className="mb-2 text-gray-700 dark:text-gray-300">Вакансия: {job.title}</p>
+        <p className="mb-4 text-gray-700 dark:text-gray-300">Компания: {job.companyName}</p>
+        
+        {sent ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-green-600 mb-4 p-3 bg-green-50 dark:bg-green-900 dark:text-green-300 rounded-md"
+          >
+            Сообщение успешно отправлено!
+          </motion.div>
+        ) : (
+          <textarea
+            className="w-full p-3 mb-4 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            rows={4}
+            placeholder="Введите ваше сообщение для работодателя..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        )}
+        
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+            onClick={onClose}
+            disabled={sending}
+          >
+            Отмена
+          </button>
+          {!sent && (
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              onClick={handleSend}
+              disabled={!message.trim() || sending}
+            >
+              {sending ? 'Отправка...' : 'Отправить'}
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const CreateChatModal = ({ 
+  isOpen, 
+  onClose, 
+  job 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  job: Post | null;
+}) => {
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  
+  const handleSend = () => {
+    if (!message.trim() || !job) return;
+    
+    setSending(true);
+    // Simulate sending - replace with actual API call
+    setTimeout(() => {
+      setSending(false);
+      setSent(true);
+      setTimeout(() => {
+        onClose();
+        setMessage('');
+        setSent(false);
+      }, 1500);
+    }, 1000);
+  };
+  
+  if (!isOpen || !job) return null;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-xl"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Откликнуться на вакансию</h3>
+        <p className="mb-2 text-gray-700 dark:text-gray-300">Вакансия: {job.title}</p>
+        <p className="mb-4 text-gray-700 dark:text-gray-300">Компания: {job.companyName}</p>
+        
+        {sent ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-green-600 mb-4 p-3 bg-green-50 dark:bg-green-900 dark:text-green-300 rounded-md"
+          >
+            Отклик успешно отправлен! Работодатель свяжется с вами в ближайшее время.
+          </motion.div>
+        ) : (
+          <textarea
+            className="w-full p-3 mb-4 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            rows={4}
+            placeholder="Почему вы подходите на эту должность? (Сопроводительное письмо)"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        )}
+        
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+            onClick={onClose}
+            disabled={sending}
+          >
+            Отмена
+          </button>
+          {!sent && (
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              onClick={handleSend}
+              disabled={!message.trim() || sending}
+            >
+              {sending ? 'Отправка...' : 'Отправить отклик'}
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 }; 

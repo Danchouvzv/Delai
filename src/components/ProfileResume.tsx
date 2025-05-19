@@ -14,6 +14,25 @@ interface ProfileResumeProps {
   userId: string;
 }
 
+interface ProfileData {
+  displayName: string;
+  name: string;
+  email: string;
+  photoURL: string;
+  photo: string;
+  location: string;
+  bio: string;
+  skills: string[];
+  experience: string[];
+  education: string[];
+  languages: string[];
+  interests: string[];
+  position: string;
+  university: string;
+  graduationYear: string;
+  linkedIn: string;
+}
+
 const ProfileResume: React.FC<ProfileResumeProps> = ({ userData, userId }) => {
   const [resumeTemplate, setResumeTemplate] = useState<ResumeTemplate>('modern');
   const [isGeneratingResume, setIsGeneratingResume] = useState(false);
@@ -27,7 +46,7 @@ const ProfileResume: React.FC<ProfileResumeProps> = ({ userData, userId }) => {
   const handleGenerateAIResume = async () => {
     setError(null);
     // Define enhancedProfileData at the top level of the function so it's available in all blocks
-    const enhancedProfileData = {
+    const enhancedProfileData: ProfileData = {
       displayName: userData?.displayName || 'Пользователь',
       name: userData?.displayName || 'Пользователь', // Add name field for compatibility
       email: userData?.email || 'example@email.com',
@@ -35,17 +54,14 @@ const ProfileResume: React.FC<ProfileResumeProps> = ({ userData, userId }) => {
       photo: userData?.photoURL || 'https://placehold.co/150x150', // Add photo field for compatibility
       location: userData?.location || 'Казахстан',
       bio: userData?.bio || 'Информация не указана',
-      skills: userData?.skills?.length ? userData.skills : ['JavaScript', 'Python', 'React'],
+      // Process skills array to convert objects to strings if needed
+      skills: userData?.skills?.map(skill => typeof skill === 'string' ? skill : skill.name) || ['JavaScript', 'Python', 'React'],
       experience: Array.isArray(userData?.experience) 
-        ? userData.experience 
-        : typeof userData?.experience === 'string' 
-          ? [userData.experience] 
-          : [],
+        ? userData.experience.map(exp => typeof exp === 'string' ? exp : `${exp.title} в ${exp.company}`) 
+        : [],
       education: Array.isArray(userData?.education) 
-        ? userData.education 
-        : typeof userData?.education === 'string' 
-          ? [userData.education] 
-          : [],
+        ? userData.education.map(edu => typeof edu === 'string' ? edu : `${edu.degree} - ${edu.institution}`) 
+        : [],
       languages: userData?.resume?.languages?.length ? userData.resume.languages : ['Казахский', 'Русский', 'Английский'],
       interests: userData?.interests?.length ? userData.interests : [],
       position: userData?.position || 'Студент',
@@ -375,7 +391,7 @@ const ProfileResume: React.FC<ProfileResumeProps> = ({ userData, userId }) => {
       filename: `${userData?.displayName || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as 'portrait' | 'landscape' }
     };
     
     html2pdf().set(opt).from(element).save();

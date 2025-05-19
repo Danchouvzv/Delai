@@ -805,6 +805,18 @@ const Profile: React.FC = () => {
             </motion.div>
           </motion.div>
         )}
+
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Profile
+          </h1>
+          <Link
+            to="/profile/edit"
+            className="px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+          >
+            Edit Profile
+          </Link>
+        </div>
       </div>
     </div>
   );

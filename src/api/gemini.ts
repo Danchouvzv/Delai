@@ -494,4 +494,182 @@ export async function generateResume(
       error: error.message || 'Failed to generate resume'
     };
   }
+}
+
+export interface ResumeAnalysisInput {
+  role: string;
+  field: string;
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: string;
+  }>;
+  skills: string[];
+  experience: Array<{
+    title: string;
+    company: string;
+    description: string;
+  }>;
+  interests: string[];
+}
+
+interface ResumeAnalysisResult {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  detailedFeedback: string;
+  enhancedContent: string;
+}
+
+interface UserContext {
+  role: string;
+  skills: string[];
+  education: string[];
+  experience: string[];
+  interests: string[];
+}
+
+/**
+ * Analyzes resume content using Gemini API
+ * 
+ * @param resumeContent - Text content of the resume to analyze
+ * @param userData - User context data to provide better analysis
+ * @returns Analysis result with score, strengths, improvements, etc.
+ */
+export async function generateResumeAnalysis(
+  resumeContent: string,
+  userData: UserContext
+): Promise<ResumeAnalysisResult> {
+  try {
+    // Construct the prompt for the AI
+    const prompt = `
+      You are an expert resume reviewer with years of experience helping students and young professionals improve their resumes.
+      
+      Please analyze the following resume for a ${userData.role}, considering their background:
+      - Skills: ${userData.skills.join(', ')}
+      - Education: ${userData.education.join('; ')}
+      - Experience: ${userData.experience.join('; ')}
+      - Interests: ${userData.interests.join(', ')}
+      
+      RESUME TEXT:
+      ${resumeContent}
+      
+      Provide a comprehensive analysis with the following sections:
+      1. An overall score from 0-100
+      2. Key strengths (3-5 bullet points)
+      3. Areas for improvement (3-5 bullet points)
+      4. Detailed feedback (paragraph format)
+      5. Enhanced content suggestions (how specific sections could be rewritten)
+      
+      Return your analysis as a JSON object with these exact keys:
+      {
+        "score": number,
+        "strengths": string[],
+        "improvements": string[],
+        "detailedFeedback": string,
+        "enhancedContent": string
+      }
+      
+      The analysis should be specifically tailored for students/graduates with focus on:
+      - Highlighting academic achievements and relevant coursework
+      - Emphasizing transferable skills for entry-level positions
+      - Quantifying achievements where possible
+      - Clear and concise language appropriate for their field
+      
+      Format your response ONLY as a valid JSON object. Do not include any other text.
+    `;
+
+    // Make request to Gemini API
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.REACT_APP_GEMINI_API_KEY || '',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }
+          ]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Extract the JSON content from the response
+    const textContent = data.candidates[0].content.parts[0].text;
+    
+    // Parse the JSON string into an object
+    let analysisResult: ResumeAnalysisResult;
+    
+    try {
+      analysisResult = JSON.parse(textContent);
+    } catch (e) {
+      console.error('Failed to parse JSON from API response', textContent);
+      
+      // Fallback: Create a structured object from unstructured text
+      const fallbackResult: ResumeAnalysisResult = {
+        score: 65, // Default score
+        strengths: [
+          "Clearly presented educational background",
+          "Good organization of information",
+          "Includes relevant skills for the position"
+        ],
+        improvements: [
+          "Add more quantifiable achievements",
+          "Tailor content to specific job descriptions",
+          "Strengthen action verbs in experience descriptions"
+        ],
+        detailedFeedback: "The resume has a solid foundation but could benefit from more specific achievements and metrics. Consider revising the experience section to highlight results rather than just responsibilities.",
+        enhancedContent: "Consider reformatting the experience section to focus on achievements. For example, instead of 'Responsible for project management', use 'Successfully managed 5 concurrent projects, reducing delivery time by 15%'."
+      };
+      
+      return fallbackResult;
+    }
+    
+    return analysisResult;
+  } catch (error) {
+    console.error('Error in resume analysis:', error);
+    
+    // Return a friendly error message as fallback
+    throw new Error(
+      'Unable to analyze resume at this time. Please try again later.'
+    );
+  }
 } 

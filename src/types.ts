@@ -56,103 +56,179 @@ export interface AuthState {
 }
 
 export interface UserData {
-  id?: string; // Optional for backward compatibility
-  uid: string; // This is the primary identifier from Firebase
+  uid: string;
   email: string;
-  name?: string; // Optional for backward compatibility
   displayName: string;
-  role: 'student' | 'business';
-  grade?: number;
-  skills?: string[];
-  interests?: string[];
-  level?: number; // Make this optional with a default
-  xp?: number;
-  savedPosts?: string[];
-  education?: string;
-  experience?: string;
-  preferences?: {
-    location?: string;
-    salary?: string;
-    type?: string;
-  };
-  about?: string;
-  mode?: string;
-  resumeData?: {
-    education: string;
-    skills: string;
-    experience: string;
-    achievements: string;
-    languages: string[];
-    portfolio: string;
-  };
-  createdAt?: string;
-  premium?: boolean;
-  bio?: string;
-  location?: string;
-  phoneNumber?: string;
-  phone?: string;
-  website?: string;
-  company?: string;
-  position?: string;
-  yearsOfExperience?: number;
   photoURL?: string;
+  createdAt: string;
+  updatedAt: string;
+  role: 'student' | 'professional' | 'recruiter' | 'employer' | 'business';
+  
+  // Company Information (for employers)
+  companyName?: string;
+  industry?: string;
+  companySize?: string;
+  companyWebsite?: string;
+  
+  // Basic Information
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  location?: string;
+  birthDate?: string;
+  position?: string;
+  bio?: string;
+  interests?: string[];
   university?: string;
   graduationYear?: string;
-  major?: string;
-  gpa?: string;
-  industry?: string;
-  employeeCount?: string;
-  foundedYear?: string;
   linkedIn?: string;
-  companyDescription?: string;
-  points?: number;
-  totalXp?: number;
-  status?: string; // Онлайн, оффлайн, и т.д.
-  // Additional fields required by components
-  languages?: string[] | string;
-  achievements?: string[] | string;
-  portfolio?: string[] | string;
-  field?: string;
-  age?: number;
-  resumes?: any[]; // Collection of generated resumes
+  
+  // Student Specific Information
+  studentId?: string;
+  academicYear?: number;
+  gpa?: number;
+  major?: string;
+  minor?: string;
+  expectedGraduation?: string;
+  
+  // Academic Information
+  education: Array<{
+    degree: string;
+    field: string;
+    institution: string;
+    location: string;
+    startDate: string;
+    endDate?: string;
+    gpa?: number;
+    highlights?: string[];
+    relevantCourses?: string[];
+  }>;
+
+  // Skills & Competencies
+  skills: Array<{
+    name: string;
+    level: 'beginner' | 'intermediate' | 'advanced';
+    category: 'technical' | 'soft' | 'language' | 'other';
+  }>;
+  
+  // Academic Projects
+  projects: Array<{
+    name: string;
+    description: string;
+    technologies: string[];
+    role: string;
+    startDate: string;
+    endDate?: string;
+    url?: string;
+    repository?: string;
+    highlights: string[];
+  }>;
+
+  // Work Experience
+  experience: Array<{
+    title: string;
+    company: string;
+    location: string;
+    type: 'internship' | 'part-time' | 'full-time' | 'volunteer';
+    startDate: string;
+    endDate?: string;
+    current: boolean;
+    description: string;
+    achievements: string[];
+    technologies?: string[];
+  }>;
+
+  // Certifications & Achievements
+  certifications: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+    expiryDate?: string;
+    credentialId?: string;
+    url?: string;
+  }>;
+
+  achievements: Array<{
+    title: string;
+    date: string;
+    description: string;
+    issuer?: string;
+  }>;
+
+  // Extracurricular Activities
+  volunteerWork: Array<{
+    organization: string;
+    role: string;
+    startDate: string;
+    endDate?: string;
+    description: string;
+    achievements: string[];
+  }>;
+
+  // Languages
+  languages: Array<{
+    name: string;
+    proficiency: 'beginner' | 'intermediate' | 'advanced' | 'native';
+    certifications?: string[];
+  }>;
+
+  // Career Preferences
+  careerGoals: {
+    shortTerm: string[];
+    longTerm: string[];
+    preferredIndustries: string[];
+    preferredLocations: string[];
+  };
+
+  workPreferences: {
+    employmentTypes: Array<'internship' | 'part-time' | 'full-time'>;
+    remotePreference: 'onsite' | 'hybrid' | 'remote';
+    availableFrom?: string;
+    salaryExpectation?: {
+      minimum: number;
+      preferred: number;
+      currency: string;
+    };
+  };
+
+  // Resume Data
   resume?: {
     generatedHtml?: string;
     lastGenerated?: string;
-    template?: string;
+    template?: 'modern' | 'professional' | 'academic' | 'creative';
     languages?: string[];
-    certifications?: string[];
-    interests?: string[];
+    analysis?: {
+      score: number;
+      strengths: string[];
+      improvements: string[];
+      detailedFeedback: string;
+      enhancedContent: string;
+      lastAnalyzed: string;
+    };
   };
-  // New fields for JWT compatibility
-  picture?: string;
-  nickname?: string;
-  sub?: string;
-  updated_at?: string;
-  email_verified?: boolean;
-  family_name?: string;
-  given_name?: string;
-  locale?: string;
-  address?: string;
-  phone_number?: string;
-  faculty?: string;
-  specialty?: string;
-  connections?: string[];
-  resumeUrl?: string;
-  savedMentors?: string[];
-  lastSeen?: string;
-  isOnline?: boolean;
-  pushToken?: string;
-  preferences?: {
-    darkMode?: boolean;
-    emailNotifications?: boolean;
-    pushNotifications?: boolean;
-    language?: string;
-    timezone?: string;
-    colorScheme?: string;
+
+  // Social & Portfolio
+  socialLinks?: {
+    linkedin?: string;
+    github?: string;
+    portfolio?: string;
+    twitter?: string;
+    other?: string[];
   };
-  certifications?: string[];
-  projects?: string[];
-  degree?: string;
+
+  // Privacy Settings
+  privacySettings?: {
+    profileVisibility: 'public' | 'private' | 'recruiters';
+    showEmail: boolean;
+    showPhone: boolean;
+    showSalary: boolean;
+  };
+
+  // File Upload
+  avatarFile?: File;
+
+  // Add the experienceLevel property if it exists
+  experienceLevel?: string;
 }
 
 export interface Filters {

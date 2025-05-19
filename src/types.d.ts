@@ -7,29 +7,17 @@ declare module 'html2pdf.js' {
       type?: string;
       quality?: number;
     };
-    html2canvas?: {
-      scale?: number;
-      useCORS?: boolean;
-      [key: string]: any;
-    };
-    jsPDF?: {
-      unit?: string;
-      format?: string;
-      orientation?: 'portrait' | 'landscape';
-      [key: string]: any;
-    };
-    [key: string]: any;
+    html2canvas?: any;
+    jsPDF?: any;
   }
 
-  interface HTML2PDFResult {
-    save: () => Promise<void>;
-    from: (element: HTMLElement) => HTML2PDFResult;
-    set: (options: Options) => HTML2PDFResult;
-    outputPdf: () => any;
-    output: (type: string, options?: any) => any;
+  interface Html2Pdf {
+    from(element: HTMLElement): Html2Pdf;
+    set(options: Options): Html2Pdf;
+    save(): Promise<void>;
   }
 
-  const html2pdf: any;
+  function html2pdf(): Html2Pdf;
   export = html2pdf;
 }
 
