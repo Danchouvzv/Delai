@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoSvg from '../screenshots/logo.svg'; // Импортируем SVG-логотип
 import ChatNotifications from './ChatNotifications';
+import { Menu } from '@headlessui/react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -136,10 +137,16 @@ const Navbar = () => {
       </Link>
       <Link
         to="/ai-mentor"
-        className={`text-sm font-medium transition-colors ${isActive('/ai-mentor')}`}
-        onClick={() => setMenuOpen(false)}
+        className={({ isActive }) =>
+          `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            isActive
+              ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white'
+              : 'text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800'
+          }`
+        }
       >
         AI Ментор
+        <span className="ml-1.5 px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full">Новое</span>
       </Link>
       <Link
         to="/about"
@@ -155,6 +162,28 @@ const Navbar = () => {
       >
         Контакты
       </Link>
+      {user && ['employer', 'business'].includes(user.userType as string) && (
+        <Menu.Item key="employer" className="px-1 py-1 sm:px-3">
+          {({ active }) => (
+            <Link
+              to="/employer/dashboard"
+              className={`${
+                active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
+              } flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors`}
+            >
+              <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+              Дашборд
+            </Link>
+          )}
+        </Menu.Item>
+      )}
     </>
   );
 

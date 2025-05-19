@@ -385,6 +385,17 @@ const CompanyHome: React.FC = () => {
               Связаться с нами
             </Link>
           </div>
+          <div className="mt-8 text-center">
+            <Link 
+              to="/employer/dashboard"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Перейти в дашборд компании
+              <svg className="w-5 h-5 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     </motion.div>

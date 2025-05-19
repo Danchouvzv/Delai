@@ -304,15 +304,15 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                 <span className="text-slate-800 dark:text-white">Привет, </span>
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                   {userData?.displayName || 'Студент'}
-                </span>
+            </span>
                 <span className="text-blue-500 animate-pulse ml-1">!</span>
-              </h1>
+          </h1>
               <p className="text-slate-600 dark:text-slate-300 text-lg">
                 Найдите идеальную вакансию для начала вашей карьеры
-              </p>
+          </p>
             </div>
             <div>
-              <Link
+            <Link
                 to="/jobs"
                 className="flex items-center px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105"
               >
@@ -320,7 +320,7 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <span>Найти вакансии</span>
-              </Link>
+            </Link>
             </div>
           </div>
         </AnimatedSection>
@@ -330,12 +330,12 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
           <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700/30">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-slate-800 dark:text-white">Ваш карьерный прогресс</h2>
-              <Link 
+            <Link
                 to="/profile"
                 className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
-              >
+            >
                 Обновить профиль
-              </Link>
+            </Link>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -350,23 +350,23 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                </div>
-              </div>
-              
+          </div>
+        </div>
+
               <div className="bg-indigo-50 dark:bg-slate-700/50 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-slate-600 dark:text-slate-300 text-sm">Отправлено заявок</p>
                     <p className="text-2xl font-bold text-slate-800 dark:text-white">8</p>
-                  </div>
+              </div>
                   <div className="w-12 h-12 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                   </div>
-                </div>
-              </div>
-              
+          </div>
+        </div>
+
               <div className="bg-purple-50 dark:bg-slate-700/50 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -376,9 +376,9 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                   <div className="w-12 h-12 bg-purple-500/10 dark:bg-purple-500/20 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
+              </svg>
+            </div>
+          </div>
               </div>
               
               <div className="bg-green-50 dark:bg-slate-700/50 rounded-xl p-4">
@@ -390,11 +390,11 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                   <div className="w-12 h-12 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+          </div>
             
             {/* Рекомендованные вакансии */}
             <div>
@@ -421,10 +421,10 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                       <Link to={`/jobs/${job.id}`} className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
+              </svg>
                       </Link>
-                    </div>
-                  </div>
+            </div>
+          </div>
                 ))}
               </div>
             </div>
@@ -455,7 +455,7 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
+                    </svg>
               }
               title="Карьерный ментор"
               description="Получите персонализированные советы и подготовку к собеседованиям"
@@ -468,7 +468,7 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+                    </svg>
               }
               title="Поиск вакансий"
               description="Просмотр и фильтрация вакансий по вашим предпочтениям"
@@ -481,7 +481,7 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+                    </svg>
               }
               title="Отслеживание заявок"
               description="Управляйте статусами ваших заявок на одной странице"
@@ -494,7 +494,7 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
+                    </svg>
               }
               title="Сохраненные вакансии"
               description="Быстрый доступ к вакансиям, которые вас заинтересовали"
@@ -515,9 +515,9 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
               color="from-teal-500 to-blue-600"
               delay={0.5}
             />
-          </div>
+                    </div>
         </AnimatedSection>
-      </div>
+                  </div>
     </motion.div>
   );
 };
@@ -575,8 +575,8 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-t-indigo-600 border-r-transparent border-b-indigo-600 border-l-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-indigo-600 dark:text-indigo-400 font-medium">Загрузка данных панели управления...</p>
-        </div>
-      </div>
+                </div>
+            </div>
     );
   }
   
@@ -587,8 +587,8 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
+              </svg>
+            </div>
           <h3 className="text-xl font-bold text-center mb-2 text-slate-900 dark:text-white">Ошибка загрузки данных</h3>
           <p className="text-slate-600 dark:text-slate-300 text-center mb-4">{error}</p>
           <button 
@@ -597,7 +597,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
           >
             Обновить страницу
           </button>
-        </div>
+          </div>
       </div>
     );
   }
@@ -755,7 +755,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
               <p className="text-slate-600 dark:text-slate-300 text-lg">
                 Управляйте вакансиями и найдите талантливых студентов
               </p>
-            </div>
+                  </div>
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/create-post"
@@ -775,7 +775,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                 </svg>
                 <span>Просмотр кандидатов</span>
               </Link>
-            </div>
+                </div>
           </div>
           
           {/* Dashboard tabs */}
@@ -856,7 +856,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <span>12%</span>
-                  </div>
+          </div>
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Активных вакансий</p>
               </div>
@@ -921,11 +921,11 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
-                </div>
+            </div>
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full">
                   Просмотры
                 </span>
-              </div>
+          </div>
               
               <div className="mb-1">
                 <div className="flex items-center justify-between">
@@ -937,8 +937,8 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <span>24%</span>
-                  </div>
-                </div>
+              </div>
+              </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Всего просмотров</p>
               </div>
               
@@ -961,11 +961,11 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                   <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                </div>
+            </div>
                 <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
                   Кандидаты
                 </span>
-              </div>
+                  </div>
               
               <div className="mb-1">
                 <div className="flex items-center justify-between">
@@ -977,7 +977,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <span>8%</span>
-                  </div>
+              </div>
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Найдено кандидатов</p>
               </div>
@@ -1019,21 +1019,21 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                   <p className="text-sm text-slate-500 dark:text-slate-400">Всего за период</p>
                   <p className="text-xl font-bold text-slate-800 dark:text-white">
                     {chartData.applicationsByDate.reduce((sum, item) => sum + item.count, 0)}
-                  </p>
-                </div>
+              </p>
+            </div>
                 <div className="text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400">Среднее в день</p>
                   <p className="text-xl font-bold text-slate-800 dark:text-white">
                     {(chartData.applicationsByDate.reduce((sum, item) => sum + item.count, 0) / 14).toFixed(1)}
                   </p>
-                </div>
+          </div>
                 <div className="text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400">Конверсия</p>
                   <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                     {stats.totalViewsCount ? ((stats.totalApplicationsCount / stats.totalViewsCount) * 100).toFixed(1) : 0}%
                   </p>
-                </div>
-              </div>
+      </div>
+    </div>
             </motion.div>
             
             <motion.div 
@@ -1056,16 +1056,16 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
               </div>
               
               <div className="flex justify-center mt-6 pt-6 border-t border-slate-100 dark:border-slate-700/30">
-                <Link 
+            <Link
                   to="/employer/applications"
                   className="text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center transition-colors"
-                >
+            >
                   <span>Просмотреть все заявки</span>
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </Link>
-              </div>
+              </svg>
+            </Link>
+        </div>
             </motion.div>
           </div>
         </AnimatedSection>
@@ -1076,7 +1076,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
           <AnimatedSection delay={0.3} className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-100 dark:border-slate-700/30">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">Популярные вакансии</h3>
-              <Link 
+            <Link 
                 to="/employer/manage-jobs"
                 className="text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
               >
@@ -1100,7 +1100,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                         <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center">
                           <svg className="w-4 h-4 mr-1 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
+                  </svg>
                           {applications.filter(app => app.jobId === job.id).length} заявок
                         </span>
                         <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center">
@@ -1110,8 +1110,8 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                           </svg>
                           {views.find(v => v.id === job.id)?.views || 0} просмотров
                         </span>
-                      </div>
-                    </div>
+                </div>
+              </div>
                     <div className="flex items-center">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 mr-4">
                         Активна
@@ -1142,7 +1142,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                  </svg>
+                </svg>
                   <span>Создать вакансию</span>
                 </Link>
               </div>
@@ -1158,16 +1158,16 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                   </svg>
                   <span>Создать новую вакансию</span>
-                </Link>
+            </Link>
               </div>
             )}
           </AnimatedSection>
-          
+
           {/* Recent Applications */}
           <AnimatedSection delay={0.4} className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-100 dark:border-slate-700/30">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">Последние заявки</h3>
-              <Link 
+                  <Link
                 to="/employer/applications"
                 className="text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
               >
@@ -1189,8 +1189,8 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                       <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mr-3">
                         <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
+                  </svg>
+                </div>
                       <div>
                         <h4 className="font-medium text-slate-800 dark:text-white">
                           {app.candidateName || 'Кандидат'}
@@ -1198,7 +1198,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                           {app.jobTitle || 'Вакансия'}
                         </p>
-                      </div>
+              </div>
                     </div>
                     <div className="flex items-center">
                       {app.status === 'pending' && (
@@ -1263,8 +1263,8 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
+                </svg>
+              </div>
                   <div>
                     <h3 className="text-xl font-bold text-white">AI Помощник для работодателей</h3>
                     <p className="text-indigo-100">Автоматизируйте процесс найма с помощью ИИ</p>
@@ -1292,7 +1292,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                         <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
-                      </Link>
+                  </Link>
                       <Link
                         to="/employer/resource-center"
                         className="text-white hover:text-indigo-100 font-medium transition-colors duration-300"
@@ -1358,15 +1358,15 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <Link
+                  <Link
               to="/employer/profile"
               className="flex items-center gap-3 p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-100 dark:border-slate-700/30 shadow-sm hover:shadow-md transition-all duration-300 group"
             >
               <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
+                  </svg>
+                </div>
               <div>
                 <h3 className="font-medium text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Профиль компании</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Обновите информацию о вашей компании</p>
@@ -1386,7 +1386,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                 <h3 className="font-medium text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Управление вакансиями</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Редактируйте и архивируйте ваши вакансии</p>
               </div>
-            </Link>
+                  </Link>
             
             <Link
               to="/employer/analytics"
@@ -1396,14 +1396,14 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-              </div>
+          </div>
               <div>
                 <h3 className="font-medium text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Расширенная аналитика</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Подробная статистика по вашим вакансиям</p>
-              </div>
+        </div>
             </Link>
-            
-            <Link
+
+                  <Link
               to="/employer/messages"
               className="flex items-center gap-3 p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-100 dark:border-slate-700/30 shadow-sm hover:shadow-md transition-all duration-300 group"
             >
@@ -1415,7 +1415,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
               <div>
                 <h3 className="font-medium text-slate-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Сообщения</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Общайтесь с кандидатами</p>
-              </div>
+            </div>
             </Link>
             
             <Link
@@ -1425,15 +1425,15 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
               <div className="w-10 h-10 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </div>
+              </svg>
+            </div>
               <div>
                 <h3 className="font-medium text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Подписка и оплата</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Управление тарифным планом</p>
-              </div>
-            </Link>
-            
-            <Link
+            </div>
+                  </Link>
+
+                  <Link
               to="/contact"
               className="flex items-center gap-3 p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-100 dark:border-slate-700/30 shadow-sm hover:shadow-md transition-all duration-300 group"
             >
@@ -1445,7 +1445,7 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
               <div>
                 <h3 className="font-medium text-slate-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">Поддержка</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Свяжитесь с нашей командой</p>
-              </div>
+            </div>
             </Link>
           </div>
         </AnimatedSection>
@@ -1495,8 +1495,8 @@ const UnauthorizedContent = () => {
               <svg className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-            </Link>
-          </div>
+                  </Link>
+        </div>
         </AnimatedSection>
 
         {/* Статистика */}
@@ -1700,8 +1700,8 @@ const UnauthorizedContent = () => {
               >
                 Войти
               </Link>
-            </div>
-          </div>
+                  </div>
+                </div>
         </AnimatedSection>
         
         {/* Секция для компаний */}
@@ -1728,7 +1728,7 @@ const UnauthorizedContent = () => {
                   <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
-                </Link>
+              </Link>
               </div>
               <div className="relative">
                 <div className="bg-white dark:bg-slate-700 rounded-2xl shadow-xl p-6 border border-slate-100 dark:border-slate-600/30">
@@ -1755,10 +1755,10 @@ const UnauthorizedContent = () => {
                         </div>
                         <p className="text-slate-700 dark:text-slate-200">{item}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            ))}
+          </div>
+        </div>
+      </div>
             </div>
           </div>
         </AnimatedSection>

@@ -182,7 +182,7 @@ const AIMentor = () => {
       }
     })
   };
-  
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
       {/* Animated background elements */}
@@ -240,14 +240,14 @@ const AIMentor = () => {
                     <div className="flex items-center justify-between mt-2 text-xs">
                       <span 
                         className={
-                          message.sender === 'user' 
-                            ? 'text-primary-lighter' 
+                        message.sender === 'user' 
+                          ? 'text-primary-lighter' 
                             : message.isError
                               ? 'text-red-400 dark:text-red-400'
-                              : 'text-gray-500 dark:text-gray-400'
+                          : 'text-gray-500 dark:text-gray-400'
                         }
-                      >
-                        {formatTimestamp(message.timestamp)}
+                    >
+                      {formatTimestamp(message.timestamp)}
                       </span>
                       
                       {message.model && (
@@ -267,28 +267,28 @@ const AIMentor = () => {
                           <span className="text-xs font-bold">You</span>
                         </div>
                       )}
-                    </div>
+                </div>
                   )}
                 </motion.div>
               ))}
             </AnimatePresence>
             
-            {isLoading && (
+              {isLoading && (
               <div className="flex justify-start mb-6">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex-shrink-0 mr-2 shadow-md flex items-center justify-center">
                   <span className="text-xs font-bold text-white">AI</span>
                 </div>
                 <div className="bg-gray-100 dark:bg-gray-700/70 p-4 rounded-2xl rounded-tl-none max-w-[80%] sm:max-w-[70%] shadow-md">
-                  <div className="flex space-x-2 items-center">
-                    <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse"></div>
-                    <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    <div className="flex space-x-2 items-center">
+                      <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                     <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">AI is typing...</span>
                   </div>
+                  </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+              )}
+              <div ref={messagesEndRef} />
           </div>
 
           {/* Suggestions */}
