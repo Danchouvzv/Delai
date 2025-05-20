@@ -219,23 +219,23 @@ const AIMentor: React.FC = () => {
       // Send to AI and get response
       const response = await generateText(messageText, context);
       
-      // Handle response based on its structure
-      let aiMessageContent = 'Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте еще раз.';
+      // Ensure we have a string response
+      let aiResponseText = 'Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте еще раз.';
       
-      if (response && typeof response === 'object') {
+      if (typeof response === 'string') {
+        aiResponseText = response;
+      } else if (response && typeof response === 'object') {
         if (response.success && response.data) {
-          aiMessageContent = response.data;
+          aiResponseText = String(response.data);
         } else if (response.error) {
-          aiMessageContent = `Ошибка: ${response.error}`;
+          aiResponseText = `Ошибка: ${response.error}`;
         }
-      } else if (typeof response === 'string') {
-        aiMessageContent = response;
       }
       
       // Create AI message
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: aiMessageContent,
+        content: aiResponseText,
         sender: 'ai',
         timestamp: new Date(),
         model: 'gemini-pro'
@@ -558,33 +558,37 @@ const AIMentor: React.FC = () => {
                       }`}
                     >
                       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
-                        {message.content.split('\n').map((text, i) => {
-                          if (text.startsWith('•')) {
-                            return (
-                              <ul key={i} className="list-disc pl-5 mt-2">
-                                <li>{text.substring(1).trim()}</li>
-                              </ul>
-                            )
-                          } else if (text.match(/^\d+\./)) {
-                            return (
-                              <ol key={i} className="list-decimal pl-5 mt-2">
-                                <li>{text.substring(text.indexOf('.')+1).trim()}</li>
-                              </ol>
-                            )
-                          } else if (text.startsWith('**') && text.endsWith('**')) {
-                            return (
-                              <p key={i} className={`font-bold ${i > 0 ? 'mt-2' : 'mt-0'}`}>
-                                {text.substring(2, text.length-2)}
-                              </p>
-                            )
-                          } else {
-                            return (
-                              <p key={i} className={i > 0 ? 'mt-2' : 'mt-0'}>
-                                {text}
-                              </p>
-                            )
-                          }
-                        })}
+                        {typeof message.content === 'string' ? (
+                          message.content.split('\n').map((text, i) => {
+                            if (text.startsWith('•')) {
+                              return (
+                                <ul key={i} className="list-disc pl-5 mt-2">
+                                  <li>{text.substring(1).trim()}</li>
+                                </ul>
+                              )
+                            } else if (text.match(/^\d+\./)) {
+                              return (
+                                <ol key={i} className="list-decimal pl-5 mt-2">
+                                  <li>{text.substring(text.indexOf('.')+1).trim()}</li>
+                                </ol>
+                              )
+                            } else if (text.startsWith('**') && text.endsWith('**')) {
+                              return (
+                                <p key={i} className={`font-bold ${i > 0 ? 'mt-2' : 'mt-0'}`}>
+                                  {text.substring(2, text.length-2)}
+                                </p>
+                              )
+                            } else {
+                              return (
+                                <p key={i} className={i > 0 ? 'mt-2' : 'mt-0'}>
+                                  {text}
+                                </p>
+                              )
+                            }
+                          })
+                        ) : (
+                          <p>{String(message.content)}</p>
+                        )}
                       </div>
                       
                       <div className="mt-3 flex justify-between items-center text-xs">

@@ -899,8 +899,8 @@ const Jobs = () => {
                 <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-              </div>
             </div>
+          </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Найдите свою идеальную работу
             </h1>
@@ -949,8 +949,8 @@ const Jobs = () => {
                     Загрузить резюме
                   </motion.button>
                 </motion.div>
+                </div>
               </div>
-            </div>
 
             {/* Main content */}
             <div className="lg:col-span-3">
@@ -960,9 +960,9 @@ const Jobs = () => {
                     <div className="relative w-24 h-24">
                       <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
                       <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-t-primary dark:border-t-accent animate-spin"></div>
-                    </div>
+                          </div>
                     <p className="mt-4 text-gray-600 dark:text-gray-300">Загрузка вакансий...</p>
-                  </div>
+                        </div>
                 </div>
               ) : error ? (
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 text-center">
@@ -973,7 +973,7 @@ const Jobs = () => {
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Ошибка загрузки</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
-                  <button
+                          <button
                     onClick={handleRetryFetch}
                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
                   >
@@ -985,7 +985,7 @@ const Jobs = () => {
                   <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                     <svg className="w-10 h-10 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                            </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Вакансии не найдены</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
@@ -996,7 +996,7 @@ const Jobs = () => {
                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
                   >
                     Сбросить фильтры
-                  </button>
+                          </button>
                 </div>
               ) : (
                 <>
@@ -1034,10 +1034,10 @@ const Jobs = () => {
                     ))}
                   </div>
                 </>
-              )}
-            </div>
-          </div>
-        </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
         
         {showContactModal && selectedJob && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -1061,19 +1061,19 @@ const Jobs = () => {
                 >
                   Отмена
                 </button>
-                <button 
-                  onClick={() => {
+                      <button
+                        onClick={() => {
                     setShowContactModal(false);
                     setShowChatModal(true);
                   }}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
                 >
                   Отправить сообщение
-                </button>
-              </div>
+                      </button>
+                    </div>
             </motion.div>
-          </div>
-        )}
+                  </div>
+                )}
         
         {showChatModal && selectedJob && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -1101,7 +1101,7 @@ const Jobs = () => {
                 >
                   Закрыть
                 </button>
-              </div>
+            </div>
             </motion.div>
           </div>
         )}

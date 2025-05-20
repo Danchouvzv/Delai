@@ -140,12 +140,12 @@ const AIMentor = () => {
       sender: 'user',
       timestamp: new Date()
     };
-
+    
     // Add user message to chat
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    
+
     try {
       // Get user's name and role for personalization
       const userName = user?.displayName || userData?.firstName || 'there';
@@ -155,12 +155,25 @@ const AIMentor = () => {
       const context = `The user's name is ${userName}. They are a ${userRole}.`;
       
       // Send to AI and get response
-      const aiResponse = await generateText(messageText, context);
+      const response = await generateText(messageText, context);
+      
+      // Ensure we have a string response
+      let aiResponseText = 'Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте еще раз.';
+      
+      if (typeof response === 'string') {
+        aiResponseText = response;
+      } else if (response && typeof response === 'object') {
+        if (response.success && response.data) {
+          aiResponseText = String(response.data);
+        } else if (response.error) {
+          aiResponseText = `Ошибка: ${response.error}`;
+        }
+      }
       
       // Create AI message
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: aiResponse || 'Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте еще раз.',
+        content: aiResponseText,
         sender: 'ai',
         timestamp: new Date(),
         model: 'gemini-pro'
@@ -305,7 +318,7 @@ const AIMentor = () => {
                     <span className="font-medium">{category.name}</span>
                   </motion.button>
                 ))}
-              </div>
+        </div>
             </motion.div>
 
             <motion.div 
@@ -402,11 +415,17 @@ const AIMentor = () => {
                       }`}
                     >
                       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
-                        {message.content.split('\n').map((text, i) => (
-                          <p key={i} className={i > 0 ? 'mt-2' : 'mt-0'}>
-                            {text}
+                        {typeof message.content === 'string' ? 
+                          message.content.split('\n').map((text, i) => (
+                            <p key={i} className={i > 0 ? 'mt-2' : 'mt-0'}>
+                              {text}
+                            </p>
+                          ))
+                          :
+                          <p>
+                            {String(message.content)}
                           </p>
-                        ))}
+                        }
                       </div>
                       
                       <div className="mt-2 flex justify-between items-center text-xs">
@@ -417,7 +436,7 @@ const AIMentor = () => {
                               ? 'text-red-400'
                               : 'text-gray-500 dark:text-gray-400'
                         }>
-                          {formatTimestamp(message.timestamp)}
+                      {formatTimestamp(message.timestamp)}
                         </span>
                         
                         {message.model && (
@@ -435,12 +454,12 @@ const AIMentor = () => {
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-600 dark:text-gray-400">
                             <FiUser className="w-4 h-4" />
-                          </div>
+                  </div>
                         )}
-                      </div>
+                </div>
                     )}
                   </motion.div>
-                ))}
+              ))}
               </AnimatePresence>
               
               {/* Loading indicator */}
@@ -461,7 +480,7 @@ const AIMentor = () => {
               
               {/* Reference for scrolling to bottom */}
               <div ref={messagesEndRef} />
-            </div>
+          </div>
 
             {/* Topic suggestions based on selected category */}
             <AnimatePresence>
@@ -474,10 +493,10 @@ const AIMentor = () => {
                   transition={{ duration: 0.3 }}
                 >
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Возможные вопросы:</p>
-                  <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                     {categories.find(cat => cat.id === selectedCategory)?.questions.map((question, index) => (
                       <motion.button
-                        key={index}
+                    key={index}
                         onClick={() => {
                           handleSendMessage(undefined, question);
                           setSelectedCategory(null);
@@ -485,12 +504,12 @@ const AIMentor = () => {
                         className="text-sm px-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
-                        disabled={isLoading}
-                      >
+                    disabled={isLoading}
+                  >
                         {question}
                       </motion.button>
-                    ))}
-                  </div>
+                ))}
+              </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -501,13 +520,13 @@ const AIMentor = () => {
                 <div className="relative flex-1">
                   <textarea
                     ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                     placeholder="Задайте вопрос о карьере, резюме или собеседовании..."
                     className="w-full rounded-xl border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-500/20 dark:bg-gray-700 dark:text-white pr-10 py-3 px-4 resize-none overflow-hidden max-h-32 shadow-inner"
                     style={{ minHeight: '44px' }}
                     rows={1}
-                    disabled={isLoading}
+                disabled={isLoading}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -518,7 +537,7 @@ const AIMentor = () => {
                 </div>
                 
                 <motion.button
-                  type="submit"
+                type="submit"
                   className={`rounded-xl p-3 ${
                     !input.trim() || isLoading
                       ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
@@ -530,12 +549,12 @@ const AIMentor = () => {
                 >
                   <FiSend className="w-5 h-5" />
                 </motion.button>
-              </form>
+            </form>
               
               <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
                 AI ментор поможет с карьерным ростом, но всегда проверяйте информацию и консультируйтесь с профессионалами.
-              </p>
-            </div>
+            </p>
+          </div>
           </motion.div>
         </div>
       </div>
