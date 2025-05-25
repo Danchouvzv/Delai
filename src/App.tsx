@@ -27,6 +27,11 @@ import FAQPage from './pages/FAQPage';
 import ResumeReview from './pages/ResumeReview';
 import ProfileEdit from './components/ProfileEdit';
 import Dashboard from './pages/Dashboard';
+import AdminPanel from './pages/AdminPanel';
+import AdminLayout from './pages/AdminLayout';
+import AdminModeration from './pages/AdminModeration';
+import AdminStats from './pages/AdminStats';
+import AdminUsers from './pages/AdminUsers';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -241,6 +246,23 @@ const App: React.FC = () => {
                   <ResumeReview />
                 }
               />
+              
+              {/* Маршруты админ-панели с общим макетом */}
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminPanel />} />
+                <Route path="jobs" element={<AdminPanel />} />
+                <Route path="moderation" element={<AdminModeration />} />
+                <Route path="stats" element={<AdminStats />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="settings" element={<AdminPanel />} />
+              </Route>
               
               {/* Универсальный маршрут дашборда, который направляет на нужный в зависимости от роли */}
               <Route 

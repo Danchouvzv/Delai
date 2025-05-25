@@ -174,7 +174,7 @@ const AIMentor = () => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: aiResponseText,
-        sender: 'ai',
+          sender: 'ai',
         timestamp: new Date(),
         model: 'gemini-pro'
       };

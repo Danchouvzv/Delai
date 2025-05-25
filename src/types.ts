@@ -26,7 +26,7 @@ export interface Post {
   benefits?: string[];
   authorId?: string;
   createdAt?: Date;
-  status?: string;
+  status: 'active' | 'closed' | 'draft' | 'pending' | 'rejected' | 'archived';
   // AI Matching fields
   aiMatching?: boolean;
   skillsRequired?: string[];
@@ -38,6 +38,12 @@ export interface Post {
   city?: string;
   category?: string;
   responsibilities?: string[];
+  createdBy?: string; // User ID who created the post
+  moderationComment?: string; // Комментарий модератора
+  moderatedAt?: any; // Timestamp | Date модерации
+  archivedAt?: any; // Timestamp | Date архивации
+  views?: number; // Счетчик просмотров
+  applicationCount?: number; // Счетчик откликов
 }
 
 export interface User {
