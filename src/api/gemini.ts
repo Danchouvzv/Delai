@@ -521,12 +521,22 @@ interface ResumeAnalysisResult {
   enhancedContent: string;
 }
 
-interface UserContext {
+export interface UserContext {
   role: string;
+  field: string;
   skills: string[];
-  education: string[];
-  experience: string[];
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: string;
+  }>;
+  experience: Array<{
+    title: string;
+    company: string;
+    description: string;
+  }>;
   interests: string[];
+  languages?: string[];
 }
 
 /**

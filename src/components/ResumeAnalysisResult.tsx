@@ -1,232 +1,287 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiCheckCircle, FiAlertCircle, FiDownload, FiShare2 } from 'react-icons/fi';
+import { Radar } from 'react-chartjs-2';
+import {
+  FiCheckCircle,
+  FiAlertCircle,
+  FiBarChart2,
+  FiDownload,
+  FiShare2
+} from 'react-icons/fi';
 import { UserData } from '../types';
 
+interface AnalysisResult {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  detailedFeedback: string;
+  enhancedContent: string;
+  skillScores: {
+    [key: string]: number;
+  };
+  keywordDensity: {
+    [key: string]: number;
+  };
+  readabilityScore: number;
+  industryFit: number;
+  technicalScore: number;
+  softSkillsScore: number;
+  experienceScore: number;
+  educationScore: number;
+  overallImpact: number;
+}
+
 interface ResumeAnalysisResultProps {
-  analysis: UserData['resume']['analysis'];
-  onDownloadPDF?: () => void;
+  analysis: AnalysisResult;
+  onDownload: () => void;
+  onShare: () => void;
 }
 
 /**
  * Component to display resume analysis results
  */
-const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({ analysis, onDownloadPDF }) => {
-  if (!analysis) return null;
-
-  const variants = {
-    hidden: { opacity: 0 },
-    visible: (i: number) => ({
-      opacity: 1,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.3
+const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
+  analysis,
+  onDownload,
+  onShare
+}) => {
+  const radarData = {
+    labels: [
+      'Технические навыки',
+      'Soft Skills',
+      'Опыт работы',
+      'Образование',
+      'Соответствие отрасли',
+      'Общее впечатление'
+    ],
+    datasets: [
+      {
+        label: 'Ваше резюме',
+        data: [
+          analysis.technicalScore,
+          analysis.softSkillsScore,
+          analysis.experienceScore,
+          analysis.educationScore,
+          analysis.industryFit,
+          analysis.overallImpact
+        ],
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
       }
-    })
+    ]
   };
 
-  // Format timestamp to readable date
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric'
-      });
-    } catch (e) {
-      return 'Неизвестная дата';
+  const radarOptions = {
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          stepSize: 20
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: false
+      }
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 85) return 'text-green-500';
-    if (score >= 70) return 'text-blue-500';
-    if (score >= 50) return 'text-yellow-500';
-    return 'text-red-500';
-  };
-
-  const getScoreAdvice = (score: number) => {
-    if (score >= 85) return 'Отличное резюме! Вы готовы к отправке.';
-    if (score >= 70) return 'Хорошее резюме с небольшими улучшениями.';
-    if (score >= 50) return 'Требуются некоторые доработки.';
-    return 'Необходимы существенные улучшения.';
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-6 text-white">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Анализ резюме</h2>
-          <div className="text-white text-opacity-80 text-sm">
-            {analysis.lastAnalyzed && `Проанализировано: ${formatDate(analysis.lastAnalyzed)}`}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-6">
-        {/* Score indicator */}
-        <div className="mb-8 flex flex-col sm:flex-row items-center justify-between">
-          <div className="mb-4 sm:mb-0 text-center sm:text-left">
-            <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Общая оценка</h3>
-            <div className={`text-4xl font-bold ${getScoreColor(analysis.score)}`}>
-              {analysis.score}/100
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {getScoreAdvice(analysis.score)}
-            </p>
-          </div>
-
-          <div className="relative w-32 h-32">
-            <svg viewBox="0 0 100 100" className="w-full h-full transform rotate-[-90deg]">
-              <circle 
-                cx="50" 
-                cy="50" 
-                r="45" 
-                fill="none" 
-                stroke="#e2e8f0" 
-                strokeWidth="8"
-                className="dark:opacity-30" 
-              />
-              <motion.circle 
-                cx="50" 
-                cy="50" 
-                r="45" 
-                fill="none" 
-                stroke="url(#scoreGradient)" 
-                strokeWidth="8"
-                strokeDasharray="283"
-                strokeDashoffset="283"
-                initial={{ strokeDashoffset: 283 }}
-                animate={{ 
-                  strokeDashoffset: 283 - (283 * analysis.score / 100) 
-                }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
-              <defs>
-                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#3B82F6" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold">
-              {analysis.score}
-            </div>
-          </div>
-        </div>
-
-        {/* Strengths and Improvements */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <motion.div 
-            className="bg-green-50 dark:bg-green-900/10 p-5 rounded-xl border border-green-100 dark:border-green-800"
-            variants={variants}
-            initial="hidden"
-            animate="visible"
-            custom={0}
-          >
-            <h3 className="text-lg font-medium text-green-700 dark:text-green-400 mb-3 flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Сильные стороны
-            </h3>
-            <ul className="space-y-2">
-              {analysis.strengths.map((strength, index) => (
-                <motion.li 
-                  key={index}
-                  variants={variants}
-                  initial="hidden"
-                  animate="visible"
-                  custom={index + 1}
-                  className="flex"
-                >
-                  <span className="text-green-500 mr-2">✓</span>
-                  <span className="text-gray-700 dark:text-gray-300">{strength}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-
-          <motion.div 
-            className="bg-amber-50 dark:bg-amber-900/10 p-5 rounded-xl border border-amber-100 dark:border-amber-800"
-            variants={variants}
-            initial="hidden"
-            animate="visible"
-            custom={1}
-          >
-            <h3 className="text-lg font-medium text-amber-700 dark:text-amber-400 mb-3 flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              Области для улучшения
-            </h3>
-            <ul className="space-y-2">
-              {analysis.improvements.map((improvement, index) => (
-                <motion.li 
-                  key={index}
-                  variants={variants}
-                  initial="hidden"
-                  animate="visible"
-                  custom={index + 1}
-                  className="flex"
-                >
-                  <span className="text-amber-500 mr-2">!</span>
-                  <span className="text-gray-700 dark:text-gray-300">{improvement}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Detailed Feedback */}
-        <motion.div 
-          className="mb-8"
-          variants={variants}
-          initial="hidden"
-          animate="visible"
-          custom={2}
-        >
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Подробный анализ</h3>
-          <div className="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-              {analysis.detailedFeedback}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Enhanced Content */}
+    <div className="space-y-8">
+      {/* Основные показатели */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div
-          variants={variants}
+          variants={cardVariants}
           initial="hidden"
           animate="visible"
-          custom={3}
+          className="bg-white rounded-xl shadow-lg p-6"
         >
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Улучшенное содержание</h3>
-            {onDownloadPDF && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onDownloadPDF}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm flex items-center"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Скачать PDF
-              </motion.button>
-            )}
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600 mb-2">
+              {analysis.score}%
+            </div>
+            <div className="text-gray-600">Общий рейтинг</div>
           </div>
-          <div className="bg-blue-50 dark:bg-blue-900/10 p-5 rounded-xl border border-blue-100 dark:border-blue-800">
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-              {analysis.enhancedContent}
-            </p>
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-xl shadow-lg p-6"
+        >
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600 mb-2">
+              {analysis.readabilityScore}%
+            </div>
+            <div className="text-gray-600">Читаемость</div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-xl shadow-lg p-6"
+        >
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-600 mb-2">
+              {analysis.industryFit}%
+            </div>
+            <div className="text-gray-600">Соответствие отрасли</div>
           </div>
         </motion.div>
       </div>
+
+      {/* Радар навыков */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.3 }}
+        className="bg-white rounded-xl shadow-lg p-6"
+      >
+        <h3 className="text-xl font-bold text-gray-800 mb-6">
+          Распределение показателей
+        </h3>
+        <div className="h-80">
+          <Radar data={radarData} options={radarOptions} />
+        </div>
+      </motion.div>
+
+      {/* Сильные стороны и области для улучшения */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: 0.4 }}
+          className="bg-white rounded-xl shadow-lg p-6"
+        >
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <FiCheckCircle className="text-green-500 mr-2" />
+            Сильные стороны
+          </h3>
+          <ul className="space-y-3">
+            {analysis.strengths.map((strength, index) => (
+              <motion.li
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className="flex items-start"
+              >
+                <FiCheckCircle className="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                <span>{strength}</span>
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: 0.5 }}
+          className="bg-white rounded-xl shadow-lg p-6"
+        >
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <FiAlertCircle className="text-amber-500 mr-2" />
+            Области для улучшения
+          </h3>
+          <ul className="space-y-3">
+            {analysis.improvements.map((improvement, index) => (
+              <motion.li
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className="flex items-start"
+              >
+                <FiAlertCircle className="text-amber-500 mt-1 mr-2 flex-shrink-0" />
+                <span>{improvement}</span>
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
+      </div>
+
+      {/* Ключевые навыки */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.6 }}
+        className="bg-white rounded-xl shadow-lg p-6"
+      >
+        <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <FiBarChart2 className="text-blue-500 mr-2" />
+          Анализ ключевых навыков
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(analysis.skillScores).map(([skill, score], index) => (
+            <motion.div
+              key={skill}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 * index }}
+              className="bg-gray-50 rounded-lg p-4"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium">{skill}</span>
+                <span className="text-sm text-gray-500">{score}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${score}%` }}
+                  transition={{ duration: 1 }}
+                  className="bg-blue-500 h-2 rounded-full"
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Действия */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.7 }}
+        className="flex flex-wrap gap-4 justify-center"
+      >
+        <button
+          onClick={onDownload}
+          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <FiDownload />
+          <span>Скачать отчет</span>
+        </button>
+        
+        <button
+          onClick={onShare}
+          className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <FiShare2 />
+          <span>Поделиться</span>
+        </button>
+      </motion.div>
     </div>
   );
 };

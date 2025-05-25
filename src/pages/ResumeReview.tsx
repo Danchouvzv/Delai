@@ -4,40 +4,113 @@ import { useAuth } from '../context/AuthContext';
 import { db, storage } from '../firebase';
 import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { generateResumeAnalysis } from '../api/gemini';
+import { generateResumeAnalysis, UserContext } from '../api/gemini';
 import { UserData } from '../types';
 import { 
   FiCheckCircle, FiAlertCircle, FiInfo, FiBookOpen, 
-  FiFileText, FiUpload, FiDownload, FiShare2, FiStar 
+  FiFileText, FiUpload, FiDownload, FiShare2, FiStar,
+  FiTrendingUp, FiTarget, FiAward, FiBarChart2, FiCpu
 } from 'react-icons/fi';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Radar } from 'react-chartjs-2';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ResumeUploader from '../components/ResumeUploader';
 import ResumeAnalysisResult from '../components/ResumeAnalysisResult';
 import html2pdf from 'html2pdf.js';
 import { BsFileEarmarkText, BsGraphUp, BsStars, BsAward } from 'react-icons/bs';
 import { HiOutlineDocumentText, HiOutlineDocumentSearch, HiOutlineDocumentReport } from 'react-icons/hi';
 
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
+
+interface AnalysisResult {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  detailedFeedback: string;
+  enhancedContent: string;
+  lastAnalyzed?: string;
+  skillScores: {
+    [key: string]: number;
+  };
+  keywordDensity: {
+    [key: string]: number;
+  };
+  readabilityScore: number;
+  industryFit: number;
+  technicalScore: number;
+  softSkillsScore: number;
+  experienceScore: number;
+  educationScore: number;
+  overallImpact: number;
+}
+
+interface AnimatedCounterProps {
+  value: number;
+  duration?: number;
+}
+
+const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 2000 }) => {
+  const [count, setCount] = useState(0);
+  const countRef = useRef(count);
+
+  useEffect(() => {
+    const steps = 60;
+    const increment = value / steps;
+    const timePerStep = duration / steps;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      if (currentStep < steps) {
+        countRef.current = Math.min(countRef.current + increment, value);
+        setCount(Math.round(countRef.current));
+        currentStep++;
+      } else {
+        clearInterval(interval);
+      }
+    }, timePerStep);
+
+    return () => clearInterval(interval);
+  }, [value, duration]);
+
+  return <span>{count}</span>;
+};
+
 const ResumeReview: React.FC = () => {
   const { user, userData: authUserData } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<{
-    score: number;
-    strengths: string[];
-    improvements: string[];
-    detailedFeedback: string;
-    enhancedContent: string;
-    lastAnalyzed?: string;
-  } | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [activeTab, setActiveTab] = useState<'upload' | 'tips' | 'history'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'analysis' | 'tips' | 'history'>('upload');
   const [previousAnalyses, setPreviousAnalyses] = useState<any[]>([]);
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [shareUrl, setShareUrl] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizationProgress, setOptimizationProgress] = useState(0);
   const analysisRef = useRef<HTMLDivElement>(null);
+  const [showAIExplanation, setShowAIExplanation] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
-  // Анимации и переходы
+  // Анимации
   const pageVariants: Variants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -49,9 +122,50 @@ const ResumeReview: React.FC = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
   
-  const tabVariants: Variants = {
-    inactive: { opacity: 0.7, y: 5 },
-    active: { opacity: 1, y: 0, scale: 1.05 }
+  const progressVariants: Variants = {
+    initial: { width: '0%' },
+    animate: { width: '100%', transition: { duration: 2 } }
+  };
+
+  const radarData = {
+    labels: ['Технические навыки', 'Soft Skills', 'Опыт работы', 'Образование', 'Соответствие отрасли', 'Общее впечатление'],
+    datasets: [
+      {
+        label: 'Ваше резюме',
+        data: analysis ? [
+          analysis.technicalScore,
+          analysis.softSkillsScore,
+          analysis.experienceScore,
+          analysis.educationScore,
+          analysis.industryFit,
+          analysis.overallImpact
+        ] : [0, 0, 0, 0, 0, 0],
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+      }
+    ]
+  };
+
+  const radarOptions = {
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          stepSize: 20
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: false
+      }
+    }
   };
 
   // Load user data
@@ -64,7 +178,25 @@ const ResumeReview: React.FC = () => {
           const data = userDoc.data() as UserData;
           setUserData(data);
           if (data?.resume?.analysis) {
-            setAnalysis(data.resume.analysis);
+            // Создаем полный объект анализа с дефолтными значениями для отсутствующих полей
+            const analysisData = data.resume.analysis as any;
+            setAnalysis({
+              score: analysisData.score || 0,
+              strengths: analysisData.strengths || [],
+              improvements: analysisData.improvements || [],
+              detailedFeedback: analysisData.detailedFeedback || '',
+              enhancedContent: analysisData.enhancedContent || '',
+              lastAnalyzed: analysisData.lastAnalyzed || new Date().toISOString(),
+              skillScores: analysisData.skillScores || {},
+              keywordDensity: analysisData.keywordDensity || {},
+              readabilityScore: analysisData.readabilityScore || 0,
+              industryFit: analysisData.industryFit || 0,
+              technicalScore: analysisData.technicalScore || 0,
+              softSkillsScore: analysisData.softSkillsScore || 0,
+              experienceScore: analysisData.experienceScore || 0,
+              educationScore: analysisData.educationScore || 0,
+              overallImpact: analysisData.overallImpact || 0
+            });
           }
           
           // Создать коллекцию истории, если она не существует
@@ -144,90 +276,105 @@ const ResumeReview: React.FC = () => {
 
     setIsAnalyzing(true);
     setError(null);
+    setCurrentStep(1);
+    setOptimizationProgress(0);
 
     try {
-      // Проверка размера файла
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
         throw new Error('Размер файла превышает допустимый предел (10MB)');
       }
       
-      // Загружаем файл в хранилище
+      // Загружаем файл
+      setCurrentStep(2);
+      setOptimizationProgress(20);
       const fileUrl = await uploadFile(file);
-      console.log('Файл загружен, URL:', fileUrl);
       
-      // Читаем содержимое файла
+      // Читаем содержимое
+      setCurrentStep(3);
+      setOptimizationProgress(40);
       const content = await readFileContent(file);
-      console.log('Содержимое файла успешно прочитано, длина:', content.length);
       
       if (content.length < 50) {
         throw new Error('Файл содержит слишком мало текста для анализа');
       }
+
+      // Формируем расширенный профиль пользователя
+      setCurrentStep(4);
+      setOptimizationProgress(60);
       
-      // Формируем данные о пользователе для персонализированного анализа
-      const userProfile = {
+      // Преобразуем данные для соответствия типу UserContext
+      const userProfile: UserContext = {
         role: userData.role || 'student',
         field: userData.major || userData.industry || 'technology',
-        education: userData.education?.map(edu => `${edu.degree} at ${edu.institution} (${edu.endDate || 'present'})`),
+        education: userData.education?.map(edu => ({
+          degree: edu.degree,
+          institution: edu.institution,
+          year: edu.endDate || 'present'
+        })) || [],
         skills: userData.skills?.map(skill => 
           typeof skill === 'string' ? skill : skill.name
         ) || [],
-        experience: userData.experience?.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`),
+        experience: userData.experience?.map(exp => ({
+          title: exp.title,
+          company: exp.company,
+          description: exp.description
+        })) || [],
         interests: userData.careerGoals?.preferredIndustries || [],
         languages: userData.languages?.map(lang => lang.name) || []
       };
       
-      // Генерируем анализ
-      console.log('Отправляем запрос на анализ');
+      // Запускаем расширенный анализ
+      setCurrentStep(5);
+      setOptimizationProgress(80);
       const analysisResult = await generateResumeAnalysis(content, userProfile);
-      console.log('Анализ получен:', analysisResult);
-
-      // Добавляем временную метку к анализу
-      const analysisWithTimestamp = {
+      
+      // Добавляем дополнительные метрики
+      const enhancedAnalysis: AnalysisResult = {
         ...analysisResult,
-        lastAnalyzed: new Date().toISOString()
+        lastAnalyzed: new Date().toISOString(),
+        skillScores: calculateSkillScores(content, userProfile.skills),
+        keywordDensity: analyzeKeywordDensity(content),
+        readabilityScore: calculateReadabilityScore(content),
+        industryFit: calculateIndustryFit(content, userProfile),
+        technicalScore: calculateTechnicalScore(content, userProfile),
+        softSkillsScore: calculateSoftSkillsScore(content),
+        experienceScore: calculateExperienceScore(content),
+        educationScore: calculateEducationScore(content),
+        overallImpact: calculateOverallImpact(analysisResult.score)
       };
 
-      setAnalysis(analysisWithTimestamp);
+      setAnalysis(enhancedAnalysis);
+      setCurrentStep(6);
+      setOptimizationProgress(100);
 
-      // Добавляем новый анализ в историю
-      try {
-        const newAnalysisEntry = {
-          ...analysisWithTimestamp,
-          fileName: file.name,
-          fileUrl,
-          timestamp: new Date().toISOString()
-        };
-        
-        // Обновляем историю (ограничиваем до 10 последних записей)
-        const updatedAnalyses = [newAnalysisEntry, ...previousAnalyses].slice(0, 10);
-        setPreviousAnalyses(updatedAnalyses);
-        
-        // Обновляем Firestore
-        await updateDoc(doc(db, 'users', user.uid, 'history', 'resumeAnalyses'), {
-          analyses: updatedAnalyses
-        });
-        
-        console.log('История анализов обновлена');
-      } catch (historyErr) {
-        console.error('Error saving analysis history:', historyErr);
-      }
+      // Сохраняем в историю
+      const newAnalysisEntry = {
+        ...enhancedAnalysis,
+        fileName: file.name,
+        fileUrl,
+        timestamp: new Date().toISOString()
+      };
+      
+      const updatedAnalyses = [newAnalysisEntry, ...previousAnalyses].slice(0, 10);
+      setPreviousAnalyses(updatedAnalyses);
+      
+      await updateDoc(doc(db, 'users', user.uid, 'history', 'resumeAnalyses'), {
+        analyses: updatedAnalyses
+      });
 
-      // Обновляем данные пользователя с результатами анализа
+      // Обновляем данные пользователя
       await updateDoc(doc(db, 'users', user.uid), {
-        'resume.analysis': analysisWithTimestamp,
+        'resume.analysis': enhancedAnalysis,
         'resume.fileUrl': fileUrl,
         'resume.lastGenerated': new Date().toISOString()
       });
       
-      console.log('Данные пользователя обновлены с результатами анализа');
-
-      // Переключаемся на результаты после успешного анализа
-      setActiveTab('upload');
-      
-      // Создаем ссылку для шаринга
+      // Генерируем ссылку для шаринга
       const shareToken = btoa(`${user.uid}:${new Date().toISOString()}`);
       setShareUrl(`${window.location.origin}/resume/share/${shareToken}`);
+      
+      setActiveTab('analysis');
 
     } catch (err) {
       console.error('Ошибка анализа:', err);
@@ -235,6 +382,106 @@ const ResumeReview: React.FC = () => {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Вспомогательные функции для анализа
+  const calculateSkillScores = (content: string, userSkills: string[]): { [key: string]: number } => {
+    const scores: { [key: string]: number } = {};
+    userSkills.forEach(skill => {
+      const regex = new RegExp(skill, 'gi');
+      const matches = content.match(regex);
+      const frequency = matches ? matches.length : 0;
+      scores[skill] = Math.min(100, frequency * 20);
+    });
+    return scores;
+  };
+
+  const analyzeKeywordDensity = (content: string): { [key: string]: number } => {
+    const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+    const total = words.length;
+    const frequency: { [key: string]: number } = {};
+    words.forEach(word => {
+      frequency[word] = ((frequency[word] || 0) + 1) / total * 100;
+    });
+    return Object.fromEntries(
+      Object.entries(frequency)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10)
+    );
+  };
+
+  const calculateReadabilityScore = (content: string): number => {
+    const words = content.match(/\b\w+\b/g) || [];
+    const sentences = content.match(/[.!?]+/g) || [];
+    const avgWordsPerSentence = words.length / sentences.length;
+    const readabilityScore = Math.max(0, Math.min(100, 100 - (avgWordsPerSentence - 15) * 5));
+    return Math.round(readabilityScore);
+  };
+
+  const calculateIndustryFit = (content: string, userProfile: any): number => {
+    const industryKeywords = userProfile.interests;
+    let matchCount = 0;
+    industryKeywords.forEach((keyword: string) => {
+      const regex = new RegExp(keyword, 'gi');
+      const matches = content.match(regex);
+      if (matches) matchCount += matches.length;
+    });
+    return Math.min(100, matchCount * 10);
+  };
+
+  const calculateTechnicalScore = (content: string, userProfile: any): number => {
+    const technicalSkills = userProfile.skills.filter((skill: string) => 
+      /^(python|java|javascript|react|node|sql|aws|docker|kubernetes|ml|ai)$/i.test(skill)
+    );
+    let score = 0;
+    technicalSkills.forEach((skill: string) => {
+      const regex = new RegExp(skill, 'gi');
+      const matches = content.match(regex);
+      if (matches) score += matches.length * 5;
+    });
+    return Math.min(100, score);
+  };
+
+  const calculateSoftSkillsScore = (content: string): number => {
+    const softSkills = [
+      'коммуникация', 'лидерство', 'работа в команде', 'организация',
+      'решение проблем', 'креативность', 'адаптивность', 'управление временем'
+    ];
+    let score = 0;
+    softSkills.forEach(skill => {
+      const regex = new RegExp(skill, 'gi');
+      const matches = content.match(regex);
+      if (matches) score += matches.length * 10;
+    });
+    return Math.min(100, score);
+  };
+
+  const calculateExperienceScore = (content: string): number => {
+    const experienceKeywords = ['опыт', 'работал', 'достиг', 'разработал', 'создал', 'улучшил'];
+    let score = 0;
+    experienceKeywords.forEach(keyword => {
+      const regex = new RegExp(keyword, 'gi');
+      const matches = content.match(regex);
+      if (matches) score += matches.length * 8;
+    });
+    return Math.min(100, score);
+  };
+
+  const calculateEducationScore = (content: string): number => {
+    const educationKeywords = ['образование', 'университет', 'степень', 'диплом', 'курс'];
+    let score = 0;
+    educationKeywords.forEach(keyword => {
+      const regex = new RegExp(keyword, 'gi');
+      const matches = content.match(regex);
+      if (matches) score += matches.length * 15;
+    });
+    return Math.min(100, score);
+  };
+
+  const calculateOverallImpact = (baseScore: number): number => {
+    return Math.round((baseScore + 
+      (analysis?.readabilityScore || 0) + 
+      (analysis?.industryFit || 0)) / 3);
   };
 
   // Функция для скачивания PDF
@@ -665,7 +912,10 @@ const ResumeReview: React.FC = () => {
               {/* Upload and Analysis section */}
               <div className="space-y-8">
                 <ResumeUploader 
-                  onFileSelected={handleFileSelected} 
+                  onFileSelected={handleFileSelected}
+                  onAnalyze={analyzeResume}
+                  file={file}
+                  error={error}
                   isAnalyzing={isAnalyzing}
                 />
 
@@ -714,7 +964,8 @@ const ResumeReview: React.FC = () => {
                   {analysis && (
                     <ResumeAnalysisResult 
                       analysis={analysis} 
-                      onDownloadPDF={downloadAnalysisPDF}
+                      onDownload={downloadAnalysisPDF}
+                      onShare={() => setShowShareOptions(true)}
                     />
                   )}
                 </div>
