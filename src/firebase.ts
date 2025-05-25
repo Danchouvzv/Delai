@@ -8,13 +8,13 @@ console.log("🔥 Firebase initialization starting...");
 
 // Firebase configuration should use environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBFrDVlsCR8dDChhNr1bly5qvxC-tnzEhU",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "jumysal-a5ce4.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "jumysal-a5ce4",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "jumysal-a5ce4.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1028418533364",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1028418533364:web:940e10a031cd131a272ba1",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-1PCYJY4XWZ",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCxVu7UEUMtcw91bKJcXGGgYfAVIHMVfGA",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "jumysal-76195.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "jumysal-76195",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "jumysal-76195.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "344358837242",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:344358837242:web:2f75c6d71bf5fab5a80d66",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-HF57DGKHCJ",
 };
 
 console.log("Firebase config:", { 
@@ -168,10 +168,10 @@ try {
 export { auth, db, storage, functions };
 
 // NOTE: For production deployment, these values should be stored in .env file:
-// VITE_FIREBASE_API_KEY=AIzaSyBFrDVlsCR8dDChhNr1bly5qvxC-tnzEhU
-// VITE_FIREBASE_AUTH_DOMAIN=jumysal-a5ce4.firebaseapp.com
-// VITE_FIREBASE_PROJECT_ID=jumysal-a5ce4
-// VITE_FIREBASE_STORAGE_BUCKET=jumysal-a5ce4.appspot.com
-// VITE_FIREBASE_MESSAGING_SENDER_ID=1028418533364
-// VITE_FIREBASE_APP_ID=1:1028418533364:web:940e10a031cd131a272ba1
-// VITE_FIREBASE_MEASUREMENT_ID=G-1PCYJY4XWZ
+// VITE_FIREBASE_API_KEY=AIzaSyCxVu7UEUMtcw91bKJcXGGgYfAVIHMVfGA
+// VITE_FIREBASE_AUTH_DOMAIN=jumysal-76195.firebaseapp.com
+// VITE_FIREBASE_PROJECT_ID=jumysal-76195
+// VITE_FIREBASE_STORAGE_BUCKET=jumysal-76195.appspot.com
+// VITE_FIREBASE_MESSAGING_SENDER_ID=344358837242
+// VITE_FIREBASE_APP_ID=1:344358837242:web:2f75c6d71bf5fab5a80d66
+// VITE_FIREBASE_MEASUREMENT_ID=G-HF57DGKHCJ

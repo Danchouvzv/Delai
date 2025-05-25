@@ -12,5 +12,15 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "storage": {
+    "cors": [
+      {
+        "origin": ["*"],
+        "method": ["GET", "POST", "PUT", "DELETE"],
+        "maxAgeSeconds": 3600,
+        "responseHeader": ["Content-Type", "x-goog-resumable"]
+      }
+    ]
   }
 }
