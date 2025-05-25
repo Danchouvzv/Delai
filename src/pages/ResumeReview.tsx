@@ -20,7 +20,14 @@ const ResumeReview: React.FC = () => {
   const { user, userData: authUserData } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<UserData['resume']['analysis'] | null>(null);
+  const [analysis, setAnalysis] = useState<{
+    score: number;
+    strengths: string[];
+    improvements: string[];
+    detailedFeedback: string;
+    enhancedContent: string;
+    lastAnalyzed?: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState<'upload' | 'tips' | 'history'>('upload');
@@ -161,19 +168,11 @@ const ResumeReview: React.FC = () => {
       const userProfile = {
         role: userData.role || 'student',
         field: userData.major || userData.industry || 'technology',
-        education: userData.education?.map(edu => ({
-          degree: edu.degree,
-          institution: edu.institution,
-          year: edu.endDate || ''
-        })) || [],
+        education: userData.education?.map(edu => `${edu.degree} at ${edu.institution} (${edu.endDate || 'present'})`),
         skills: userData.skills?.map(skill => 
           typeof skill === 'string' ? skill : skill.name
         ) || [],
-        experience: userData.experience?.map(exp => ({
-          title: exp.title || '',
-          company: exp.company || '',
-          description: exp.description || ''
-        })) || [],
+        experience: userData.experience?.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`),
         interests: userData.careerGoals?.preferredIndustries || [],
         languages: userData.languages?.map(lang => lang.name) || []
       };
@@ -249,7 +248,7 @@ const ResumeReview: React.FC = () => {
       filename: `resume_analysis_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as 'portrait' | 'landscape' }
     };
     
     // Анимация загрузки

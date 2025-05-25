@@ -240,22 +240,18 @@ const App: React.FC = () => {
               
               <Route path="/subscription" element={<Subscription />} />
               
+              {/* Отдельный маршрут для проверки резюме без редиректа */}
               <Route 
                 path="/resume-review" 
-                element={
-                  <ResumeReview />
-                }
+                element={<ResumeReview />}
               />
               
-              {/* Маршруты админ-панели с общим макетом */}
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
+              {/* Админ-панель с вложенными маршрутами */}
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }>
                 <Route index element={<AdminPanel />} />
                 <Route path="jobs" element={<AdminPanel />} />
                 <Route path="moderation" element={<AdminModeration />} />

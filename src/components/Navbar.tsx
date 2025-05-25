@@ -256,7 +256,7 @@ const Navbar = () => {
                 <Menu.Item>
                   {({ active }) => (
                     <Link
-                      to="/ai-resume-review"
+                      to="/resume-review"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
