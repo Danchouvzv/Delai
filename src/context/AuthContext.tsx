@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-export type UserRole = 'school' | 'business';
+export type UserRole = 'school' | 'business' | 'admin';
 
 interface UserData {
   uid: string;
