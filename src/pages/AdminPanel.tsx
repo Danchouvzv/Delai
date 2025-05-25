@@ -24,14 +24,14 @@ const AdminPanel: React.FC = () => {
     draft: 0
   });
 
-  // Проверка прав администратора
+  
   useEffect(() => {
     if (!user || !userData || userData.role !== 'admin') {
       navigate('/');
     }
   }, [user, userData, navigate]);
 
-  // Загрузка вакансий
+  
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
@@ -46,7 +46,7 @@ const AdminPanel: React.FC = () => {
         
         setPosts(fetchedPosts);
         
-        // Обновление статистики
+        
         const stats = {
           total: fetchedPosts.length,
           active: fetchedPosts.filter(post => post.status === 'active').length,
@@ -85,7 +85,7 @@ const AdminPanel: React.FC = () => {
     return true;
   });
 
-  // Сортировка вакансий
+  
   const sortedPosts = [...filteredPosts].sort((a, b) => {
     if (sortBy === 'newest') {
       return new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime();
@@ -99,7 +99,7 @@ const AdminPanel: React.FC = () => {
     return 0;
   });
 
-  // Удаление вакансии
+  
   const handleDelete = async (postId: string) => {
     try {
       await deleteDoc(doc(db, 'posts', postId));
@@ -130,7 +130,7 @@ const AdminPanel: React.FC = () => {
   };
 
   // Изменение статуса вакансии
-  const handleStatusChange = async (postId: string, newStatus: string) => {
+  const handleStatusChange = async (postId: string, newStatus: 'active' | 'closed' | 'draft' | 'pending' | 'rejected' | 'archived') => {
     try {
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, { status: newStatus });
@@ -374,7 +374,7 @@ const AdminPanel: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
                           value={post.status || 'active'}
-                          onChange={(e) => handleStatusChange(post.id, e.target.value)}
+                          onChange={(e) => handleStatusChange(post.id, e.target.value as 'active' | 'closed' | 'draft' | 'pending' | 'rejected' | 'archived')}
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
                             post.status === 'active' 
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 

@@ -36,10 +36,10 @@ interface CareerProgress {
 
 const AIMentor: React.FC = () => {
   const { user, userData } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
+  const [initialMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      content: `Привет${userData?.firstName ? `, ${userData.firstName}` : ''}! 👋 Я твой AI-карьерный ментор. Я здесь, чтобы помочь тебе:
+      content: `Привет${userData?.displayName ? `, ${userData.displayName}` : ''}! 👋 Я твой AI-карьерный ментор. Я здесь, чтобы помочь тебе:
 
 • Подготовиться к собеседованиям
 • Улучшить твое резюме
@@ -52,6 +52,7 @@ const AIMentor: React.FC = () => {
       timestamp: new Date()
     }
   ]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -61,7 +62,7 @@ const AIMentor: React.FC = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [careerProgress, setCareerProgress] = useState<CareerProgress>({
-    level: userData?.experienceLevel || 'Junior',
+    level: 'Junior',
     progress: 65,
     skills: [
       { name: 'JavaScript', level: 80, color: 'bg-yellow-500' },
@@ -210,7 +211,7 @@ const AIMentor: React.FC = () => {
     
     try {
       // Get user's name and role for personalization
-      const userName = user?.displayName || userData?.firstName || 'there';
+      const userName = user?.displayName || (userData?.displayName ? userData.displayName : 'there');
       const userRole = userData?.role || 'job seeker';
       
       // Create context for the AI
@@ -337,20 +338,7 @@ const AIMentor: React.FC = () => {
   // Add this function to clear the chat
   const handleClearChat = () => {
     if (window.confirm('Вы уверены, что хотите очистить историю чата? Это действие нельзя отменить.')) {
-      setMessages([{
-        id: 'welcome',
-        content: `Привет${userData?.firstName ? `, ${userData.firstName}` : ''}! 👋 Я твой AI-карьерный ментор. Я здесь, чтобы помочь тебе:
-
-• Подготовиться к собеседованиям
-• Улучшить твое резюме
-• Спланировать карьерный рост
-• Развить необходимые навыки
-• Найти подходящую работу
-
-С чего бы ты хотел(а) начать сегодня?`,
-        sender: 'ai',
-        timestamp: new Date()
-      }]);
+      setMessages(initialMessages);
     }
   };
 

@@ -68,7 +68,8 @@ export interface UserData {
   photoURL?: string;
   createdAt: string;
   updatedAt: string;
-  role: 'student' | 'professional' | 'recruiter' | 'employer' | 'business';
+  role: 'student' | 'professional' | 'recruiter' | 'employer' | 'business' | 'admin';
+  isBlocked?: boolean;
   
   // Company Information (for employers)
   companyName?: string;
@@ -77,8 +78,8 @@ export interface UserData {
   companyWebsite?: string;
   
   // Basic Information
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   phoneNumber?: string;
   location?: string;
   birthDate?: string;

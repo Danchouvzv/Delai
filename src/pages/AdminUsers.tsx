@@ -118,14 +118,14 @@ const AdminUsers: React.FC = () => {
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, { 
-        role: 'admin',
+        role: 'admin' as 'admin',
         updatedAt: new Date().toISOString()
       });
       
       // Обновление локального состояния
       setUsers(users.map(u => {
         if (u.uid === userId) {
-          return { ...u, role: 'admin' };
+          return { ...u, role: 'admin' as 'admin' };
         }
         return u;
       }));
