@@ -1,7 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUpload, FiFile, FiX, FiCheck } from 'react-icons/fi';
+import { FiUpload, FiFile, FiX, FiCheck, FiCpu, FiAward, FiLayout } from 'react-icons/fi';
+import { AiOutlineFileSearch, AiOutlineRobot } from 'react-icons/ai';
+import { BsFiletypePdf, BsFiletypeDocx, BsFiletypeTxt, BsStars } from 'react-icons/bs';
 
 interface ResumeUploaderProps {
   onFileSelected: (file: File) => void;
@@ -19,6 +21,24 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({
   isAnalyzing = false
 }) => {
   const [isDragActive, setIsDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Имитация прогресса загрузки для улучшения UX
+  useEffect(() => {
+    if (file && uploadProgress < 100) {
+      const timer = setTimeout(() => {
+        setUploadProgress(Math.min(uploadProgress + 25, 100));
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [file, uploadProgress]);
+
+  // Сбрасываем прогресс при выборе нового файла
+  useEffect(() => {
+    if (file) {
+      setUploadProgress(0);
+    }
+  }, [file]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -39,46 +59,128 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     onDragLeave: () => setIsDragActive(false)
   });
 
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return <BsFiletypePdf className="w-8 h-8 text-red-500" />;
+      case 'doc':
+      case 'docx':
+        return <BsFiletypeDocx className="w-8 h-8 text-blue-600" />;
+      case 'txt':
+        return <BsFiletypeTxt className="w-8 h-8 text-gray-600" />;
+      default:
+        return <FiFile className="w-8 h-8 text-blue-500" />;
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="max-w-3xl mx-auto"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="max-w-4xl mx-auto"
     >
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <motion.div 
+        variants={itemVariants}
+        className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl p-8 border border-blue-100"
+      >
         <div
           {...getRootProps()}
           className={`
-            border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-            transition-colors duration-200 ease-in-out
-            ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}
+            relative overflow-hidden
+            border-3 border-dashed rounded-xl p-10 text-center cursor-pointer
+            transition-all duration-300 ease-in-out
+            ${isDragActive 
+              ? 'border-blue-500 bg-blue-50 scale-105 shadow-lg' 
+              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'}
           `}
         >
           <input {...getInputProps()} />
           
+          {/* Пульсирующий круг на заднем плане */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <motion.div
+              animate={{
+                scale: isDragActive ? [1, 1.1, 1] : [1, 1.05, 1],
+                opacity: isDragActive ? [0.1, 0.2, 0.1] : [0.05, 0.1, 0.05],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="w-64 h-64 rounded-full bg-blue-400"
+            />
+          </div>
+          
           <motion.div
             initial={{ scale: 1 }}
-            animate={{ scale: isDragActive ? 1.05 : 1 }}
-            className="space-y-4"
+            animate={{ 
+              scale: isDragActive ? 1.05 : 1,
+              y: isDragActive ? -5 : 0
+            }}
+            className="space-y-6 relative z-10"
           >
-            <div className="flex justify-center">
-              <FiUpload
-                className={`w-12 h-12 ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`}
-              />
-            </div>
+            <motion.div 
+              className="flex justify-center"
+              animate={{ 
+                y: isDragActive ? [0, -10, 0] : 0 
+              }}
+              transition={{ 
+                duration: 1.5,
+                repeat: isDragActive ? Infinity : 0,
+                ease: "easeInOut"
+              }}
+            >
+              <motion.div
+                whileHover={{ rotate: 15, scale: 1.1 }}
+                className="p-5 bg-white rounded-full shadow-md"
+              >
+                <AiOutlineFileSearch
+                  className={`w-12 h-12 ${isDragActive ? 'text-blue-600' : 'text-blue-500'}`}
+                />
+              </motion.div>
+            </motion.div>
             
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">
-                {isDragActive ? 'Отпустите файл здесь' : 'Перетащите файл резюме сюда'}
+            <div className="space-y-3">
+              <h3 className="text-xl font-bold text-gray-900">
+                {isDragActive ? 'Отпустите файл для загрузки' : 'Перетащите файл резюме сюда'}
               </h3>
-              <p className="text-sm text-gray-500">
-                или нажмите для выбора файла
+              <p className="text-md text-gray-600">
+                или <span className="text-blue-600 font-medium">нажмите для выбора файла</span>
               </p>
             </div>
             
-            <div className="text-xs text-gray-400">
-              Поддерживаемые форматы: PDF, DOC, DOCX, TXT
+            <div className="flex justify-center space-x-4">
+              <motion.div whileHover={{ scale: 1.1 }} className="flex flex-col items-center">
+                <BsFiletypePdf className="w-8 h-8 text-red-500 mb-2" />
+                <span className="text-xs text-gray-500">PDF</span>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} className="flex flex-col items-center">
+                <BsFiletypeDocx className="w-8 h-8 text-blue-600 mb-2" />
+                <span className="text-xs text-gray-500">DOCX</span>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} className="flex flex-col items-center">
+                <BsFiletypeTxt className="w-8 h-8 text-gray-600 mb-2" />
+                <span className="text-xs text-gray-500">TXT</span>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -86,21 +188,29 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({
         <AnimatePresence>
           {file && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4"
+              initial={{ opacity: 0, height: 0, y: -20 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="mt-6"
             >
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <FiFile className="w-6 h-6 text-blue-500" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {file.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </div>
+              <div className="flex items-center p-5 bg-white rounded-xl shadow-md border border-blue-100">
+                <div className="mr-4">
+                  {getFileIcon(file.name)}
+                </div>
+                <div className="flex-grow">
+                  <div className="text-md font-medium text-gray-900 mb-1">
+                    {file.name}
+                  </div>
+                  <div className="h-2 w-full bg-gray-100 rounded-full">
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${uploadProgress}%` }}
+                      className="h-full bg-blue-600 rounded-full"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB • {uploadProgress === 100 ? 'Готов к анализу' : 'Загрузка...'}
                   </div>
                 </div>
                 
@@ -109,20 +219,43 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({
                     e.stopPropagation();
                     onFileSelected(null as any);
                   }}
-                  className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-2"
                 >
                   <FiX className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: uploadProgress === 100 ? 1 : 0.7, y: 0 }}
+                whileHover={{ scale: uploadProgress === 100 ? 1.03 : 1 }}
+                whileTap={{ scale: uploadProgress === 100 ? 0.98 : 1 }}
                 onClick={onAnalyze}
-                className="mt-6 w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={uploadProgress < 100 || isAnalyzing}
+                className={`mt-6 w-full flex items-center justify-center px-6 py-4 text-base font-bold rounded-xl
+                  ${uploadProgress === 100 && !isAnalyzing
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700"
+                    : "bg-gray-100 text-gray-400"
+                  } 
+                  transition-all duration-300 ease-in-out`}
               >
-                <FiCheck className="w-5 h-5 mr-2" />
-                Начать анализ
+                {isAnalyzing ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      className="mr-3"
+                    >
+                      <AiOutlineRobot className="w-6 h-6" />
+                    </motion.div>
+                    Анализируем ваше резюме...
+                  </>
+                ) : (
+                  <>
+                    <BsStars className="w-6 h-6 mr-3" />
+                    Начать AI-анализ резюме
+                  </>
+                )}
               </motion.button>
             </motion.div>
           )}
@@ -132,11 +265,11 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mt-4 p-4 bg-red-50 rounded-lg"
+              className="mt-6 p-5 bg-red-50 rounded-xl border border-red-100"
             >
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <FiX className="h-5 w-5 text-red-400" />
+                  <FiX className="h-5 w-5 text-red-500" />
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
@@ -150,45 +283,59 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div 
+        variants={itemVariants}
+        className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3"
+      >
         {[
           {
-            icon: <FiUpload className="w-6 h-6" />,
-            title: 'Быстрая загрузка',
-            description: 'Поддержка основных форматов файлов'
+            icon: <AiOutlineRobot className="w-8 h-8" />,
+            title: 'AI-анализ',
+            description: 'Мгновенная оценка вашего резюме с помощью искусственного интеллекта',
+            color: 'from-blue-500 to-blue-600',
+            delay: 0.1
           },
           {
-            icon: <FiCheck className="w-6 h-6" />,
-            title: 'AI Анализ',
-            description: 'Мгновенная оценка и рекомендации'
+            icon: <FiLayout className="w-8 h-8" />,
+            title: 'Улучшение структуры',
+            description: 'Рекомендации по оптимизации структуры и содержания',
+            color: 'from-purple-500 to-purple-600',
+            delay: 0.2
           },
           {
-            icon: <FiFile className="w-6 h-6" />,
-            title: 'Детальный отчет',
-            description: 'Получите подробный анализ вашего резюме'
+            icon: <FiAward className="w-8 h-8" />,
+            title: 'Конкурентное преимущество',
+            description: 'Выделитесь среди других кандидатов с идеальным резюме',
+            color: 'from-green-500 to-green-600',
+            delay: 0.3
           }
         ].map((feature, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="relative p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            variants={itemVariants}
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="relative p-6 rounded-xl shadow-lg overflow-hidden"
           >
-            <div className="text-blue-500 mb-4">
-              {feature.icon}
+            <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-90`}></div>
+            
+            <div className="relative z-10">
+              <div className="p-3 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg inline-block mb-4">
+                <div className="text-white">
+                  {feature.icon}
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                {feature.title}
+              </h3>
+              <p className="text-white text-opacity-80">
+                {feature.description}
+              </p>
             </div>
-            <h3 className="text-lg font-medium text-gray-900">
-              {feature.title}
-            </h3>
-            <p className="mt-2 text-sm text-gray-500">
-              {feature.description}
-            </p>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
     </motion.div>
   );
 };

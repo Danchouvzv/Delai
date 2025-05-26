@@ -26,7 +26,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ResumeUploader from '../components/ResumeUploader';
 import ResumeAnalysisResult from '../components/ResumeAnalysisResult';
 import html2pdf from 'html2pdf.js';
-import { BsFileEarmarkText, BsGraphUp, BsStars, BsAward } from 'react-icons/bs';
+import { BsFileEarmarkText, BsGraphUp, BsStars, BsAward, BsRobot } from 'react-icons/bs';
 import { HiOutlineDocumentText, HiOutlineDocumentSearch, HiOutlineDocumentReport } from 'react-icons/hi';
 
 ChartJS.register(
@@ -197,6 +197,8 @@ const ResumeReview: React.FC = () => {
               educationScore: analysisData.educationScore || 0,
               overallImpact: analysisData.overallImpact || 0
             });
+            
+            setActiveTab('analysis');
           }
           
           // Создать коллекцию истории, если она не существует
@@ -484,70 +486,31 @@ const ResumeReview: React.FC = () => {
       (analysis?.industryFit || 0)) / 3);
   };
 
-  // Функция для скачивания PDF
-  const downloadAnalysisPDF = useCallback(() => {
-    if (!analysisRef.current || !analysis) return;
+  const downloadAnalysisReport = () => {
+    if (!analysis || !analysisRef.current) return;
     
-    // Установка параметров для PDF
-    const element = analysisRef.current;
     const opt = {
       margin: 10,
-      filename: `resume_analysis_${new Date().toISOString().split('T')[0]}.pdf`,
+      filename: 'resume-analysis-report.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as 'portrait' | 'landscape' }
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    // Анимация загрузки
-    const downloadButton = document.getElementById('download-button');
-    if (downloadButton) {
-      downloadButton.innerHTML = '<span class="animate-spin mr-2">↻</span> Создание PDF...';
-      downloadButton.setAttribute('disabled', 'true');
-    }
-    
-    // Генерируем PDF
-    html2pdf().from(element).set(opt).save().then(() => {
-      // Возвращаем кнопку в нормальное состояние
-      if (downloadButton) {
-        downloadButton.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Скачать PDF';
-        downloadButton.removeAttribute('disabled');
-      }
-    });
-  }, [analysis]);
+    html2pdf().set(opt).from(analysisRef.current).save();
+  };
   
-  // Функция для копирования ссылки
-  const copyShareLink = useCallback(() => {
-    if (!shareUrl) return;
-    
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
-  }, [shareUrl]);
+  const shareAnalysis = () => {
+    setShowShareOptions(!showShareOptions);
+    // Создание временной ссылки для шаринга
+    setShareUrl(`https://example.com/shared-analysis?id=${Math.random().toString(36).substring(2, 12)}`);
+  };
   
-  // Функция для шаринга в соцсети
-  const shareToSocial = useCallback((platform: 'twitter' | 'linkedin' | 'facebook') => {
-    if (!shareUrl) return;
-    
-    const text = 'Проверьте анализ моего резюме, созданный с помощью ИИ!';
-    let shareLink = '';
-    
-    switch (platform) {
-      case 'twitter':
-        shareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-        break;
-      case 'linkedin':
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-        break;
-      case 'facebook':
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-        break;
-    }
-    
-    if (shareLink) {
-      window.open(shareLink, '_blank');
-    }
-  }, [shareUrl]);
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   const renderTips = () => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
@@ -844,158 +807,167 @@ const ResumeReview: React.FC = () => {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 pt-20 pb-12">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white">
-            Resume Review & Analysis
-          </h1>
-          <p className="mt-2 text-center text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Get AI-powered insights to improve your resume and stand out to employers
-          </p>
-        </motion.div>
-
-        {/* Tabs */}
-        <div className="bg-white dark:bg-slate-800 rounded-t-2xl shadow-xl mb-0">
-          <div className="flex border-b border-gray-200 dark:border-gray-700">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'upload':
+        return (
+          <motion.div
+            key="upload"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="min-h-[80vh] flex flex-col"
+          >
+            <div className="mb-12 text-center">
+              <motion.h1 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-4xl font-extrabold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 inline-block text-transparent bg-clip-text"
+              >
+                AI-анализ вашего резюме
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-xl text-gray-600 max-w-3xl mx-auto"
+              >
+                Улучшите своё резюме с помощью искусственного интеллекта. Получите подробный анализ и рекомендации для повышения шансов на успешное трудоустройство.
+              </motion.p>
+            </div>
+            
+            <ResumeUploader
+              onFileSelected={handleFileSelected}
+              onAnalyze={analyzeResume}
+              file={file}
+              error={error}
+              isAnalyzing={isAnalyzing}
+            />
+          </motion.div>
+        );
+        
+      case 'analysis':
+        return analysis ? (
+          <motion.div
+            key="analysis"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            ref={analysisRef}
+            className="min-h-[80vh]"
+          >
+            <ResumeAnalysisResult
+              analysis={analysis}
+              onDownload={downloadAnalysisReport}
+              onShare={shareAnalysis}
+            />
+            
+            <AnimatePresence>
+              {showShareOptions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="fixed bottom-10 right-10 bg-white p-4 rounded-lg shadow-lg z-50"
+                >
+                  <div className="flex flex-col space-y-3">
+                    <div className="text-sm font-medium text-gray-600">Поделиться отчетом:</div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={shareUrl}
+                        readOnly
+                        className="text-sm border rounded px-2 py-1 flex-grow"
+                      />
+                      <button
+                        onClick={copyShareLink}
+                        className="p-2 bg-blue-100 rounded-md hover:bg-blue-200"
+                      >
+                        {isCopied ? <FiCheckCircle className="text-green-600" /> : <FiShare2 />}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="no-analysis"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="min-h-[80vh] flex flex-col items-center justify-center text-center p-8"
+          >
+            <div className="bg-blue-50 rounded-full p-6 mb-6">
+              <HiOutlineDocumentSearch className="w-16 h-16 text-blue-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">Анализ еще не выполнен</h2>
+            <p className="text-gray-600 mb-6 max-w-md">
+              Загрузите ваше резюме, чтобы получить подробный AI-анализ и рекомендации по улучшению
+            </p>
             <button
               onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-2 py-4 px-6 transition-colors ${
-                activeTab === 'upload'
-                  ? 'border-b-2 border-purple-500 text-purple-600 dark:text-purple-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
-              <FiFileText className="w-5 h-5" />
-              <span>Analyze Resume</span>
+              Загрузить резюме
             </button>
-            <button
-              onClick={() => setActiveTab('tips')}
-              className={`flex items-center gap-2 py-4 px-6 transition-colors ${
-                activeTab === 'tips'
-                  ? 'border-b-2 border-purple-500 text-purple-600 dark:text-purple-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <FiInfo className="w-5 h-5" />
-              <span>Resume Tips</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 py-4 px-6 transition-colors ${
-                activeTab === 'history'
-                  ? 'border-b-2 border-purple-500 text-purple-600 dark:text-purple-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <FiBookOpen className="w-5 h-5" />
-              <span>History</span>
-            </button>
-          </div>
-        </div>
+          </motion.div>
+        );
         
-        {/* Tab content */}
-        <AnimatePresence mode="wait">
-          {activeTab === 'upload' && (
-            <motion.div
-              key="upload"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="bg-white dark:bg-slate-800 rounded-b-2xl shadow-xl p-8"
+      case 'tips':
+        return renderTips();
+        
+      case 'history':
+        return renderHistoryTab();
+        
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Фоновые элементы */}
+      <div className="absolute top-20 left-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
+      <div className="absolute top-40 right-20 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
+      
+      {/* Навигация */}
+      <div className="mb-10">
+        <div className="bg-white rounded-2xl shadow-lg p-2 flex space-x-1">
+          {[
+            { id: 'upload', label: 'Загрузка', icon: <FiUpload className="mr-2" /> },
+            { id: 'analysis', label: 'Анализ', icon: <BsRobot className="mr-2" /> },
+            { id: 'tips', label: 'Советы', icon: <FiStar className="mr-2" /> },
+            { id: 'history', label: 'История', icon: <FiFileText className="mr-2" /> }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              disabled={tab.id === 'analysis' && !analysis}
+              className={`
+                flex items-center justify-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 flex-1
+                ${activeTab === tab.id 
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' 
+                  : 'text-gray-600 hover:bg-gray-100'}
+                ${tab.id === 'analysis' && !analysis ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
             >
-              {/* Upload and Analysis section */}
-              <div className="space-y-8">
-                <ResumeUploader 
-                  onFileSelected={handleFileSelected}
-                  onAnalyze={analyzeResume}
-                  file={file}
-                  error={error}
-                  isAnalyzing={isAnalyzing}
-                />
-
-                {/* Analysis Button */}
-                <div className="flex justify-center">
-                  <button
-                    onClick={analyzeResume}
-                    disabled={!file || isAnalyzing}
-                    className={`px-8 py-3 rounded-xl text-white font-medium transition-all flex items-center gap-3 ${
-                      !file || isAnalyzing
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-purple-600 hover:bg-purple-700'
-                    }`}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <FiCheckCircle className="w-5 h-5" />
-                        Analyze Resume
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Error Messages */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="p-4 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg flex items-center gap-3"
-                    >
-                      <FiAlertCircle className="w-5 h-5 flex-shrink-0" />
-                      <p>{error}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Analysis Results */}
-                <div ref={analysisRef}>
-                  {analysis && (
-                    <ResumeAnalysisResult 
-                      analysis={analysis} 
-                      onDownload={downloadAnalysisPDF}
-                      onShare={() => setShowShareOptions(true)}
-                    />
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'tips' && (
-            <motion.div
-              key="tips"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {renderTips()}
-            </motion.div>
-          )}
-
-          {activeTab === 'history' && (
-            <motion.div
-              key="history"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {renderHistoryTab()}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Контент */}
+      <AnimatePresence mode="wait">
+        {renderContent()}
+      </AnimatePresence>
     </div>
   );
 };
