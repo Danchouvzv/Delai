@@ -8,13 +8,13 @@ console.log("🔥 Firebase initialization starting...");
 
 // Firebase configuration should use environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCxVu7UEUMtcw91bKJcXGGgYfAVIHMVfGA",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDSVo3dr51l-eMYD1gDm1FsTG1lAUsiq1k",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "jumysal-76195.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "jumysal-76195",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "jumysal-76195.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "344358837242",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:344358837242:web:2f75c6d71bf5fab5a80d66",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-HF57DGKHCJ",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "jumysal-76195.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "54916948108",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:54916948108:web:22c67b3d1de6f0716c1ba9",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-LE0VPJ7423",
 };
 
 console.log("Firebase config:", { 
@@ -168,10 +168,10 @@ try {
 export { auth, db, storage, functions };
 
 // NOTE: For production deployment, these values should be stored in .env file:
-// VITE_FIREBASE_API_KEY=AIzaSyCxVu7UEUMtcw91bKJcXGGgYfAVIHMVfGA
+// VITE_FIREBASE_API_KEY=AIzaSyDSVo3dr51l-eMYD1gDm1FsTG1lAUsiq1k
 // VITE_FIREBASE_AUTH_DOMAIN=jumysal-76195.firebaseapp.com
 // VITE_FIREBASE_PROJECT_ID=jumysal-76195
-// VITE_FIREBASE_STORAGE_BUCKET=jumysal-76195.appspot.com
-// VITE_FIREBASE_MESSAGING_SENDER_ID=344358837242
-// VITE_FIREBASE_APP_ID=1:344358837242:web:2f75c6d71bf5fab5a80d66
-// VITE_FIREBASE_MEASUREMENT_ID=G-HF57DGKHCJ
+// VITE_FIREBASE_STORAGE_BUCKET=jumysal-76195.firebasestorage.app
+// VITE_FIREBASE_MESSAGING_SENDER_ID=54916948108
+// VITE_FIREBASE_APP_ID=1:54916948108:web:22c67b3d1de6f0716c1ba9
+// VITE_FIREBASE_MEASUREMENT_ID=G-LE0VPJ7423
