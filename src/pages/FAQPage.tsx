@@ -1,91 +1,177 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FAQ } from '../components/ProfileNew';
 import Navbar from '../components/Navbar';
+import FAQHero from '../components/FAQHero';
+import FAQAccordion from '../components/FAQAccordion';
+import FAQCategories from '../components/FAQCategories';
+import FAQSearch from '../components/FAQSearch';
+import FAQFeatures from '../components/FAQFeatures';
+import FAQSupportSection from '../components/FAQSupportSection';
+import { faqItems, popularSearches } from '../components/FAQData';
+import { FiTrendingUp, FiSearch } from 'react-icons/fi';
 
 const FAQPage: React.FC = () => {
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredItems, setFilteredItems] = useState(faqItems);
+  const [animationKey, setAnimationKey] = useState(0);
+  
+  // Фильтрация элементов по категории и поисковому запросу
+  useEffect(() => {
+    // Фильтрация сначала по категории
+    let filtered = activeCategory === 'all' 
+      ? faqItems
+      : faqItems.filter(item => item.category === activeCategory);
+    
+    // Затем по поисковому запросу, если он есть
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.question.toLowerCase().includes(query) || 
+        item.answer.toLowerCase().includes(query)
+      );
+    }
+    
+    setFilteredItems(filtered);
+    // Обновление ключа анимации для перезапуска анимации
+    setAnimationKey(prev => prev + 1);
+  }, [activeCategory, searchQuery]);
+  
+  // Обработчик поиска
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+  
+  // Обработчик клика по популярному запросу
+  const handlePopularSearch = (query: string) => {
+    setSearchQuery(query);
+    setActiveCategory('all'); // Сбрасываем категорию при выборе популярного запроса
+  };
+  
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-hidden">
+      {/* Navbar добавляется только один раз */}
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-4xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
-            Часто задаваемые вопросы
-          </h1>
+      
+      {/* Hero секция */}
+      <FAQHero />
+      
+      {/* Основной контент */}
+      <div className="container mx-auto px-4 py-12">
+        {/* Поиск */}
+        <FAQSearch onSearch={handleSearch} />
+        
+        {/* Популярные запросы */}
+        {!filteredItems.length && searchQuery && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 text-center"
+          >
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
+              По запросу <span className="font-semibold">"{searchQuery}"</span> ничего не найдено
+            </p>
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+            >
+              Очистить поиск
+            </button>
+          </motion.div>
+        )}
+        
+        <div className="mb-10">
+          <div className="flex items-center mb-4">
+            <FiTrendingUp className="mr-2 text-purple-500" />
+            <h3 className="font-medium text-gray-900 dark:text-white">Популярные запросы</h3>
+          </div>
           
-          <FAQ />
-        </motion.div>
+          <div className="flex flex-wrap gap-2">
+            {popularSearches.map((query, index) => (
+              <motion.button
+                key={index}
+                onClick={() => handlePopularSearch(query)}
+                className={`px-3 py-1 rounded-full text-sm border transition-all duration-200 ${
+                  searchQuery === query
+                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                {query}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Категории */}
+        <div className="mb-8">
+          <FAQCategories 
+            activeCategory={activeCategory} 
+            setActiveCategory={setActiveCategory} 
+          />
+        </div>
+        
+        {/* Список вопросов */}
+        {filteredItems.length > 0 ? (
+          <motion.div
+            key={animationKey}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="mb-16"
+          >
+            <FAQAccordion 
+              items={filteredItems} 
+              activeCategory={activeCategory} 
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                <FiSearch className="w-8 h-8 text-gray-400" />
+              </div>
+            </div>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+              Вопросы не найдены
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              Попробуйте изменить запрос или выбрать другую категорию
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setActiveCategory('all');
+              }}
+              className="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Сбросить фильтры
+            </button>
+          </motion.div>
+        )}
       </div>
       
-      {/* Дополнительная секция с советами для новых пользователей */}
-      <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 py-16 mt-10">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-              Советы для начала работы
-            </h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-10">
-              Несколько полезных советов для эффективного использования платформы JumysAl
-            </p>
-            
-            <div className="grid md:grid-cols-3 gap-8">
-              <motion.div
-                whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Заполните профиль</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Полностью заполненный профиль увеличивает ваши шансы на получение стажировки на 70%.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Будьте активны</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Регулярное обновление профиля и отклики на новые вакансии значительно повышают вашу заметность.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Используйте AI</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Наши инструменты искусственного интеллекта помогут вам создать привлекательное резюме и подготовиться к собеседованию.
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
+      {/* Секция с возможностями платформы */}
+      <FAQFeatures />
+      
+      {/* Секция поддержки */}
+      <FAQSupportSection />
+      
+      {/* Футер */}
+      <footer className="bg-gray-100 dark:bg-gray-800 py-8">
+        <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400">
+          <p>© {new Date().getFullYear()} JumysAl. Все права защищены.</p>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };
