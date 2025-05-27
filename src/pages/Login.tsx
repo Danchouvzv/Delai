@@ -1,168 +1,308 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import { UserContext } from '../contexts/UserContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiEye, FiEyeOff, FiMail, FiLock, FiAlertCircle } from 'react-icons/fi';
+import { GrLinkedin, GrFacebook, GrGoogle } from 'react-icons/gr';
 
-const Login: React.FC = () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
-    // Анимация появления компонента
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-
+    
+    if (!email || !password) {
+      setError('Пожалуйста, заполните все поля');
+      return;
+    }
+    
     try {
+      setError('');
+      setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      let errorMessage = 'Не удалось войти. Проверьте email и пароль.';
+      
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = 'Пользователь с таким email не найден';
+      } else if (err.code === 'auth/wrong-password') {
+        errorMessage = 'Неверный пароль';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Неверный формат email';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Слишком много попыток входа. Попробуйте позже';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
+  // Фоновые анимированные элементы
+  const bubbles = Array.from({ length: 5 }).map((_, i) => (
+    <motion.div
+      key={i}
+      className={`absolute rounded-full bg-primary-${100 + i * 100} bg-opacity-${10 + i * 5} 
+                  w-${20 + i * 10} h-${20 + i * 10} z-0`}
+      initial={{ 
+        x: Math.random() * 100 - 50, 
+        y: Math.random() * 100 - 50, 
+        opacity: 0.1 + Math.random() * 0.3 
+      }}
+      animate={{ 
+        x: [Math.random() * 100 - 50, Math.random() * 100 - 50],
+        y: [Math.random() * 100 - 50, Math.random() * 100 - 50],
+        opacity: [0.1 + Math.random() * 0.3, 0.2 + Math.random() * 0.3]
+      }}
+      transition={{ 
+        duration: 15 + Math.random() * 10, 
+        repeat: Infinity, 
+        repeatType: 'reverse' 
+      }}
+    />
+  ));
+
+  // Варианты анимации для контейнера формы
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.5,
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  // Варианты анимации для элементов формы
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  // Варианты анимации для кнопки
+  const buttonVariants = {
+    idle: { scale: 1 },
+    hover: { scale: 1.02, transition: { duration: 0.2 } },
+    tap: { scale: 0.98, transition: { duration: 0.1 } }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-black px-4 relative overflow-hidden">
-      {/* Анимированные фоновые элементы */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 dark:from-dark-900 dark:to-dark-800 p-4 relative overflow-hidden">
+      {/* Декоративные фоновые элементы */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        {bubbles}
+        <div className="absolute top-0 left-0 w-full h-full bg-mesh-pattern opacity-20 z-0" />
       </div>
       
-      {/* Сетка на фоне */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      
-      <div 
-        className={`max-w-md w-full bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl p-8 transform transition-all duration-700 ${
-          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-        }`}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="w-full max-w-md relative z-10"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-purple-500 mb-2">
+        {/* Логотип */}
+        <motion.div 
+          variants={itemVariants}
+          className="flex justify-center mb-8"
+        >
+          <Link to="/" className="text-3xl font-bold text-primary-500 dark:text-primary-400">
+            JumysAl
+          </Link>
+        </motion.div>
+        
+        {/* Заголовок и описание */}
+        <motion.div 
+          variants={itemVariants}
+          className="text-center mb-8"
+        >
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
             Добро пожаловать
-          </h2>
-          <p className="text-gray-400">Войдите в свой аккаунт JumysAl</p>
-        </div>
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Войдите в свой аккаунт
+          </p>
+        </motion.div>
         
+        {/* Форма входа */}
+        <motion.form 
+          variants={itemVariants}
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-chat-dark p-6 md:p-8"
+        >
+          {/* Сообщение об ошибке */}
+          <AnimatePresence>
         {error && (
-          <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded mb-6 animate-fade-in-up">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="group">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1 group-focus-within:text-orange-400 transition-colors">
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-4 p-3 bg-error-50 dark:bg-error-900/30 text-error-600 dark:text-error-400 rounded-md flex items-center"
+              >
+                <FiAlertCircle className="mr-2 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Поле Email */}
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
+                <FiMail className="text-gray-400" />
               </div>
               <input
-                id="email"
                 type="email"
+                id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                className="w-full pl-10 py-3 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-lighter dark:text-white dark:placeholder-gray-400"
                 placeholder="your@email.com"
+                required
               />
             </div>
           </div>
           
-          <div className="group">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1 group-focus-within:text-orange-400 transition-colors">
+          {/* Поле Пароль */}
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Пароль
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                </svg>
+                <FiLock className="text-gray-400" />
               </div>
               <input
+                type={showPassword ? "text" : "password"}
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                className="w-full pl-10 py-3 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-lighter dark:text-white dark:placeholder-gray-400"
                 placeholder="••••••••"
+                required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-700 rounded bg-white/5"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
-                Запомнить меня
-              </label>
-            </div>
-            
-            <div className="text-sm">
-              <a href="#" className="text-orange-400 hover:text-orange-300 transition-colors">
+            <div className="flex justify-end mt-1">
+              <Link 
+                to="/forgot-password" 
+                className="text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300"
+              >
                 Забыли пароль?
-              </a>
+              </Link>
             </div>
           </div>
           
-          <button
+          {/* Кнопка входа */}
+          <motion.button
+            variants={buttonVariants}
+            initial="idle"
+            whileHover="hover"
+            whileTap="tap"
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full py-3 px-4 bg-gradient-primary text-white rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-70 transition-all duration-200"
           >
             {loading ? (
               <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                <span className="ml-2">Signing in...</span>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Вход...
               </div>
-            ) : (
-              'Sign In'
-            )}
-          </button>
-
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => navigate('/forgot-password')}
-              className="text-orange-500 hover:text-orange-400 transition-colors"
-            >
-              Forgot Password?
-            </button>
+            ) : "Войти"}
+          </motion.button>
+          
+          {/* Разделитель для социальных сетей */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 h-px bg-gray-300 dark:bg-dark-border"></div>
+            <span className="px-4 text-sm text-gray-500 dark:text-gray-400">или</span>
+            <div className="flex-1 h-px bg-gray-300 dark:bg-dark-border"></div>
           </div>
-        </form>
+          
+          {/* Кнопки социальных сетей */}
+          <div className="grid grid-cols-3 gap-3">
+            <motion.button
+              variants={buttonVariants}
+              initial="idle"
+              whileHover="hover"
+              whileTap="tap"
+              type="button"
+              className="flex justify-center items-center py-2.5 border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-dark-lighter transition-colors"
+            >
+              <GrGoogle className="text-lg" />
+            </motion.button>
+            <motion.button
+              variants={buttonVariants}
+              initial="idle"
+              whileHover="hover"
+              whileTap="tap"
+              type="button"
+              className="flex justify-center items-center py-2.5 border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-dark-lighter transition-colors"
+            >
+              <GrFacebook className="text-lg text-blue-600" />
+            </motion.button>
+            <motion.button
+              variants={buttonVariants}
+              initial="idle"
+              whileHover="hover"
+              whileTap="tap"
+              type="button"
+              className="flex justify-center items-center py-2.5 border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-dark-lighter transition-colors"
+            >
+              <GrLinkedin className="text-lg text-blue-700" />
+            </motion.button>
+          </div>
+        </motion.form>
         
-        <div className="mt-8 text-center">
-          <p className="text-gray-400">
-            Нет аккаунта?{' '}
-            <Link to="/signup" className="text-orange-400 hover:text-orange-300 font-medium transition-colors">
+        {/* Ссылка на регистрацию */}
+        <motion.div 
+          variants={itemVariants}
+          className="text-center mt-6"
+        >
+          <p className="text-gray-600 dark:text-gray-300">
+            Еще нет аккаунта?{" "}
+            <Link 
+              to="/signup" 
+              className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+            >
               Зарегистрироваться
             </Link>
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

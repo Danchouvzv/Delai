@@ -16,14 +16,14 @@ const AdminModeration: React.FC = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
 
-  // Проверка прав администратора
+  
   useEffect(() => {
     if (!user || !userData || userData.role !== 'admin') {
       navigate('/');
     }
   }, [user, userData, navigate]);
 
-  // Загрузка вакансий на модерацию
+  
   useEffect(() => {
     const loadPendingPosts = async () => {
       setLoading(true);

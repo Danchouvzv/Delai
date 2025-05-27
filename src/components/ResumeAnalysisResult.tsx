@@ -23,6 +23,7 @@ import {
   BsGem
 } from 'react-icons/bs';
 import { UserData } from '../types';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 interface AnalysisResult {
   score: number;
@@ -51,9 +52,7 @@ interface ResumeAnalysisResultProps {
   onShare: () => void;
 }
 
-/**
- * Component to display resume analysis results
- */
+
 const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
   analysis,
   onDownload,
@@ -62,6 +61,7 @@ const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
   const [selectedSection, setSelectedSection] = useState<'overview' | 'skills' | 'improvements'>('overview');
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
+  const { isDark } = useThemeContext();
 
   const radarData = {
     labels: [
@@ -101,18 +101,18 @@ const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
         max: 100,
         ticks: {
           stepSize: 20,
-          backdropColor: 'transparent'
+          backdropColor: isDark ? '#1f2937' : 'white',
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)'
+          color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
         },
         angleLines: {
-          color: 'rgba(0, 0, 0, 0.1)'
+          color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
         },
         pointLabels: {
           font: {
             size: 12,
-            weight: 'bold'
+            weight: 'bold' as const
           }
         }
       }
@@ -179,7 +179,7 @@ const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
       animate="visible"
       className="space-y-10"
     >
-      {/* Заголовок с общим рейтингом */}
+      
       <motion.div
         variants={itemVariants}
         className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden"
@@ -300,7 +300,7 @@ const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
               </div>
             </motion.div>
             
-            {/* Подробный отзыв */}
+            
             <motion.div
               variants={itemVariants}
               className="bg-white rounded-xl shadow-lg p-6 relative overflow-hidden"
@@ -411,7 +411,7 @@ const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
               </div>
             </motion.div>
             
-            {/* Плотность ключевых слов */}
+            
             <motion.div
               variants={itemVariants}
               className="bg-white rounded-xl shadow-lg p-6"
@@ -457,7 +457,7 @@ const ResumeAnalysisResult: React.FC<ResumeAnalysisResultProps> = ({
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            {/* Сильные стороны и области для улучшения */}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <motion.div
                 variants={itemVariants}

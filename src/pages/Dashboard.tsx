@@ -39,15 +39,6 @@ const Dashboard: React.FC = () => {
   const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJob[]>([]);
 
   useEffect(() => {
-    // Перенаправляем работодателей на их дашборд
-    if (!authLoading && authUserData?.role) {
-      const role = authUserData.role as string;
-      if (role === 'employer' || role === 'business') {
-        navigate('/employer/dashboard');
-        return;
-      }
-    }
-    
     const fetchData = async () => {
       if (!user) return;
       
@@ -150,12 +141,10 @@ const Dashboard: React.FC = () => {
         
         // Fetch recommended jobs with real matching algorithm
         const jobsRef = collection(db, 'jobs');
-        // Get active jobs only
+        // Get active jobs only - simplified query to avoid index requirements
         const jobsQuery = query(
           jobsRef, 
-          where('status', '!=', 'expired'), 
-          orderBy('status'),
-          orderBy('createdAt', 'desc'), 
+          where('status', '!=', 'expired'),
           limit(50)  // Get more to filter for best matches
         );
         const jobsSnapshot = await getDocs(jobsQuery);
@@ -179,7 +168,7 @@ const Dashboard: React.FC = () => {
     };
     
     fetchData();
-  }, [user, authUserData, authLoading, navigate]);
+  }, [user]);
 
   if (loading) {
     return (

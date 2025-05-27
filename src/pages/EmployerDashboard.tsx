@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
@@ -66,12 +66,11 @@ const EmployerDashboard: React.FC = () => {
         
         const userData = userSnapshot.data() as UserData;
         
-        // Fetch job postings
+        // Fetch job postings - simplified query to avoid index requirements
         const jobsRef = collection(db, 'jobs');
         const jobsQuery = query(
           jobsRef, 
-          where('userId', '==', user.uid), 
-          orderBy('createdAt', 'desc')
+          where('userId', '==', user.uid)
         );
         const jobsSnapshot = await getDocs(jobsQuery);
         const jobIds = jobsSnapshot.docs.map(doc => doc.id);
@@ -82,10 +81,10 @@ const EmployerDashboard: React.FC = () => {
         let allApplications: any[] = [];
         
         for (const jobId of jobIds) {
+          // Simplified query to avoid index requirements
           const applicationsQuery = query(
             applicationsRef, 
-            where('jobId', '==', jobId),
-            orderBy('createdAt', 'desc')
+            where('jobId', '==', jobId)
           );
           const applicationsSnapshot = await getDocs(applicationsQuery);
           
@@ -198,11 +197,10 @@ const EmployerDashboard: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">Что-то пошло не так</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+          <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">{error}</h2>
           <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
           >
             Попробовать снова
           </button>
@@ -214,30 +212,17 @@ const EmployerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 pt-20 pb-12">
       <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0"
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Панель работодателя</h1>
+          <Link 
+            to="/create-post" 
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center transition-colors"
           >
-            Привет, {userData ? 
-              ((userData as any).companyName || 
-               (userData as any).firstName || 
-               userData.displayName || 
-               'компания')
-            : 'компания'}!
-          </motion.h1>
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/create-post')}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all"
-          >
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Создать вакансию
-          </motion.button>
+          </Link>
         </div>
 
         {/* Career Progress */}
@@ -529,14 +514,14 @@ const getJobViewsCount = async (jobIds: string[]): Promise<number> => {
       }, 0);
     }
     
-    return totalViews || Math.floor(Math.random() * 50) + 10; // Если нет данных, используем случайное значение
+    return totalViews;
   } catch (error) {
     console.error('Error fetching job views:', error);
-    return Math.floor(Math.random() * 50) + 10; // Резервное значение
+    return 0;
   }
 };
 
-// Реалистичный расчет соответствия кандидата
+// Расчет соответствия кандидата
 const calculateCandidateMatch = (application: any): number => {
   try {
     // Если у заявки уже есть AI-оценка соответствия, используем её
@@ -569,11 +554,11 @@ const calculateCandidateMatch = (application: any): number => {
       return calculatedMatch;
     }
     
-    // Если нет данных для расчёта, возвращаем случайное значение от 60 до 95
-    return Math.floor(Math.random() * 36) + 60;
+    // Если нет данных для расчёта, возвращаем среднее значение
+    return 70;
   } catch (error) {
     console.error('Error calculating candidate match:', error);
-    return Math.floor(Math.random() * 36) + 60; // Резервное значение
+    return 70;
   }
 };
 

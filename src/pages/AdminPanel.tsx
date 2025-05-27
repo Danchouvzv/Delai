@@ -163,7 +163,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // Форматирование даты
+  
   const formatDate = (date: any) => {
     if (!date) return 'Неизвестно';
     const d = date instanceof Date ? date : (date.toDate ? date.toDate() : new Date(date));

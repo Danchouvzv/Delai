@@ -6,6 +6,10 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        'xs': '400px',
+        '3xl': '1920px',
+      },
       colors: {
         primary: {
           DEFAULT: '#0056C7',
@@ -87,6 +91,17 @@ module.exports = {
           600: '#DC2626',
           700: '#B91C1C',
         },
+        // Новые градиенты для современного дизайна
+        gradients: {
+          primary: 'linear-gradient(45deg, #0056C7, #0070F3)',
+          accent: 'linear-gradient(45deg, #0070F3, #00A3FF)',
+          success: 'linear-gradient(45deg, #10B981, #34D399)',
+          warning: 'linear-gradient(45deg, #F59E0B, #FBBF24)',
+          error: 'linear-gradient(45deg, #EF4444, #F87171)',
+          purple: 'linear-gradient(45deg, #8B5CF6, #C084FC)',
+          orange: 'linear-gradient(45deg, #F97316, #FB923C)',
+          pink: 'linear-gradient(45deg, #EC4899, #F472B6)',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -102,6 +117,9 @@ module.exports = {
         '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
         '5xl': ['3rem', { lineHeight: '1.16' }],
         '6xl': ['3.75rem', { lineHeight: '1.1' }],
+        '7xl': ['4.5rem', { lineHeight: '1' }],
+        '8xl': ['6rem', { lineHeight: '1' }],
+        '9xl': ['8rem', { lineHeight: '1' }],
       },
       borderRadius: {
         'sm': '0.375rem',
@@ -111,6 +129,7 @@ module.exports = {
         'xl': '1rem',
         '2xl': '1.25rem',
         '3xl': '1.5rem',
+        '4xl': '2rem',
         'full': '9999px',
       },
       spacing: {
@@ -123,6 +142,10 @@ module.exports = {
         '3xl': '3rem',
         'section': '6rem',
         'card': '1.5rem',
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
       },
       boxShadow: {
         'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
@@ -137,6 +160,13 @@ module.exports = {
         'none': 'none',
         'chat': '0 2px 4px rgba(0, 0, 0, 0.1), 0 12px 28px rgba(0, 0, 0, 0.2)',
         'chat-dark': '0 2px 4px rgba(0, 0, 0, 0.2), 0 12px 28px rgba(0, 0, 0, 0.4)',
+        // Добавлены новые тени для мобильных элементов
+        'bottom-nav': '0 -5px 15px rgba(0, 0, 0, 0.05)',
+        'mobile-card': '0 2px 10px rgba(0, 0, 0, 0.06)',
+        'mobile-fab': '0 4px 10px rgba(0, 0, 0, 0.15)',
+        'hover-lg': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        'neumorph': '5px 5px 10px #d1d9e6, -5px -5px 10px #ffffff',
+        'neumorph-dark': '5px 5px 10px rgba(0, 0, 0, 0.2), -5px -5px 10px rgba(255, 255, 255, 0.05)',
       },
       animation: {
         'fadeInUp': 'fadeInUp 0.5s ease-out forwards',
@@ -150,6 +180,15 @@ module.exports = {
         'slideInRight': 'slideInRight 0.3s ease-out forwards',
         'spin-slow': 'spin 3s linear infinite',
         'bounce-slow': 'bounce 3s infinite',
+        // Добавлены новые анимации
+        'float': 'float 3s ease-in-out infinite',
+        'wiggle': 'wiggle 1s ease-in-out infinite',
+        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'zoom': 'zoom 0.5s ease-out forwards',
+        'slideUp': 'slideUp 0.3s ease-out forwards',
+        'slideDown': 'slideDown 0.3s ease-out forwards',
+        'mobileMenuIn': 'mobileMenuIn 0.3s ease-out forwards',
+        'mobileMenuOut': 'mobileMenuOut 0.3s ease-out forwards',
       },
       keyframes: {
         fadeInUp: {
@@ -185,6 +224,35 @@ module.exports = {
           '50%': { backgroundPosition: '100% 50%' },
           '100%': { backgroundPosition: '0% 50%' },
         },
+        // Добавлены новые кадры анимаций
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(-3deg)' },
+          '50%': { transform: 'rotate(3deg)' },
+        },
+        zoom: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        mobileMenuIn: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        mobileMenuOut: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       typography: ({ theme }) => ({
         DEFAULT: {
@@ -214,10 +282,30 @@ module.exports = {
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'gradient-diagonal': 'linear-gradient(45deg, var(--tw-gradient-stops))',
         'mesh-pattern': 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'%3E%3Cg fill-rule=\'evenodd\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+        // Новые градиентные фоны
+        'gradient-primary': 'linear-gradient(45deg, #0056C7, #0070F3)',
+        'gradient-accent': 'linear-gradient(45deg, #0070F3, #00A3FF)',
+        'gradient-success': 'linear-gradient(45deg, #10B981, #34D399)',
+        'gradient-warning': 'linear-gradient(45deg, #F59E0B, #FBBF24)',
+        'gradient-error': 'linear-gradient(45deg, #EF4444, #F87171)',
+        'gradient-purple': 'linear-gradient(45deg, #8B5CF6, #C084FC)',
+        'gradient-orange': 'linear-gradient(45deg, #F97316, #FB923C)',
+        'gradient-pink': 'linear-gradient(45deg, #EC4899, #F472B6)',
+        'gradient-blue-purple': 'linear-gradient(135deg, #2563EB, #7C3AED)',
+        'gradient-orange-pink': 'linear-gradient(135deg, #F59E0B, #EC4899)',
+        'noise': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
       },
       backdropBlur: {
         xs: '2px',
+        '4xl': '72px',
+        '5xl': '96px',
       },
+      zIndex: {
+        '60': '60',
+        '70': '70',
+        '80': '80',
+        '90': '90',
+      }
     },
   },
   plugins: [

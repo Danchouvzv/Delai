@@ -519,6 +519,15 @@ interface ResumeAnalysisResult {
   improvements: string[];
   detailedFeedback: string;
   enhancedContent: string;
+  skillScores?: {[key: string]: number};
+  keywordDensity?: {[key: string]: number};
+  readabilityScore?: number;
+  industryFit?: number;
+  technicalScore?: number;
+  softSkillsScore?: number;
+  experienceScore?: number;
+  educationScore?: number;
+  overallImpact?: number;
 }
 
 export interface UserContext {

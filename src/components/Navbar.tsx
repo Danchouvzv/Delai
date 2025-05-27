@@ -128,7 +128,7 @@ const Navbar = () => {
           <>
             <Menu.Button
               className={`text-sm font-medium transition-colors flex items-center px-3 py-2 rounded-md ${
-                ['/jobs', '/company', '/resume-generator'].includes(location.pathname)
+                ['/jobs', '/company', '/resume-generator', '/subscription'].includes(location.pathname)
                   ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-indigo-400' 
                   : 'text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800'
               }`}
@@ -145,34 +145,34 @@ const Navbar = () => {
               <div className="px-1 py-1">
                 <Menu.Item>
                   {({ active }) => (
-                    <Link
-                      to="/jobs"
+      <Link
+        to="/jobs"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
-                      onClick={() => setMenuOpen(false)}
-                    >
+        onClick={() => setMenuOpen(false)}
+      >
                       <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      Вакансии
-                    </Link>
+        Вакансии
+      </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ active }) => (
-                    <Link
-                      to="/resume-generator"
+      <Link
+        to="/resume-generator"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
-                      onClick={() => setMenuOpen(false)}
-                    >
+        onClick={() => setMenuOpen(false)}
+      >
                       <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      Генератор резюме
-                    </Link>
+        Генератор резюме
+      </Link>
                   )}
                 </Menu.Item>
               </div>
@@ -239,18 +239,18 @@ const Navbar = () => {
               <div className="px-1 py-1">
                 <Menu.Item>
                   {({ active }) => (
-                    <Link
-                      to="/ai-mentor"
+      <Link
+        to="/ai-mentor"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
-                      onClick={() => setMenuOpen(false)}
-                    >
+        onClick={() => setMenuOpen(false)}
+      >
                       <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      AI Ментор
-                    </Link>
+        AI Ментор
+      </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
@@ -298,8 +298,8 @@ const Navbar = () => {
               <div className="px-1 py-1">
                 <Menu.Item>
                   {({ active }) => (
-                    <Link
-                      to="/about"
+      <Link
+        to="/about"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
@@ -319,19 +319,19 @@ const Navbar = () => {
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
-                      onClick={() => setMenuOpen(false)}
-                    >
+        onClick={() => setMenuOpen(false)}
+      >
                       <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       FAQ
-                    </Link>
+      </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ active }) => (
-                    <Link
-                      to="/contact"
+      <Link
+        to="/contact"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
                       } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
@@ -359,32 +359,14 @@ const Navbar = () => {
               ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-indigo-400' 
               : 'text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800'
           }`}
-          onClick={() => setMenuOpen(false)}
-        >
+        onClick={() => setMenuOpen(false)}
+      >
           <svg className="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           Админ-панель
         </Link>
-      )}
-      
-      {/* Дашборд для работодателей */}
-      {user && ['employer', 'business'].includes(userData?.role as string) && (
-        <li className="group relative">
-          <Link to="/employer/dashboard" className={`${isActive('/employer/dashboard')} flex items-center`}>
-            <span className="mr-1">Дашборд</span>
-          </Link>
-        </li>
-      )}
-
-      {/* Дашборд для студентов */}
-      {user && ['student', 'professional'].includes(userData?.role as string) && (
-        <li className="group relative">
-          <Link to="/student/dashboard" className={`${isActive('/student/dashboard')} flex items-center`}>
-            <span className="mr-1">Дашборд</span>
-          </Link>
-        </li>
       )}
     </>
   );

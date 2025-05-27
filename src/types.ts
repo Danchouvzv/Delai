@@ -367,6 +367,6 @@ export interface AIGuidanceTemplate {
   category: string;
   prompts: AIPrompt[];
   defaultContext: string;
-}
+} 
 
 export type ResumeTemplate = 'standard' | 'professional' | 'academic' | 'modern' | 'creative'; 

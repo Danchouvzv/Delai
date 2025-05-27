@@ -331,19 +331,19 @@ const ResumeReview: React.FC = () => {
       setOptimizationProgress(80);
       const analysisResult = await generateResumeAnalysis(content, userProfile);
       
-      // Добавляем дополнительные метрики
+      // Создаем полный объект анализа
       const enhancedAnalysis: AnalysisResult = {
         ...analysisResult,
         lastAnalyzed: new Date().toISOString(),
-        skillScores: calculateSkillScores(content, userProfile.skills),
-        keywordDensity: analyzeKeywordDensity(content),
-        readabilityScore: calculateReadabilityScore(content),
-        industryFit: calculateIndustryFit(content, userProfile),
-        technicalScore: calculateTechnicalScore(content, userProfile),
-        softSkillsScore: calculateSoftSkillsScore(content),
-        experienceScore: calculateExperienceScore(content),
-        educationScore: calculateEducationScore(content),
-        overallImpact: calculateOverallImpact(analysisResult.score)
+        skillScores: analysisResult.skillScores || {},
+        keywordDensity: analysisResult.keywordDensity || {},
+        readabilityScore: analysisResult.readabilityScore || 0,
+        industryFit: analysisResult.industryFit || 0,
+        technicalScore: analysisResult.technicalScore || 0,
+        softSkillsScore: analysisResult.softSkillsScore || 0,
+        experienceScore: analysisResult.experienceScore || 0,
+        educationScore: analysisResult.educationScore || 0,
+        overallImpact: analysisResult.overallImpact || 0
       };
 
       setAnalysis(enhancedAnalysis);
@@ -386,118 +386,27 @@ const ResumeReview: React.FC = () => {
     }
   };
 
-  // Вспомогательные функции для анализа
-  const calculateSkillScores = (content: string, userSkills: string[]): { [key: string]: number } => {
-    const scores: { [key: string]: number } = {};
-    userSkills.forEach(skill => {
-      const regex = new RegExp(skill, 'gi');
-      const matches = content.match(regex);
-      const frequency = matches ? matches.length : 0;
-      scores[skill] = Math.min(100, frequency * 20);
-    });
-    return scores;
-  };
-
-  const analyzeKeywordDensity = (content: string): { [key: string]: number } => {
-    const words = content.toLowerCase().match(/\b\w+\b/g) || [];
-    const total = words.length;
-    const frequency: { [key: string]: number } = {};
-    words.forEach(word => {
-      frequency[word] = ((frequency[word] || 0) + 1) / total * 100;
-    });
-    return Object.fromEntries(
-      Object.entries(frequency)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
-    );
-  };
-
-  const calculateReadabilityScore = (content: string): number => {
-    const words = content.match(/\b\w+\b/g) || [];
-    const sentences = content.match(/[.!?]+/g) || [];
-    const avgWordsPerSentence = words.length / sentences.length;
-    const readabilityScore = Math.max(0, Math.min(100, 100 - (avgWordsPerSentence - 15) * 5));
-    return Math.round(readabilityScore);
-  };
-
-  const calculateIndustryFit = (content: string, userProfile: any): number => {
-    const industryKeywords = userProfile.interests;
-    let matchCount = 0;
-    industryKeywords.forEach((keyword: string) => {
-      const regex = new RegExp(keyword, 'gi');
-      const matches = content.match(regex);
-      if (matches) matchCount += matches.length;
-    });
-    return Math.min(100, matchCount * 10);
-  };
-
-  const calculateTechnicalScore = (content: string, userProfile: any): number => {
-    const technicalSkills = userProfile.skills.filter((skill: string) => 
-      /^(python|java|javascript|react|node|sql|aws|docker|kubernetes|ml|ai)$/i.test(skill)
-    );
-    let score = 0;
-    technicalSkills.forEach((skill: string) => {
-      const regex = new RegExp(skill, 'gi');
-      const matches = content.match(regex);
-      if (matches) score += matches.length * 5;
-    });
-    return Math.min(100, score);
-  };
-
-  const calculateSoftSkillsScore = (content: string): number => {
-    const softSkills = [
-      'коммуникация', 'лидерство', 'работа в команде', 'организация',
-      'решение проблем', 'креативность', 'адаптивность', 'управление временем'
-    ];
-    let score = 0;
-    softSkills.forEach(skill => {
-      const regex = new RegExp(skill, 'gi');
-      const matches = content.match(regex);
-      if (matches) score += matches.length * 10;
-    });
-    return Math.min(100, score);
-  };
-
-  const calculateExperienceScore = (content: string): number => {
-    const experienceKeywords = ['опыт', 'работал', 'достиг', 'разработал', 'создал', 'улучшил'];
-    let score = 0;
-    experienceKeywords.forEach(keyword => {
-      const regex = new RegExp(keyword, 'gi');
-      const matches = content.match(regex);
-      if (matches) score += matches.length * 8;
-    });
-    return Math.min(100, score);
-  };
-
-  const calculateEducationScore = (content: string): number => {
-    const educationKeywords = ['образование', 'университет', 'степень', 'диплом', 'курс'];
-    let score = 0;
-    educationKeywords.forEach(keyword => {
-      const regex = new RegExp(keyword, 'gi');
-      const matches = content.match(regex);
-      if (matches) score += matches.length * 15;
-    });
-    return Math.min(100, score);
-  };
-
-  const calculateOverallImpact = (baseScore: number): number => {
-    return Math.round((baseScore + 
-      (analysis?.readabilityScore || 0) + 
-      (analysis?.industryFit || 0)) / 3);
-  };
-
   const downloadAnalysisReport = () => {
     if (!analysis || !analysisRef.current) return;
     
-    const opt = {
+    const downloadPDFOptions = {
       margin: 10,
-      filename: 'resume-analysis-report.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      filename: 'резюме_анализ.pdf',
+      image: { 
+        type: 'jpeg', 
+        quality: 0.98 
+      },
+      html2canvas: { 
+        scale: 2 
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait' as 'portrait' | 'landscape'
+      }
     };
     
-    html2pdf().set(opt).from(analysisRef.current).save();
+    html2pdf().set(downloadPDFOptions).from(analysisRef.current).save();
   };
   
   const shareAnalysis = () => {

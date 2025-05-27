@@ -153,17 +153,14 @@ class JobsErrorBoundary extends Component<{children: React.ReactNode}, {hasError
   constructor(props: {children: React.ReactNode}) {
     super(props);
     this.state = { hasError: false, errorMessage: '' };
-    console.log("JobsErrorBoundary initialized");
   }
 
   static getDerivedStateFromError(error: Error) {
-    console.error("Error caught in JobsErrorBoundary:", error);
     return { hasError: true, errorMessage: error.message };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error caught in componentDidCatch:", error);
-    console.error("Error info:", errorInfo);
+    // Можно добавить логирование ошибок на сервер здесь
   }
 
   render() {
@@ -553,8 +550,8 @@ const FilterSection = ({ filter, setFilter, locations, employmentTypes, experien
   );
 };
 
-const Jobs = () => {
-  console.log("💥 JOBS COMPONENT FUNCTION BODY EXECUTING 💥");
+const Jobs: React.FC = () => {
+  // Удаляем console.log
   
   // Error safety mechanism to catch all rendering errors
   const [hasFatalError, setHasFatalError] = useState(false);
@@ -600,135 +597,38 @@ const Jobs = () => {
       fetchJobs();
     }, []);
 
-    // Fetch jobs function definition here
-    const fetchJobs = async (retryCount = 0) => {
+    // Упрощаем функцию fetchJobs
+    const fetchJobs = async () => {
       setLoading(true);
       setError(null);
-      try {
-        console.log("Fetching jobs...");
-        
-        // Ensure demo employer exists for demo jobs
-        await ensureDemoEmployerExists();
-        
-        // Check Firebase connection first
-        const isConnected = await checkFirebaseConnection();
-        console.log("Firebase connection status:", isConnected);
-        
-        if (!isConnected) {
-          console.log("Firebase connection failed, trying direct API...");
-          
-          // Try direct REST API as a fallback
-          const directJobs = await fetchJobsDirectly();
-          
-          if (directJobs && directJobs.length > 0) {
-            console.log("Successfully fetched jobs via direct API");
-            setJobs(directJobs);
-            setFilteredJobs(directJobs);
-            setLoading(false);
-            return;
-          }
-          
-          console.log("Direct API also failed, falling back to demo data");
-          setError("Не удалось подключиться к базе данных. Используются демо-данные.");
-          setJobs(DEMO_JOBS as unknown as Post[]);
-          setFilteredJobs(DEMO_JOBS as unknown as Post[]);
-          setLoading(false);
-          return;
-        }
-        
-        console.log("Firebase connection successful, fetching jobs");
-        
         try {
           const jobsCollection = collection(db, 'posts');
-          console.log("Created posts collection reference");
-          
-          // ИЗМЕНЕНИЕ 1: Более простой запрос для начала - получить все посты, потом отфильтровать программно
           const q = query(jobsCollection, orderBy('createdAt', 'desc'));
-          console.log("Created query for all posts");
           
-          // Get all jobs
-          console.log("Executing posts query...");
-          try {
             const querySnapshot = await getDocs(q);
-            console.log("Query executed, result size:", querySnapshot.size);
-            console.log("Query parameters:", { 
-              collection: 'posts', 
-              orderBy: 'createdAt desc' 
-            });
             
             if (querySnapshot.empty) {
-              console.log("No posts found in Firestore, using demo data");
-              setError("В данный момент нет активных вакансий. Показаны демонстрационные примеры.");
-              setJobs(DEMO_JOBS as unknown as Post[]);
-              setFilteredJobs(DEMO_JOBS as unknown as Post[]);
+          setJobs([]);
+          setFilteredJobs([]);
+          setError("В данный момент нет активных вакансий.");
             } else {
-              // Получаем все посты и фильтруем программно, это может помочь увидеть проблему
-              const allPosts = querySnapshot.docs.map(doc => {
-                const data = doc.data();
-                console.log("Post found:", { 
+          const allPosts = querySnapshot.docs.map(doc => ({
                   id: doc.id, 
-                  type: data.type, 
-                  title: data.title,
-                  createdAt: data.createdAt?.toDate?.() || data.createdAt
-                });
-                return {
-                  id: doc.id,
-                  ...data
-                };
-              });
-              
-              console.log("All posts fetched:", allPosts.length);
-              
-              // ИЗМЕНЕНИЕ 2: Фильтруем программно, чтобы видеть какие посты есть, но не проходят фильтр
+            ...doc.data()
+          }));
+          
+          // Фильтруем посты, чтобы получить только вакансии
               const jobsData = allPosts.filter(post => {
-                // Ensure the post has all required properties to be of type Post
-                // Safely check if the post has a type property
-                const postType = (post as any).type;
-                console.log(`Post ${post.id} has type: ${postType}`);
+            const postType = (post as any).type;
                 return postType === 'job' || postType === undefined || postType === null;
-              }).map(post => ensurePostType(post)); // Use function to ensure proper typing
+          }).map(post => ensurePostType(post));
               
-              console.log("Filtered job posts:", jobsData.length);
-              
-              if (jobsData.length > 0) {
                 setJobs(jobsData as Post[]);
                 setFilteredJobs(jobsData as Post[]);
-              } else {
-                console.log("No job posts after filtering, showing demo data");
-                setError("Найдены посты, но нет вакансий с type='job'. Используются демо-данные.");
-                // Показываем все посты для отладки вместо демо
-                if (allPosts.length > 0) {
-                  console.log("Showing all posts instead of demo");
-                  setJobs(allPosts as Post[]);
-                  setFilteredJobs(allPosts as Post[]);
-                } else {
-                  setJobs(DEMO_JOBS as unknown as Post[]);
-                  setFilteredJobs(DEMO_JOBS as unknown as Post[]);
-                }
-              }
-            }
-          } catch (queryErr) {
-            console.error("Error executing query:", queryErr);
-            throw queryErr; // Rethrow to be caught by the outer catch block
-          }
-        } catch (jobErr) {
-          console.error("Error fetching job posts:", jobErr);
-          
-          // Retry logic for transient errors (up to 2 retries)
-          if (retryCount < 2) {
-            console.log(`Retrying job fetch (attempt ${retryCount + 1})...`);
-            setTimeout(() => fetchJobs(retryCount + 1), 1000 * (retryCount + 1));
-            return;
-          }
-          
-          setError("Не удалось загрузить вакансии из базы данных. Используются демо-данные.");
-          setJobs(DEMO_JOBS as unknown as Post[]);
-          setFilteredJobs(DEMO_JOBS as unknown as Post[]);
         }
         
         // Get saved jobs if user is logged in
         if (user) {
-          try {
             const savedJobsQuery = query(
               collection(db, 'savedPosts'),
               where('userId', '==', user.uid)
@@ -737,19 +637,9 @@ const Jobs = () => {
             const savedJobsSnapshot = await getDocs(savedJobsQuery);
             const savedIds = savedJobsSnapshot.docs.map(doc => doc.data().postId);
             setSavedJobIds(savedIds);
-          } catch (savedErr) {
-            console.error("Error fetching saved jobs:", savedErr);
-            // Non-blocking error, continue with empty saved jobs
-            setSavedJobIds([]);
-          }
         }
       } catch (err) {
-        console.error("Error in jobs fetching process:", err);
-        setError("Не удалось загрузить вакансии из базы данных. Используются демо-данные.");
-        
-        // Fallback to demo jobs on error
-        setJobs(DEMO_JOBS as unknown as Post[]);
-        setFilteredJobs(DEMO_JOBS as unknown as Post[]);
+        setError("Произошла ошибка при загрузке вакансий. Пожалуйста, попробуйте позже.");
       } finally {
         setLoading(false);
       }

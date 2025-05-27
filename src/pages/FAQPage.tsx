@@ -45,14 +45,11 @@ const FAQPage: React.FC = () => {
   // Обработчик клика по популярному запросу
   const handlePopularSearch = (query: string) => {
     setSearchQuery(query);
-    setActiveCategory('all'); // Сбрасываем категорию при выборе популярного запроса
+    setActiveCategory('all'); 
   };
   
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 overflow-hidden">
-      {/* Navbar добавляется только один раз */}
-      <Navbar />
-      
       {/* Hero секция */}
       <FAQHero />
       
