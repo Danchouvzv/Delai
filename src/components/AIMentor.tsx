@@ -148,7 +148,7 @@ const AIMentor = () => {
 
     try {
      
-      const userName = user?.displayName || userData?.firstName || 'there';
+      const userName = user?.displayName || userData?.displayName || 'there';
       const userRole = userData?.role || 'job seeker';
       
       
@@ -163,8 +163,8 @@ const AIMentor = () => {
       if (typeof response === 'string') {
         aiResponseText = response;
       } else if (response && typeof response === 'object') {
-        if (response.success && response.data) {
-          aiResponseText = String(response.data);
+        if (response.success && response.text) {
+          aiResponseText = response.text;
         } else if (response.error) {
           aiResponseText = `Ошибка: ${response.error}`;
         }

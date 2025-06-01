@@ -59,10 +59,10 @@ const staggerContainer = {
 };
 
 
-const AnimatedHeading = ({ children, className = "" }) => {
+const AnimatedHeading = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
   const controls = useAnimation();
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, threshold: 0.3 });
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
   
   useEffect(() => {
     if (isInView) {
@@ -85,10 +85,10 @@ const AnimatedHeading = ({ children, className = "" }) => {
 };
 
 
-const AnimatedSection = ({ children, className = "" }) => {
+const AnimatedSection = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
   const controls = useAnimation();
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, threshold: 0.2 });
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
   
   useEffect(() => {
     if (isInView) {
@@ -109,7 +109,14 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-const CardItem = ({ icon, title, description, delay = 0 }) => (
+interface CardItemProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delay?: number;
+}
+
+const CardItem = ({ icon, title, description, delay = 0 }: CardItemProps) => (
   <motion.div
     variants={fadeInUp}
     className="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-blue-100 dark:border-blue-900/30 hover:shadow-blue-200/40 dark:hover:shadow-blue-900/40 transition-all duration-500 hover:-translate-y-2 group overflow-hidden"
@@ -127,10 +134,17 @@ const CardItem = ({ icon, title, description, delay = 0 }) => (
   </motion.div>
 );
 
-const StatNumber = ({ number, label, suffix = "+", delay = 0 }) => {
+interface StatNumberProps {
+  number: string | number;
+  label: string;
+  suffix?: string;
+  delay?: number;
+}
+
+const StatNumber = ({ number, label, suffix = "+", delay = 0 }: StatNumberProps) => {
   const controls = useAnimation();
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, threshold: 0.5 });
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
   
   useEffect(() => {
     if (isInView) {
