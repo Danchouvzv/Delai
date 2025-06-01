@@ -7,7 +7,8 @@ import {
   Drawer, DrawerOverlay, DrawerContent, DrawerHeader, 
   DrawerBody, DrawerCloseButton, Stack, Checkbox, 
   RangeSlider, RangeSliderTrack, RangeSliderFilledTrack, 
-  RangeSliderThumb, FormLabel, Tooltip, Spinner
+  RangeSliderThumb, FormLabel, Tooltip, Spinner,
+  InputGroup, InputRightElement
 } from '@chakra-ui/react';
 import { FaFilter, FaStar, FaFire, FaSearch, FaSortAmountDown, FaSortAmountUpAlt } from 'react-icons/fa';
 import { collection, query, where, orderBy, limit, getDocs, startAfter, DocumentData, Query, QuerySnapshot } from 'firebase/firestore';
@@ -91,7 +92,7 @@ const NetworkingProjects: React.FC = () => {
   };
   
   // Обработка нажатия Enter в поле поиска
-  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
@@ -173,8 +174,8 @@ const NetworkingProjects: React.FC = () => {
           }
           
           return {
-            id: doc.id,
             ...data,
+            id: doc.id,
             ownerName,
             ownerRole
           };
@@ -367,7 +368,7 @@ const NetworkingProjects: React.FC = () => {
               <Input
                 placeholder="Search projects..."
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
               />
               <InputRightElement>
@@ -382,7 +383,7 @@ const NetworkingProjects: React.FC = () => {
             
             <Select
               value={filters.mode}
-              onChange={(e) => setFilters({ ...filters, mode: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, mode: e.target.value })}
               maxW="150px"
             >
               <option value="all">All Modes</option>
@@ -393,7 +394,7 @@ const NetworkingProjects: React.FC = () => {
             
             <Select
               value={filters.sortBy}
-              onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, sortBy: e.target.value })}
               maxW="150px"
             >
               <option value="createdAt">Newest</option>
@@ -410,7 +411,7 @@ const NetworkingProjects: React.FC = () => {
             
             <Checkbox
               isChecked={filters.isOpenOnly}
-              onChange={(e) => setFilters({ ...filters, isOpenOnly: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, isOpenOnly: e.target.checked })}
             >
               Open Only
             </Checkbox>
@@ -507,7 +508,7 @@ const NetworkingProjects: React.FC = () => {
                     min={1}
                     max={10}
                     step={1}
-                    onChange={(val) => setFilters({ ...filters, teamSizeRange: [val[0], val[1]] as [number, number] })}
+                    onChange={(val: number[]) => setFilters({ ...filters, teamSizeRange: [val[0], val[1]] as [number, number] })}
                   >
                     <RangeSliderTrack bg="teal.100">
                       <RangeSliderFilledTrack bg="teal.500" />

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Card, CardBody, CardHeader, Flex, Heading, Text, Badge, Button, Stack, Skeleton, Image, useColorModeValue, HStack, VStack, Icon, useToast } from '@chakra-ui/react';
 import { FaStar, FaFire, FaUserFriends, FaGlobe, FaBriefcase, FaMapMarkerAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Link } from 'react-router-dom';
@@ -75,10 +75,10 @@ const RecommendedProjects: React.FC = () => {
           const matchData = matchDoc.data() as RecommendedProject;
           
           // Получаем данные о проекте
-          const projectRef = db.doc(`projects/${matchData.projectId}`);
-          const projectSnap = await projectRef.get();
+          const projectRef = doc(db, `projects/${matchData.projectId}`);
+          const projectSnap = await getDoc(projectRef);
           
-          if (!projectSnap.exists) {
+          if (!projectSnap.exists()) {
             console.warn(`Project ${matchData.projectId} not found`);
             return null;
           }
@@ -90,10 +90,10 @@ const RecommendedProjects: React.FC = () => {
           let ownerAvatar = '';
           
           if (projectData?.ownerUid) {
-            const ownerRef = db.doc(`users/${projectData.ownerUid}`);
-            const ownerSnap = await ownerRef.get();
+            const ownerRef = doc(db, `users/${projectData.ownerUid}`);
+            const ownerSnap = await getDoc(ownerRef);
             
-            if (ownerSnap.exists) {
+            if (ownerSnap.exists()) {
               const ownerData = ownerSnap.data();
               ownerName = ownerData?.displayName || 'Unknown User';
               ownerAvatar = ownerData?.photoURL || '';
@@ -101,8 +101,8 @@ const RecommendedProjects: React.FC = () => {
           }
           
           return {
-            id: matchDoc.id,
             ...matchData,
+            id: matchDoc.id, // Используем id документа в качестве id проекта
             projectData: {
               ...projectData,
               ownerName,
@@ -198,7 +198,7 @@ const RecommendedProjects: React.FC = () => {
                   {tag}
                 </Badge>
               ))}
-              {project.projectData?.tags?.length > 5 && (
+              {project.projectData?.tags && project.projectData.tags.length > 5 && (
                 <Badge colorScheme="gray" fontSize="xs" px={2} py={1} borderRadius="full">
                   +{project.projectData.tags.length - 5} more
                 </Badge>
@@ -254,7 +254,7 @@ const RecommendedProjects: React.FC = () => {
               size="sm" 
               colorScheme="teal" 
               variant="outline"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.preventDefault();
                 e.stopPropagation();
                 // Дополнительное действие при клике на кнопку
