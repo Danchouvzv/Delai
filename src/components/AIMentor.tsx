@@ -200,7 +200,7 @@ const AIMentor = () => {
     }
   };
 
-  
+
   const formatTimestamp = (date: Date) => {
     return new Intl.DateTimeFormat('ru-RU', { 
       hour: 'numeric', 
