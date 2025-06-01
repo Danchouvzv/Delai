@@ -214,24 +214,35 @@ const AIMentor: React.FC = () => {
       const userName = user?.displayName || (userData?.displayName ? userData.displayName : 'there');
       const userRole = userData?.role || 'job seeker';
       
-      // Create context for the AI
-      const context = `The user's name is ${userName}. They are a ${userRole}.`;
+      console.log('Отправка запроса к Gemini API:', { messageText, role: 'career advisor' });
       
       // Send to AI and get response
-      const response = await generateText(messageText, context);
+      const response = await generateText(messageText, 'career advisor');
+      
+      console.log('Получен ответ от Gemini API:', response);
+      console.log('Тип ответа:', typeof response);
+      console.log('Структура ответа:', JSON.stringify(response, null, 2));
       
       // Ensure we have a string response
       let aiResponseText = 'Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте еще раз.';
       
-      if (typeof response === 'string') {
-        aiResponseText = response;
-      } else if (response && typeof response === 'object') {
-        if (response.success && response.data) {
-          aiResponseText = String(response.data);
+      if (response && typeof response === 'object') {
+        console.log('Проверяем свойства ответа:', Object.keys(response));
+        
+        if (response.success && response.text) {
+          console.log('Найден текст ответа длиной:', response.text.length);
+          aiResponseText = response.text;
         } else if (response.error) {
+          console.error('Ошибка от Gemini API:', response.error);
           aiResponseText = `Ошибка: ${response.error}`;
+        } else {
+          console.warn('Неожиданный формат ответа от Gemini API:', response);
         }
+      } else {
+        console.warn('Неожиданный тип ответа от Gemini API:', typeof response, response);
       }
+      
+      console.log('Итоговый текст для отображения:', aiResponseText.substring(0, 100) + '...');
       
       // Create AI message
       const aiMessage: Message = {
@@ -239,18 +250,19 @@ const AIMentor: React.FC = () => {
         content: aiResponseText,
         sender: 'ai',
         timestamp: new Date(),
-        model: 'gemini-pro'
+        model: 'gemini-pro',
+        isError: !response?.success
       };
       
       // Add AI message to chat
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.error('Ошибка при получении ответа от AI:', error);
       
       // Create error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: 'Произошла ошибка при получении ответа. Пожалуйста, попробуйте позже.',
+        content: `Произошла ошибка при обработке вашего запроса: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}. Пожалуйста, попробуйте позже.`,
         sender: 'ai',
         timestamp: new Date(),
         isError: true
@@ -548,6 +560,7 @@ const AIMentor: React.FC = () => {
                       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
                         {typeof message.content === 'string' ? (
                           message.content.split('\n').map((text, i) => {
+                            console.log(`Обработка строки ${i} сообщения:`, text.substring(0, 50) + (text.length > 50 ? '...' : ''));
                             if (text.startsWith('•')) {
                               return (
                                 <ul key={i} className="list-disc pl-5 mt-2">

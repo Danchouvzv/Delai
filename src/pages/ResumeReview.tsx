@@ -28,6 +28,35 @@ import ResumeAnalysisResult from '../components/ResumeAnalysisResult';
 import html2pdf from 'html2pdf.js';
 import { BsFileEarmarkText, BsGraphUp, BsStars, BsAward, BsRobot } from 'react-icons/bs';
 import { HiOutlineDocumentText, HiOutlineDocumentSearch, HiOutlineDocumentReport } from 'react-icons/hi';
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  Flex,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  useColorModeValue,
+  Badge,
+  Icon,
+  Grid,
+  GridItem,
+  Progress,
+  useToast,
+  Card,
+  CardBody,
+  List,
+  ListItem,
+  ListIcon,
+  SimpleGrid,
+  useDisclosure,
+  IconButton
+} from '@chakra-ui/react';
+import { FaCheckCircle, FaExclamationTriangle, FaFilePdf, FaLightbulb, FaMagic } from 'react-icons/fa';
+import { IoAnalytics, IoDocumentText, IoSparkles } from 'react-icons/io5';
+import { AiFillRocket } from 'react-icons/ai';
 
 ChartJS.register(
   RadialLinearScale,
@@ -110,6 +139,13 @@ const ResumeReview: React.FC = () => {
   const [showAIExplanation, setShowAIExplanation] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
+  const toast = useToast();
+  const bgGradient = useColorModeValue(
+    'linear(to-b, gray.50, white)',
+    'linear(to-b, gray.900, gray.800)'
+  );
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+
   // Анимации
   const pageVariants: Variants = {
     initial: { opacity: 0, y: 20 },
@@ -179,7 +215,7 @@ const ResumeReview: React.FC = () => {
           setUserData(data);
           if (data?.resume?.analysis) {
             // Создаем полный объект анализа с дефолтными значениями для отсутствующих полей
-            const analysisData = data.resume.analysis as any;
+            const analysisData = data.resume.analysis;
             setAnalysis({
               score: analysisData.score || 0,
               strengths: analysisData.strengths || [],
@@ -308,19 +344,19 @@ const ResumeReview: React.FC = () => {
       // Преобразуем данные для соответствия типу UserContext
       const userProfile: UserContext = {
         role: userData.role || 'student',
-        field: userData.major || userData.industry || 'technology',
+        field: userData.field || userData.major || userData.industry || 'technology',
         education: userData.education?.map(edu => ({
-          degree: edu.degree,
-          institution: edu.institution,
+          degree: edu.degree || '',
+          institution: edu.institution || '',
           year: edu.endDate || 'present'
         })) || [],
         skills: userData.skills?.map(skill => 
           typeof skill === 'string' ? skill : skill.name
         ) || [],
         experience: userData.experience?.map(exp => ({
-          title: exp.title,
-          company: exp.company,
-          description: exp.description
+          title: exp.title || '',
+          company: exp.company || '',
+          description: exp.description || ''
         })) || [],
         interests: userData.careerGoals?.preferredIndustries || [],
         languages: userData.languages?.map(lang => lang.name) || []
@@ -402,7 +438,7 @@ const ResumeReview: React.FC = () => {
       jsPDF: { 
         unit: 'mm', 
         format: 'a4', 
-        orientation: 'portrait' as 'portrait' | 'landscape'
+        orientation: 'portrait' as const
       }
     };
     
@@ -840,44 +876,137 @@ const ResumeReview: React.FC = () => {
   };
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Фоновые элементы */}
-      <div className="absolute top-20 left-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
-      <div className="absolute top-40 right-20 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
-      
-      {/* Навигация */}
-      <div className="mb-10">
-        <div className="bg-white rounded-2xl shadow-lg p-2 flex space-x-1">
-          {[
-            { id: 'upload', label: 'Загрузка', icon: <FiUpload className="mr-2" /> },
-            { id: 'analysis', label: 'Анализ', icon: <BsRobot className="mr-2" /> },
-            { id: 'tips', label: 'Советы', icon: <FiStar className="mr-2" /> },
-            { id: 'history', label: 'История', icon: <FiFileText className="mr-2" /> }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              disabled={tab.id === 'analysis' && !analysis}
-              className={`
-                flex items-center justify-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 flex-1
-                ${activeTab === tab.id 
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' 
-                  : 'text-gray-600 hover:bg-gray-100'}
-                ${tab.id === 'analysis' && !analysis ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
+    <Box bgGradient={bgGradient} minH="100vh" py={8}>
+      <Container maxW="container.xl">
+        <VStack spacing={8} align="stretch">
+          <Box textAlign="center">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Контент */}
-      <AnimatePresence mode="wait">
-        {renderContent()}
-      </AnimatePresence>
-    </div>
+              <Heading as="h1" size="xl" mb={3} color={useColorModeValue('teal.600', 'teal.300')}>
+                AI-анализ резюме
+              </Heading>
+              <Text 
+                fontSize="lg" 
+                color={useColorModeValue('gray.600', 'gray.300')}
+                maxW="800px"
+                mx="auto"
+              >
+                Наш AI-помощник проанализирует ваше резюме и предоставит конкретные рекомендации для улучшения. 
+                Получите оценку содержания, форматирования и ATS-совместимости, чтобы увеличить шансы на собеседование.
+              </Text>
+            </motion.div>
+          </Box>
+          
+          <Flex 
+            direction={{ base: "column", lg: "row" }} 
+            gap={8} 
+            align="stretch"
+          >
+            <Box 
+              w={{ base: "100%", lg: "40%" }} 
+              p={6}
+              bg={useColorModeValue('white', 'gray.800')}
+              borderRadius="lg"
+              borderWidth="1px"
+              borderColor={borderColor}
+              boxShadow="md"
+            >
+              <VStack spacing={6} align="stretch">
+                <Heading size="md" color={useColorModeValue('teal.600', 'teal.300')}>
+                  Загрузите ваше резюме
+                </Heading>
+                
+                <ResumeUploader 
+                  onUpload={handleFileSelected} 
+                  onAnalyze={analyzeResume}
+                  isAnalyzing={isAnalyzing}
+                />
+                
+                <Divider my={2} />
+                
+                <VStack align="start" spacing={3}>
+                  <Heading size="sm" color={useColorModeValue('gray.700', 'gray.300')}>
+                    Что мы анализируем:
+                  </Heading>
+                  
+                  <HStack align="start" spacing={2}>
+                    <Icon as={FaCheckCircle} color="green.500" mt={1} />
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+                      Содержание и ключевые навыки
+                    </Text>
+                  </HStack>
+                  
+                  <HStack align="start" spacing={2}>
+                    <Icon as={FaCheckCircle} color="green.500" mt={1} />
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+                      Форматирование и читаемость
+                    </Text>
+                  </HStack>
+                  
+                  <HStack align="start" spacing={2}>
+                    <Icon as={FaCheckCircle} color="green.500" mt={1} />
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+                      ATS-совместимость
+                    </Text>
+                  </HStack>
+                  
+                  <HStack align="start" spacing={2}>
+                    <Icon as={FaCheckCircle} color="green.500" mt={1} />
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+                      Соответствие вашему профилю и желаемой должности
+                    </Text>
+                  </HStack>
+                </VStack>
+              </VStack>
+            </Box>
+            
+            <Box 
+              w={{ base: "100%", lg: "60%" }}
+              p={{ base: 4, md: 6 }}
+            >
+              {analysis ? (
+                <ResumeAnalysisResult 
+                  analysis={analysis} 
+                  downloadPDF={downloadAnalysisReport} 
+                />
+              ) : (
+                <Flex 
+                  direction="column" 
+                  align="center" 
+                  justify="center" 
+                  h="100%" 
+                  p={8}
+                  bg={useColorModeValue('white', 'gray.800')}
+                  borderRadius="lg"
+                  borderWidth="1px"
+                  borderColor={borderColor}
+                  boxShadow="md"
+                  textAlign="center"
+                >
+                  <Icon as={IoSparkles} boxSize="4rem" color="teal.400" mb={4} />
+                  <Heading size="md" mb={3} color={useColorModeValue('gray.700', 'gray.300')}>
+                    Готовы улучшить ваше резюме?
+                  </Heading>
+                  <Text color={useColorModeValue('gray.600', 'gray.400')} mb={6}>
+                    Загрузите ваше резюме, чтобы получить персонализированный анализ и конкретные рекомендации по улучшению.
+                  </Text>
+                  <Flex wrap="wrap" justify="center" gap={3}>
+                    <Badge colorScheme="teal" p={2} borderRadius="full">Анализ содержания</Badge>
+                    <Badge colorScheme="purple" p={2} borderRadius="full">Оценка структуры</Badge>
+                    <Badge colorScheme="blue" p={2} borderRadius="full">ATS-оптимизация</Badge>
+                    <Badge colorScheme="green" p={2} borderRadius="full">Ключевые слова</Badge>
+                    <Badge colorScheme="orange" p={2} borderRadius="full">Рекомендации</Badge>
+                  </Flex>
+                </Flex>
+              )}
+            </Box>
+          </Flex>
+        </VStack>
+      </Container>
+    </Box>
   );
 };
 

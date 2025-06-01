@@ -4,12 +4,23 @@ import axios from 'axios';
 // Initialize the Google Generative AI client
 // Use a fallback for API_KEY to prevent runtime errors if environment variable is missing
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-const MODEL_NAME = "gemini-1.5-pro-latest"; // Standardize on the latest model
+const MODEL_NAME = "gemini-1.5-flash"; // Изменяем на более новую модель вместо gemini-pro
+
+// Проверяем API ключ
+console.log('Gemini API Key настроен:', API_KEY ? 'Да' : 'Нет');
+if (!API_KEY) {
+  console.error('ВНИМАНИЕ: API ключ Gemini не настроен в .env файле!');
+} else {
+  console.log('API ключ Gemini имеет длину:', API_KEY.length);
+}
 
 // Initialize the client only if API key is available
 let genAI: GoogleGenerativeAI | null = null;
 if (API_KEY) {
   genAI = new GoogleGenerativeAI(API_KEY);
+  console.log('Gemini API клиент инициализирован');
+} else {
+  console.error('Gemini API клиент НЕ инициализирован из-за отсутствия ключа API');
 }
 
 // Tracking for rate limits and retries
@@ -40,76 +51,195 @@ const safetySettings = [
   },
 ];
 
+// Функция для обработки ошибок API Gemini
+const handleGeminiError = (error: any): string => {
+  console.error('Gemini API error:', error);
+  
+  // Проверяем, является ли ошибка превышением квоты
+  if (error?.message?.includes('quota') || error?.message?.includes('429')) {
+    return 'Превышен лимит запросов к AI. Пожалуйста, попробуйте позже или обратитесь к администратору для увеличения лимита.';
+  }
+  
+  // Проверяем, является ли ошибка проблемой с безопасным контентом
+  if (error?.message?.includes('safety') || error?.message?.includes('blocked')) {
+    return 'Запрос был заблокирован системой безопасности AI. Пожалуйста, измените свой запрос.';
+  }
+  
+  // Общая ошибка
+  return 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.';
+};
+
 // Function to generate text using Gemini API
 export async function generateText(prompt: string, role: string = 'career advisor') {
   try {
+    console.log('generateText вызван с параметрами:', { prompt, role });
+    
+    // Проверяем, не превышен ли лимит запросов
+    const now = new Date();
+    const rateLimitKey = `gemini_rate_limit_${now.toISOString().split('T')[0]}`;
+    const storedCount = localStorage.getItem(rateLimitKey);
+    const requestCount = storedCount ? parseInt(storedCount, 10) : 0;
+    
+    // Простая локальная защита от превышения лимита (50 запросов в день)
+    const DAILY_LIMIT = 50;
+    if (requestCount >= DAILY_LIMIT) {
+      throw new Error('local_rate_limit_exceeded');
+    }
+
     // Check if API key is configured
     if (!API_KEY) {
-      console.error('Gemini API key is not configured');
-      return {
-        success: false,
-        error: 'API key not configured. Please contact the administrator.'
-      };
+      console.error('Gemini API key is missing');
+      throw new Error('Gemini API key is not configured');
     }
 
-    // Check if client is initialized
+    // Check if we're in fallback mode due to rate limiting
+    if (rateLimitInfo.fallbackMode && Date.now() < rateLimitInfo.backoffUntil) {
+      throw new Error('Rate limit cooling down. Please try again later.');
+    }
+
+    // Create a prompt based on the role
+    let systemPrompt = '';
+    switch (role.toLowerCase()) {
+      case 'career advisor':
+        systemPrompt = 'You are an experienced career advisor helping a job seeker. Provide professional, constructive advice.';
+        break;
+      case 'resume reviewer':
+        systemPrompt = 'You are a professional resume reviewer. Analyze the resume and provide constructive feedback to improve it.';
+        break;
+      case 'interview coach':
+        systemPrompt = 'You are an interview coach helping prepare for job interviews. Provide helpful tips and guidance.';
+        break;
+      default:
+        systemPrompt = 'You are a helpful assistant providing career-related advice.';
+    }
+
+    // Проверяем, что genAI инициализирован
     if (!genAI) {
-      console.error('Gemini client initialization failed');
-      return {
-        success: false,
-        error: 'AI service initialization failed. Please try again later.'
-      };
+      console.error('Gemini API client is not initialized');
+      throw new Error('Gemini API client is not initialized');
     }
 
-    // Select the model based on rate limit status
-    const modelToUse = rateLimitInfo.fallbackMode ? 'gemini-1.5-flash' : MODEL_NAME;
-    
-    const model = genAI.getGenerativeModel({ 
-      model: modelToUse,
-      safetySettings,
-    });
+    // Пробуем запрос через REST API вместо SDK при ошибке 429
+    let text = '';
+    try {
+      // Получаем модель
+      const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+      console.log('Используется модель:', MODEL_NAME);
 
-    // Create system instruction based on role
-    let systemInstruction = '';
-    
-    if (role === 'career advisor') {
-      systemInstruction = 'You are an AI career advisor for JumysAL, a career platform for Kazakhstan. ' +
-        'Provide helpful career advice tailored for Kazakhstan\'s job market. ' +
-        'Be encouraging, positive, and provide specific actionable advice. ' +
-        'Keep responses concise and focused on practical steps.';
-    } else if (role === 'resume generator') {
-      systemInstruction = 'You are an AI resume creator for JumysAL, a career platform for Kazakhstan. ' +
-        'Create professional, modern resumes based on the information provided. ' +
-        'Format using markdown with clear sections for experience, skills, education, etc. ' +
-        'Highlight strengths and achievements in a professional tone. ' +
-        'Keep the resume content appropriate for Kazakhstan\'s job market.';
+      // Generate content with the Gemini model using правильный метод
+      console.log('Отправка запроса к модели с системным промптом:', systemPrompt);
+      const result = await model.generateContent({
+        contents: [
+          { role: "user", parts: [{ text: systemPrompt }] },
+          { role: "model", parts: [{ text: "I understand. I'll act as your professional advisor." }] },
+          { role: "user", parts: [{ text: prompt }] }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192,
+        },
+        safetySettings
+      });
+      
+      const response = await result.response;
+      text = response.text();
+      console.log('Успешно получен ответ от Gemini API:', { length: text.length });
+    } catch (sdkError: any) {
+      console.warn("SDK error, falling back to REST API:", sdkError);
+      
+      // Используем запасной вариант через REST API с более стабильной моделью
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+      console.log('Пробуем запасной вариант через REST API:', apiUrl);
+      
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: `${systemPrompt}\n\n${prompt}` }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            },
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              }
+            ]
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Не удалось получить текст ошибки');
+          console.error(`API error: ${response.status} ${response.statusText}`, errorText);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+          console.error('Неожиданный формат ответа от REST API:', data);
+          throw new Error('Неожиданный формат ответа от API');
+        }
+        
+        text = data.candidates[0].content.parts[0].text;
+        console.log('Успешно получен ответ через REST API:', { length: text.length });
+      } catch (restError) {
+        console.error("REST API fallback also failed:", restError);
+        throw new Error("All API attempts failed. Please try again later.");
+      }
     }
-
-    // Form the full prompt
-    const fullPrompt = `${systemInstruction}\n\n${prompt}`;
     
-    // Get response from the model with timeout handling
-    const result = await Promise.race([
-      model.generateContent(fullPrompt),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timed out')), 30000)
-      )
-    ]) as any;
+    // Обновляем счетчик запросов
+    localStorage.setItem(rateLimitKey, (requestCount + 1).toString());
     
-    // Reset rate limiting stats on successful request
+    // Reset rate limit info on success
     rateLimitInfo.failedRequests = 0;
     rateLimitInfo.fallbackMode = false;
+
+    console.log('generateText успешно завершен, возвращаем текст длиной:', text.length);
     
-    const response = await result.response;
-    const text = response.text();
-    
+    // Важно: возвращаем объект с полем text, а не просто текст
     return {
       success: true,
-      data: text
+      text: text
     };
     
-  } catch (error) {
-    console.error('Error generating text with Gemini:', error);
+  } catch (error: any) {
+    console.error('Ошибка в generateText:', error);
+    
+    // Если это локальное превышение лимита
+    if (error?.message === 'local_rate_limit_exceeded') {
+      return {
+        success: false,
+        error: 'Превышен дневной лимит запросов к AI. Пожалуйста, попробуйте завтра или обратитесь к администратору.',
+        rateLimited: true
+      };
+    }
     
     // Check for rate limit errors
     if (error instanceof Error && 
@@ -129,15 +259,11 @@ export async function generateText(prompt: string, role: string = 'career adviso
       };
     }
     
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Unknown error occurred';
-      
+    // Обрабатываем другие ошибки API
+    const errorMessage = handleGeminiError(error);
     return {
       success: false,
-      error: errorMessage === 'Request timed out'
-        ? 'The AI service took too long to respond. Please try again later.'
-        : errorMessage
+      error: errorMessage
     };
   }
 }
@@ -147,10 +273,11 @@ const resumeCache = new Map<string, {html: string, timestamp: number}>();
 
 // Fallback model chain - sorted by priority
 const AVAILABLE_MODELS = [
-  'gemini-1.5-pro',      // First choice - best quality
-  'gemini-1.5-flash',    // Second choice - faster but still good
-  'gemini-pro',          // Older model, more widely available
-  'gemini-pro-latest'    // Last resort fallback
+  'gemini-1.5-flash',     // Более стабильная модель
+  'gemini-1.5-pro',       // Запасной вариант
+  'gemini-1.5-pro-latest', // Если доступна
+  'gemini-2.0-pro',       // Самая новая, но с ограничениями
+  'gemini-2.0-flash'      // Альтернативная новая модель
 ];
 
 // Function to select next fallback model
@@ -519,6 +646,7 @@ interface ResumeAnalysisResult {
   improvements: string[];
   detailedFeedback: string;
   enhancedContent: string;
+  lastAnalyzed?: string;
   skillScores?: {[key: string]: number};
   keywordDensity?: {[key: string]: number};
   readabilityScore?: number;
@@ -600,12 +728,12 @@ export async function generateResumeAnalysis(
 
     // Make request to Gemini API
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': process.env.REACT_APP_GEMINI_API_KEY || '',
+          'x-goog-api-key': API_KEY,
         },
         body: JSON.stringify({
           contents: [
@@ -691,4 +819,69 @@ export async function generateResumeAnalysis(
       'Unable to analyze resume at this time. Please try again later.'
     );
   }
-} 
+}
+
+// Добавляем функцию для тестирования API
+export async function testGeminiAPI(): Promise<{ success: boolean; message: string }> {
+  try {
+    console.log('Тестирование Gemini API...');
+    
+    // Проверяем наличие API ключа
+    if (!API_KEY) {
+      return { 
+        success: false, 
+        message: 'API ключ Gemini не настроен в .env файле' 
+      };
+    }
+    
+    // Проверяем инициализацию клиента
+    if (!genAI) {
+      return { 
+        success: false, 
+        message: 'Gemini API клиент не инициализирован' 
+      };
+    }
+    
+    // Пробуем простой запрос
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const result = await model.generateContent({
+      contents: [
+        { role: "user", parts: [{ text: "Reply with 'OK' if you can see this message." }] }
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 10,
+      },
+      safetySettings
+    });
+    
+    const response = await result.response;
+    const text = response.text();
+    
+    console.log('Тестовый ответ от Gemini API:', text);
+    
+    return {
+      success: true,
+      message: `API работает. Ответ: ${text}`
+    };
+  } catch (error) {
+    console.error('Ошибка при тестировании Gemini API:', error);
+    return {
+      success: false,
+      message: `Ошибка API: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+    };
+  }
+}
+
+// Запускаем тест при загрузке модуля
+testGeminiAPI()
+  .then(result => {
+    if (result.success) {
+      console.log('✅ Gemini API работает:', result.message);
+    } else {
+      console.error('❌ Gemini API не работает:', result.message);
+    }
+  })
+  .catch(err => {
+    console.error('❌ Ошибка при тестировании Gemini API:', err);
+  }); 

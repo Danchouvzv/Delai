@@ -11,7 +11,7 @@ export interface Post {
   skills: string[];
   postedDate: Date | string;
   companyLogo?: string;
-  userId?: string; // ID пользователя, разместившего вакансию
+  userId?: string; 
   user?: {
     id: string;
     displayName?: string;
@@ -76,6 +76,7 @@ export interface UserData {
   industry?: string;
   companySize?: string;
   companyWebsite?: string;
+  company?: string; // Альтернативное поле для имени компании
   
   // Basic Information
   firstName?: string;
@@ -89,6 +90,8 @@ export interface UserData {
   university?: string;
   graduationYear?: string;
   linkedIn?: string;
+  age?: number; // Возраст пользователя
+  field?: string; // Поле специализации
   
   // Student Specific Information
   studentId?: string;
@@ -197,8 +200,27 @@ export interface UserData {
       currency: string;
     };
   };
-
-  // Resume Data
+  
+  // Premium status
+  premium?: boolean;
+  
+  // Resume data
+  resumeData?: {
+    template?: string;
+    sections?: {
+      [key: string]: any;
+    };
+    languages?: Array<{
+      name: string;
+      level: string;
+    }>;
+    skills?: string[];
+    education?: any[];
+    experience?: any[];
+    projects?: any[];
+  };
+  
+  // Resume Data (original)
   resume?: {
     generatedHtml?: string;
     lastGenerated?: string;

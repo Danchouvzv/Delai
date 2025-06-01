@@ -23,6 +23,26 @@ interface Candidate {
   applied: string;
 }
 
+// Тип для заявки с дополнительными полями
+interface ApplicationData {
+  id: string;
+  userId?: string;
+  jobId?: string;
+  status?: string;
+  appliedAt?: any;
+  chatRoomId?: string;
+  message?: string;
+  createdAt?: any;
+  candidateName?: string;
+  position?: string;
+  location?: string;
+  skills?: any[];
+  jobTitle?: string;
+  jobCompany?: string;
+  jobLocation?: string;
+  [key: string]: any; // Для других возможных полей
+}
+
 const EmployerDashboard: React.FC = () => {
   const { user, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +55,7 @@ const EmployerDashboard: React.FC = () => {
     candidatesFound: 0
   });
   const [topCandidates, setTopCandidates] = useState<Candidate[]>([]);
-  const [recentApplications, setRecentApplications] = useState<any[]>([]);
+  const [recentApplications, setRecentApplications] = useState<ApplicationData[]>([]);
 
   useEffect(() => {
     // Перенаправляем студентов на их дашборд
@@ -67,38 +87,55 @@ const EmployerDashboard: React.FC = () => {
         const userData = userSnapshot.data() as UserData;
         
         // Fetch job postings - simplified query to avoid index requirements
-        const jobsRef = collection(db, 'jobs');
+        const jobsRef = collection(db, 'posts');
         const jobsQuery = query(
           jobsRef, 
-          where('userId', '==', user.uid)
+          where('userId', '==', user.uid),
+          where('type', '==', 'job')
         );
         const jobsSnapshot = await getDocs(jobsQuery);
         const jobIds = jobsSnapshot.docs.map(doc => doc.id);
-        const activeJobsCount = jobsSnapshot.docs.filter(doc => doc.data().status !== 'expired').length;
+        
+        // Определение активных вакансий
+        const activeJobsCount = jobsSnapshot.docs.filter(doc => {
+          const data = doc.data();
+          // Учитываем разные статусы: активная, не истек срок и т.д.
+          return data.status !== 'expired' && data.status !== 'closed' && data.status !== 'deleted';
+        }).length;
+        
+        // Если активных вакансий нет, берем общее количество вакансий
+        const finalActiveJobsCount = activeJobsCount > 0 ? activeJobsCount : jobsSnapshot.docs.length;
         
         // Fetch applications for employer's jobs
         const applicationsRef = collection(db, 'applications');
-        let allApplications: any[] = [];
-        
-        for (const jobId of jobIds) {
-          // Simplified query to avoid index requirements
-          const applicationsQuery = query(
-            applicationsRef, 
-            where('jobId', '==', jobId)
-          );
-          const applicationsSnapshot = await getDocs(applicationsQuery);
-          
-          const jobApplications = applicationsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              jobId,
-              ...data
-            };
+
+        // Если нет вакансий, сразу устанавливаем пустой массив
+        if (jobIds.length === 0) {
+          setCareerStats({
+            activeJobs: finalActiveJobsCount,
+            applications: 0,
+            viewsCount: 0,
+            candidatesFound: 0
           });
-          
-          allApplications = [...allApplications, ...jobApplications];
+          setTopCandidates([]);
+          setRecentApplications([]);
+          setLoading(false);
+          return;
         }
+
+        // Получаем все заявки сразу для всех вакансий
+        const applicationsQuery = query(
+          applicationsRef,
+          where('jobId', 'in', jobIds.slice(0, 10)) // Firebase поддерживает до 10 значений в 'in'
+        );
+        const applicationsSnapshot = await getDocs(applicationsQuery);
+        const allApplications: ApplicationData[] = applicationsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data
+          };
+        });
         
         // Get unique candidate counts
         const uniqueCandidateIds = new Set(allApplications.map(app => app.userId));
@@ -106,17 +143,49 @@ const EmployerDashboard: React.FC = () => {
         // Получить количество просмотров из Firestore
         const viewsCount = await getJobViewsCount(jobIds);
         
+        // Получить информацию о вакансиях для заявок
+        const jobsInfo = new Map();
+        for (const jobId of jobIds) {
+          const jobDocRef = doc(db, 'posts', jobId);
+          const jobDoc = await getDoc(jobDocRef);
+          if (jobDoc.exists()) {
+            jobsInfo.set(jobId, {
+              title: jobDoc.data().title || 'Без названия',
+              companyName: jobDoc.data().companyName || userData.displayName || 'Компания',
+              location: jobDoc.data().location || 'Не указано',
+              status: jobDoc.data().status || 'active'
+            });
+          }
+        }
+        
+        // Добавляем информацию о вакансиях к заявкам
+        const enrichedApplications: ApplicationData[] = allApplications.map(app => {
+          const jobInfo = jobsInfo.get(app.jobId || '') || {
+            title: 'Неизвестная вакансия',
+            companyName: 'Н/Д',
+            location: 'Н/Д',
+            status: 'inactive'
+          };
+          
+          return {
+            ...app,
+            jobTitle: jobInfo.title,
+            jobCompany: jobInfo.companyName,
+            jobLocation: jobInfo.location
+          };
+        });
+        
         // Set career stats
         setCareerStats({
-          activeJobs: activeJobsCount,
+          activeJobs: finalActiveJobsCount,
           applications: allApplications.length,
           viewsCount,
           candidatesFound: uniqueCandidateIds.size
         });
         
         // Prepare recent applications with candidate info
-        const applicationsWithUserInfo = await Promise.all(
-          allApplications.slice(0, 5).map(async (app) => {
+        const applicationsWithUserInfo: ApplicationData[] = await Promise.all(
+          enrichedApplications.slice(0, 5).map(async (app) => {
             if (!app.userId) return app;
             
             try {
@@ -150,14 +219,14 @@ const EmployerDashboard: React.FC = () => {
             const matchScore = calculateCandidateMatch(app);
             
             return {
-              id: app.userId,
-              name: app.candidateName,
-              position: app.position,
-              location: app.location,
+              id: app.userId || '',
+              name: app.candidateName || '',
+              position: app.position || 'Соискатель',
+              location: app.location || 'Казахстан',
               match: matchScore,
               applied: app.createdAt instanceof Timestamp 
                 ? app.createdAt.toDate().toLocaleDateString('ru-RU') 
-                : new Date(app.createdAt).toLocaleDateString('ru-RU')
+                : new Date(app.createdAt || Date.now()).toLocaleDateString('ru-RU')
             };
           })
           .sort((a, b) => b.match - a.match)
@@ -454,27 +523,27 @@ const Card: React.FC<CardProps> = ({ title, value, icon, color }) => {
     switch (icon) {
       case 'jobs':
         return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`h-12 w-12 ${color}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         );
       case 'applications':
         return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg className={`h-12 w-12 ${color}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         );
       case 'views':
         return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`h-12 w-12 ${color}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
         );
       case 'candidates':
         return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg className={`h-12 w-12 ${color}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         );
       default:
@@ -482,24 +551,54 @@ const Card: React.FC<CardProps> = ({ title, value, icon, color }) => {
     }
   };
 
-  return (
-    <motion.div 
-      whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}
-      className="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-md flex flex-col items-center text-center"
-    >
-      <div className={`w-12 h-12 mb-4 rounded-full flex items-center justify-center text-white bg-gradient-to-r ${color}`}>
-        {getIcon()}
+  // Определяем, должна ли карточка быть кликабельной
+  const isClickable = icon === 'applications';
+  const cardContent = (
+    <>
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{title}</p>
+          <h3 className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{value}</h3>
+        </div>
+        <div className="p-3 rounded-full bg-opacity-10 bg-purple-600 dark:bg-opacity-20">
+          {getIcon()}
+        </div>
       </div>
-      <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">{title}</div>
-      <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
-    </motion.div>
+      {isClickable && (
+        <div className="mt-4 flex items-center text-primary dark:text-accent text-sm font-medium">
+          <span>Просмотреть заявки</span>
+          <svg className="ml-1 w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+        </div>
+      )}
+    </>
+  );
+
+  if (isClickable) {
+    return (
+      <Link 
+        to="/employer/applications"
+        className={`p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-white dark:bg-dark-lighter`}
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={`p-6 rounded-xl shadow-md bg-white dark:bg-dark-lighter`}>
+      {cardContent}
+    </div>
   );
 };
 
 // Получение количества просмотров вакансий
 const getJobViewsCount = async (jobIds: string[]): Promise<number> => {
   try {
-    // Коллекция для хранения просмотров вакансий
+    if (jobIds.length === 0) return 0;
+    
+    // Сначала проверяем коллекцию jobViews
     const viewsRef = collection(db, 'jobViews');
     let totalViews = 0;
     
@@ -508,21 +607,34 @@ const getJobViewsCount = async (jobIds: string[]): Promise<number> => {
       const viewsQuery = query(viewsRef, where('jobId', '==', jobId));
       const viewsSnapshot = await getDocs(viewsQuery);
       
-      // Суммируем просмотры для всех вакансий
-      totalViews += viewsSnapshot.docs.reduce((total, doc) => {
-        return total + (doc.data().count || 1);
-      }, 0);
+      if (!viewsSnapshot.empty) {
+        // Суммируем просмотры для всех вакансий
+        totalViews += viewsSnapshot.docs.reduce((total, doc) => {
+          return total + (doc.data().count || 1);
+        }, 0);
+      } else {
+        // Если записей нет, проверяем поле viewCount в самой вакансии
+        const jobDocRef = doc(db, 'posts', jobId);
+        const jobDoc = await getDoc(jobDocRef);
+        if (jobDoc.exists() && jobDoc.data().viewCount) {
+          totalViews += jobDoc.data().viewCount;
+        } else {
+          // Если никакой статистики нет, добавляем минимальное значение
+          totalViews += 1;
+        }
+      }
     }
     
     return totalViews;
   } catch (error) {
     console.error('Error fetching job views:', error);
-    return 0;
+    // Если возникла ошибка, возвращаем хотя бы минимальное значение
+    return jobIds.length;
   }
 };
 
 // Расчет соответствия кандидата
-const calculateCandidateMatch = (application: any): number => {
+const calculateCandidateMatch = (application: ApplicationData): number => {
   try {
     // Если у заявки уже есть AI-оценка соответствия, используем её
     if (application.aiMatchScore && typeof application.aiMatchScore === 'number') {

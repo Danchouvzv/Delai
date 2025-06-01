@@ -10,7 +10,7 @@ const ChatList: React.FC = () => {
   const [user] = useAuthState(auth);
   const { chats, loading, error, refreshChats } = useChat();
 
-  // Debug logging
+  
   useEffect(() => {
     console.log('ChatList rendered with state:', { 
       userExists: !!user, 

@@ -4,16 +4,15 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserData, Post } from '../types';
 
-// You would need to implement or import an actual text generation API
-// This is a placeholder for the actual implementation
+
 const generateTextWithAI = async (prompt: string): Promise<string> => {
-  // In a real implementation, this would call an AI service like OpenAI's API
+  
   console.log("Sending prompt to AI service:", prompt);
   
-  // Simulate API delay
+  
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Return a placeholder response
+  
   return "This is a generated resume based on your profile and the job requirements. In a real implementation, this would be a professionally crafted resume tailored to the specific job.";
 };
 
@@ -68,7 +67,7 @@ const AIResumeGenerator: React.FC<AIResumeGeneratorProps> = ({ post, onClose, on
     setError('');
     
     try {
-      // Prepare user profile data
+      
       const userProfile = {
         name: userData.displayName || '',
         education: Array.isArray(userData.education) ? userData.education : [userData.education || ''],
@@ -79,7 +78,7 @@ const AIResumeGenerator: React.FC<AIResumeGeneratorProps> = ({ post, onClose, on
         portfolio: userData.portfolio || ''
       };
 
-      // Prepare job post data
+      
       const jobDetails = {
         title: post.title,
         company: post.companyName || post.company || '',
@@ -88,7 +87,7 @@ const AIResumeGenerator: React.FC<AIResumeGeneratorProps> = ({ post, onClose, on
         responsibilities: Array.isArray(post.responsibilities) ? post.responsibilities.join(', ') : (post.responsibilities || '')
       };
 
-      // Construct prompt for AI
+      
       const prompt = `
         Generate a professional resume for a job application with the following details:
 
@@ -133,15 +132,15 @@ const AIResumeGenerator: React.FC<AIResumeGeneratorProps> = ({ post, onClose, on
         throw new Error('User not authenticated');
       }
 
-      // If there's an onSubmit callback (for use in other components), call it
+      
       if (onSubmit) {
         onSubmit(generatedResume);
       }
 
-      // Save the generated resume to the user's profile in Firebase
+      
       const userDocRef = doc(db, 'users', user.uid);
       
-      // Get current user data to check for existing resumes
+      
       const userDoc = await getDoc(userDocRef);
       if (!userDoc.exists()) {
         throw new Error('User profile not found');
@@ -149,7 +148,7 @@ const AIResumeGenerator: React.FC<AIResumeGeneratorProps> = ({ post, onClose, on
       
       const userData = userDoc.data() as UserData;
       
-      // Create a new resume object
+      
       const newResume = {
         id: Date.now().toString(),
         title: post ? `${post.title} Resume` : 'AI Generated Resume',

@@ -180,56 +180,56 @@ const App: React.FC = () => {
     <ThemeProvider>
       <AuthProvider>
         <UserProvider>
-          <Router>
-            <div className="min-h-screen bg-white dark:bg-dark text-gray-900 dark:text-white">
-              <Navbar />
-              <Routes>
+        <Router>
+          <div className="min-h-screen bg-white dark:bg-dark text-gray-900 dark:text-white">
+            <Navbar />
+            <Routes>
                 {/* Корневой маршрут теперь перенаправляет на дашборд, если пользователь авторизован */}
                 <Route path="/" element={<RootRoute />} />
                 <Route path="/company" element={<CompanyHome />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/jobs" element={<JobsWithErrorBoundary />} />
-                <Route path="/jobs/:id" element={<PostDetail />} />
-                <Route path="/ai-mentor" element={<AIMentor />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/resume-generator" element={<ResumeGenerator />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/jobs" element={<JobsWithErrorBoundary />} />
+              <Route path="/jobs/:id" element={<PostDetail />} />
+              <Route path="/ai-mentor" element={<AIMentor />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/resume-generator" element={<ResumeGenerator />} />
                 <Route path="/faq" element={<FAQPage />} />
-                
-                {/* Protected route for creating posts (only for employers) */}
-                <Route 
-                  path="/create-post" 
-                  element={
-                    <ProtectedRoute allowedRoles={['employer', 'business']}>
-                      <CreatePost />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                {/* Chat routes */}
-                <Route 
-                  path="/chats" 
-                  element={
-                    <ProtectedRoute>
-                      <ChatList />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route 
-                  path="/chat/:id" 
-                  element={
-                    <ProtectedRoute>
-                      <Chat />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route 
-                  path="/profile" 
-                  element={
-                    <ProtectedRoute>
+              
+              {/* Protected route for creating posts (only for employers) */}
+              <Route 
+                path="/create-post" 
+                element={
+                  <ProtectedRoute allowedRoles={['employer', 'business']}>
+                    <CreatePost />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Chat routes */}
+              <Route 
+                path="/chats" 
+                element={
+                  <ProtectedRoute>
+                    <ChatList />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route 
+                path="/chat/:id" 
+                element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
                       <ProfileNew />
                     </ProtectedRoute>
                   }
@@ -326,14 +326,14 @@ const App: React.FC = () => {
                   element={
                     <ProtectedRoute>
                       <DashboardRouter />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </div>
-          </Router>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </Router>
         </UserProvider>
       </AuthProvider>
     </ThemeProvider>

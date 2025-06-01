@@ -3,17 +3,17 @@ import * as admin from 'firebase-admin';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { GenerativeModel } from '@google/generative-ai';
 
-// Import correct types for Firebase Functions v2
+
 import { onCall, CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-// Initialize Firebase Admin SDK
+
 if (!admin.apps.length) {
   admin.initializeApp();
 }
 
 const db = admin.firestore();
 
-// Initialize Gemini AI with environment variable
+
 const API_KEY = process.env.GEMINI_API_KEY as string;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
@@ -26,7 +26,7 @@ interface CandidateEvaluation {
   evaluatedAt: admin.firestore.Timestamp;
 }
 
-// Define types for function parameters
+
 interface EvaluateCandidateData {
   microInternshipId: string;
   candidateId: string;
@@ -37,9 +37,7 @@ interface EvaluateAllCandidatesData {
   limit?: number;
 }
 
-/**
- * Firebase Cloud Function to evaluate a candidate for a micro-internship
- */
+
 export const evaluateCandidate = onCall<EvaluateCandidateData>(async (request) => {
   // Check if the user is authenticated
   if (!request.auth) {
@@ -70,7 +68,7 @@ export const evaluateCandidate = onCall<EvaluateCandidateData>(async (request) =
     
     const internship = internshipDoc.data()!;
     
-    // Check if the authenticated user owns this internship
+    
     if (internship.employerId !== request.auth.uid) {
       throw new HttpsError(
         'permission-denied',
@@ -211,11 +209,9 @@ Return ONLY a JSON object with the following format:
   }
 });
 
-/**
- * Firebase Cloud Function to evaluate all candidates for a micro-internship
- */
+
 export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (request) => {
-  // Check if the user is authenticated
+  
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'User must be authenticated to evaluate candidates');
   }
@@ -232,7 +228,7 @@ export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (re
   }
 
   try {
-    // Get the micro-internship data
+    
     const internshipDoc = await db.collection('microInternships').doc(microInternshipId).get();
     
     if (!internshipDoc.exists) {
@@ -244,7 +240,7 @@ export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (re
     
     const internship = internshipDoc.data()!;
     
-    // Check if the authenticated user owns this internship
+    
     if (internship.employerId !== request.auth.uid) {
       throw new HttpsError(
         'permission-denied',
@@ -252,7 +248,7 @@ export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (re
       );
     }
     
-    // Get all applications for this micro-internship
+    
     const applicationsSnapshot = await db
       .collection('microApplications')
       .where('microInternshipId', '==', microInternshipId)
@@ -270,25 +266,25 @@ export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (re
       };
     });
     
-    // Collect all candidate IDs
+    
     const candidateIds = applications.map((app: any) => app.studentId);
     
-    // Get additional user data for all candidates
+    
     const usersSnapshot = await db
       .collection('users')
       .where(admin.firestore.FieldPath.documentId(), 'in', candidateIds)
       .get();
     
-    // Create a map of user data
+    
     const userDataMap: Record<string, any> = {};
     usersSnapshot.forEach((doc: admin.firestore.QueryDocumentSnapshot) => {
       userDataMap[doc.id] = doc.data();
     });
     
-    // Evaluate each candidate
+    
     const evaluationPromises = applications.map(async (application: any) => {
       try {
-        // Combine data for evaluation
+        
         const userData = userDataMap[application.studentId];
         
         const candidate = {
@@ -296,7 +292,7 @@ export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (re
           name: application.student?.name || userData?.displayName || 'Unknown',
           photoURL: application.student?.photoURL || userData?.photoURL,
           level: application.student?.level || 1,
-          // Additional data from userData if available
+          
           skills: userData?.skills || [],
           education: userData?.education || '',
           experience: userData?.experience || '',
@@ -307,7 +303,7 @@ export const evaluateAllCandidates = onCall<EvaluateAllCandidatesData>(async (re
           yearsOfExperience: userData?.yearsOfExperience || 0,
         };
         
-        // Create detailed prompt for Gemini
+        
         const prompt = `
 You are an expert HR AI assistant for JumysAL, an educational platform that connects students with micro-internships.
 Your task is to evaluate how well a candidate matches a micro-internship opportunity.
@@ -344,15 +340,15 @@ Return ONLY a JSON object with the following format:
 \`\`\`
 `;
 
-        // Get Gemini model
+        
         const model: GenerativeModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
         
-        // Call Gemini API
+        
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
         
-        // Extract JSON from the response
+        
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
@@ -361,7 +357,7 @@ Return ONLY a JSON object with the following format:
         
         const parsed = JSON.parse(jsonMatch[0]);
         
-        // Create evaluation result
+        
         const evaluation: CandidateEvaluation = {
           match: parsed.match,
           reason: parsed.reason,
@@ -371,14 +367,14 @@ Return ONLY a JSON object with the following format:
           evaluatedAt: admin.firestore.Timestamp.now()
         };
         
-        // Store the evaluation result
+        
         await db.collection('microInternships')
           .doc(microInternshipId)
           .collection('evaluations')
           .doc(application.studentId)
           .set(evaluation);
           
-        // Update the application with the AI match score
+        
         await db.collection('microApplications')
           .doc(application.id)
           .update({
@@ -402,10 +398,10 @@ Return ONLY a JSON object with the following format:
       }
     });
     
-    // Wait for all evaluations to complete
+    
     const evaluations = await Promise.all(evaluationPromises);
     
-    // Sort by match score (highest first)
+    
     const sortedEvaluations = evaluations.sort((a: any, b: any) => b.match - a.match);
     
     return { 

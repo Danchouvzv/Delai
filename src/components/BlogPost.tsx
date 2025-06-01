@@ -30,7 +30,7 @@ interface Comment {
   };
 }
 
-// Valid slugs for demo posts
+
 type DemoPostSlug = 'how-to-create-perfect-resume' | 'top-interview-questions' | 'networking-tips' | 'tech-interview-tips' | 'cover-letter-mistakes' | 'internship-platforms-kazakhstan' | 'pomodoro-technique-for-students';
 
 interface BlogPost {
@@ -55,7 +55,7 @@ interface BlogPost {
   comments?: Comment[];
 }
 
-// Demo comments with empty arrays for missing slugs
+
 const DEMO_COMMENTS: Record<DemoPostSlug, Comment[]> = {
   'how-to-create-perfect-resume': [
     {
@@ -776,8 +776,7 @@ const BlogPost: React.FC = () => {
         
         setComments([newCommentObj, ...comments]);
       } else {
-        // Для реальных постов добавляем в Firestore
-        // Код для реального добавления комментария
+        
         alert('Комментарий будет добавлен в базу данных');
       }
       
@@ -839,7 +838,7 @@ const BlogPost: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark pb-16">
-      {/* Hero section with image */}
+      
       <div className="relative h-96 bg-gray-800 mb-8">
         <img 
           src={post.coverImage} 
@@ -873,14 +872,14 @@ const BlogPost: React.FC = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <main>
-          {/* Article content */}
+          
           <div className="bg-white dark:bg-dark-lighter rounded-xl shadow-md p-6 sm:p-8 mb-8">
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <p className="text-lg text-gray-700 dark:text-gray-300 font-medium mb-6">
                 {post.excerpt}
               </p>
               
-              {/* Здесь будет основной контент статьи из HTML или Markdown */}
+              
               <div dangerouslySetInnerHTML={{ __html: post.content }} />
               
               {/* Tags */}

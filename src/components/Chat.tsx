@@ -14,12 +14,18 @@ import {
   updateDoc,
   arrayUnion,
   writeBatch,
-  deleteDoc
+  deleteDoc,
+  arrayRemove,
+  setDoc,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { formatDistanceToNow } from 'date-fns';
 import { Message, UserData } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+
+import ChatErrorDisplay from './ChatErrorDisplay';
 
 // Анимации
 const pageVariants = {
@@ -114,7 +120,11 @@ const Chat: React.FC = () => {
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const attachMenuRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // В начале компонента Chat добавить обработку ошибок
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
+
+  
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -123,167 +133,73 @@ const Chat: React.FC = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-  // Main effect for loading chat data and setting up listeners
+  
   useEffect(() => {
     if (!id || !user) return;
 
     const fetchChatData = async () => {
-      try {
+      if (!user) return;
+      
         setLoading(true);
-        setError(null);
+      setChatError(null);
         
-        // Get chat document
-        const chatDoc = await getDoc(doc(db, 'chats', id));
+      try {
+        const chatDocRef = doc(db, 'chats', id);
+        const chatDoc = await getDoc(chatDocRef);
+        
         if (!chatDoc.exists()) {
-          setError('Чат не найден. Возможно, он был удален или у вас нет к нему доступа.');
+          setChatError('Чат не найден. Возможно, он был удален.');
           setLoading(false);
           return;
         }
 
         const chatData = chatDoc.data();
         
-        // Validate chat data
+        
         if (!chatData || !chatData.participants || !Array.isArray(chatData.participants)) {
-          setError('Неверный формат данных чата. Пожалуйста, обратитесь в службу поддержки.');
+          setChatError('Неверный формат данных чата. Пожалуйста, обратитесь в службу поддержки.');
           setLoading(false);
           return;
         }
 
-        // Verify current user is a participant
+        // Проверяем, что пользователь является участником чата
         if (!chatData.participants.includes(user.uid)) {
-          setError('У вас нет доступа к этому чату.');
+          setChatError('У вас нет доступа к этому чату.');
           setLoading(false);
           return;
         }
         
-        const otherUserId = chatData.participants.find(
-          (participantId: string) => participantId !== user.uid
-        );
-
-        // Get other user's data
-        if (otherUserId) {
-          try {
-            const otherUserDoc = await getDoc(doc(db, 'users', otherUserId));
-            if (otherUserDoc.exists()) {
-              const userData = {
-                ...otherUserDoc.data() as UserData,
-                uid: otherUserDoc.id
-              };
-              setOtherUser(userData);
-            }
-          } catch (userError) {
-            console.error('Error fetching other user:', userError);
-          }
-        }
-
-        // Mark unread messages as read
-        try {
-          await updateUnreadMessages();
-        } catch (updateError) {
-          console.error('Error updating unread messages:', updateError);
-        }
-
-        // Listen for messages
-        const messagesQuery = query(
-          collection(db, 'chats', id, 'messages'),
-          orderBy('createdAt', 'asc')
-        );
-
-        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-          try {
-            const messagesList: ExtendedMessage[] = [];
-            snapshot.forEach((doc) => {
-              const messageData = doc.data();
-              
-              messagesList.push({
+        setOtherUser(chatData);
+        
+        // Получаем сообщения чата
+        const messagesRef = collection(db, 'chats', id, 'messages');
+        const q = query(messagesRef, orderBy('createdAt', 'asc'));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          const messages = snapshot.docs.map(doc => ({
                 id: doc.id,
-                text: messageData.text || '',
-                senderId: messageData.senderId,
-                timestamp: messageData.createdAt,
-                createdAt: messageData.createdAt,
-                read: messageData.status === 'read',
-                fileUrl: messageData.fileUrl,
-                fileType: messageData.type === 'file' ? messageData.meta?.fileType : undefined,
-                reactions: messageData.reactions || [],
-                isPinned: messageData.isPinned || false,
-                isDeleted: messageData.isDeleted || false,
-                editedAt: messageData.editedAt,
-                replyTo: messageData.replyTo,
-                deliveryStatus: messageData.status || 'sent'
-              });
-            });
-            
-            setMessages(messagesList);
-            
-            // Filter messages for different views
-            setMediaFiles(messagesList.filter(msg => 
-              msg.fileUrl && msg.fileType?.startsWith('image/')
-            ));
-            
-            setLinkMessages(messagesList.filter(msg => 
-              msg.text && /https?:\/\/[^\s]+/g.test(msg.text)
-            ));
-            
-            setFileMessages(messagesList.filter(msg => 
-              msg.fileUrl && !msg.fileType?.startsWith('image/')
-            ));
-            
+            ...doc.data()
+          }));
+          setMessages(messages);
             setLoading(false);
-            setInitialized(true);
-            
-            // Mark newly received messages as read
-            if (messagesList.length > 0) {
-              const unreadMessages = messagesList.filter(
-                msg => msg.senderId !== user.uid && !msg.read
-              );
-              if (unreadMessages.length > 0) {
-                markMessagesAsRead(unreadMessages.map(msg => msg.id))
-                  .catch(err => console.error('Error marking messages as read:', err));
-              }
-            }
-          } catch (messagesError) {
-            console.error('Error processing messages:', messagesError);
-            setError('Ошибка при обработке сообщений');
-            setLoading(false);
-          }
         }, (error) => {
-          console.error('Error in messages snapshot:', error);
-          setError('Ошибка при получении сообщений');
+          console.error('Error fetching messages:', error);
+          setLoadError('Ошибка при загрузке сообщений. Пожалуйста, попробуйте позже.');
           setLoading(false);
         });
 
-        // Listen for typing indicator
-        let typingUnsubscribe = () => {};
-        
-        try {
-          if (otherUserId) {
-            const typingRef = doc(db, `chats/${id}/typing/${otherUserId}`);
-            typingUnsubscribe = onSnapshot(typingRef, (doc) => {
-              if (doc.exists()) {
-                const data = doc.data();
-                const isCurrentlyTyping = data.isTyping;
-                const lastUpdated = data.updatedAt?.toDate() || new Date();
-                const fiveSecondsAgo = new Date(Date.now() - 5000);
-                
-                setIsTyping(isCurrentlyTyping && lastUpdated > fiveSecondsAgo);
-              } else {
-                setIsTyping(false);
-              }
-            }, () => {
-              setIsTyping(false);
-            });
-          }
-        } catch (typingError) {
-          console.error('Error setting up typing indicator:', typingError);
+        // Обновляем статус прочтения
+        if (chatData.unreadBy && chatData.unreadBy.includes(user.uid)) {
+          await updateDoc(chatDocRef, {
+            unreadBy: chatData.unreadBy.filter((uid: string) => uid !== user.uid),
+            unreadCount: chatData.unreadCount > 0 ? chatData.unreadCount - 1 : 0
+          });
         }
-
-        return () => {
-          unsubscribe();
-          typingUnsubscribe();
-        };
+        
+        return unsubscribe;
       } catch (error) {
-        console.error('Error fetching chat data:', error);
-        setError('Ошибка при загрузке чата. Пожалуйста, попробуйте позже.');
+        console.error('Error fetching chat:', error);
+        setChatError('Произошла ошибка при загрузке чата. Пожалуйста, попробуйте позже.');
         setLoading(false);
       }
     };
@@ -303,7 +219,7 @@ const Chat: React.FC = () => {
           updatedAt: serverTimestamp()
         });
 
-        // Clear typing status after 5 seconds of inactivity
+        
         const timeout = setTimeout(async () => {
           await updateDoc(typingRef, {
             isTyping: false,
@@ -320,7 +236,7 @@ const Chat: React.FC = () => {
     updateTypingStatus();
   }, [id, user, newMessage]);
 
-  // Close emoji picker when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -343,7 +259,7 @@ const Chat: React.FC = () => {
     };
   }, []);
 
-  // Audio recording timer
+  
   useEffect(() => {
     if (audioRecording.isRecording) {
       recordingTimerRef.current = setInterval(() => {
@@ -363,12 +279,12 @@ const Chat: React.FC = () => {
     };
   }, [audioRecording.isRecording]);
 
-  // Update unread message count
+  
   const updateUnreadMessages = async () => {
     if (!id || !user) return;
 
     try {
-      // Update chat document to set unread count to 0 for current user
+      
       const chatRef = doc(db, 'chats', id);
       await updateDoc(chatRef, {
         [`unreadCount.${user.uid}`]: 0
@@ -378,7 +294,7 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Mark messages as read
+  
   const markMessagesAsRead = async (messageIds: string[]) => {
     if (!id || !user || messageIds.length === 0) return;
 
@@ -429,7 +345,7 @@ const Chat: React.FC = () => {
           audioBlob
         });
         
-        // Stop all audio tracks
+        
         stream.getAudioTracks().forEach(track => track.stop());
       };
       
@@ -447,14 +363,14 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Stop audio recording
+  
   const stopRecording = () => {
     if (mediaRecorderRef.current && audioRecording.isRecording) {
       mediaRecorderRef.current.stop();
     }
   };
 
-  // Cancel audio recording
+  
   const cancelRecording = () => {
     if (mediaRecorderRef.current && audioRecording.isRecording) {
       mediaRecorderRef.current.stop();
@@ -475,7 +391,7 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Send audio message
+  
   const sendAudioMessage = async () => {
     if (!audioRecording.audioBlob || !user || !id) return;
     
@@ -515,20 +431,20 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Handle adding emoji to message
+  
   const handleEmojiClick = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
   };
 
-  // Add reaction to message
+  
   const addReaction = async (messageId: string, emoji: string) => {
     if (!user || !id) return;
     
     try {
       const messageRef = doc(db, `chats/${id}/messages/${messageId}`);
       
-      // Check if user already reacted with this emoji
+      
       const messageDoc = await getDoc(messageRef);
       const messageData = messageDoc.data();
       const reactions = messageData?.reactions || [];
@@ -538,14 +454,14 @@ const Chat: React.FC = () => {
       );
       
       if (existingReaction) {
-        // Remove reaction if it already exists
+        
         await updateDoc(messageRef, {
           reactions: reactions.filter(
             (r: Reaction) => !(r.userId === user.uid && r.emoji === emoji)
           )
         });
       } else {
-        // Add new reaction
+        
         await updateDoc(messageRef, {
           reactions: arrayUnion({
             emoji,
@@ -559,7 +475,7 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Pin/unpin message
+  
   const togglePinMessage = async (messageId: string, isPinned: boolean) => {
     if (!user || !id) return;
     
@@ -614,7 +530,7 @@ const Chat: React.FC = () => {
     }
     
     if (audioRecording.audioURL) {
-      // Send audio message if available
+      
       await sendAudioMessage();
       return;
     }
@@ -627,7 +543,7 @@ const Chat: React.FC = () => {
       let fileName = '';
       let fileSize = 0;
 
-      // Upload file if exists
+      
       if (file) {
         setIsUploading(true);
         fileName = file.name;
@@ -752,36 +668,11 @@ const Chat: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="container mx-auto max-w-4xl p-4 mt-16"
-      >
-        <div className="rounded-lg shadow-lg bg-white dark:bg-gray-800 p-8 text-center">
-          <div className="text-red-500 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold mb-2">Ошибка</h2>
-          <p className="text-gray-600 dark:text-gray-400">{error}</p>
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/chats')}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark"
-          >
-            Вернуться к списку чатов
-          </motion.button>
-        </div>
-      </motion.div>
-    );
+  if (chatError) {
+    return <ChatErrorDisplay errorMessage={chatError} />;
   }
 
-  return (
+    return (
     <motion.div 
       variants={pageVariants}
       initial="hidden"
@@ -808,17 +699,17 @@ const Chat: React.FC = () => {
                 <div className="flex items-center text-amber-700 dark:text-amber-400">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
+            </svg>
                   <span className="text-xs font-medium">Закрепленное сообщение</span>
-                </div>
+          </div>
                 <span className="text-xs text-amber-700 dark:text-amber-400 cursor-pointer hover:underline">
                   {messages.filter(msg => msg.isPinned).length > 1 ? 'Показать все' : 'Скрыть'}
                 </span>
-              </div>
+        </div>
               
               <div className="mt-1 text-sm text-gray-700 dark:text-gray-300 line-clamp-1">
                 {messages.find(msg => msg.isPinned)?.text}
-              </div>
+      </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1721,7 +1612,7 @@ const Chat: React.FC = () => {
             )}
           </div>
           
-          {/* Индикатор редактирования */}
+          
           {editingMessage && (
             <div className="flex justify-between items-center mt-2 px-2 text-xs text-gray-500 dark:text-gray-400">
               <div className="flex items-center">

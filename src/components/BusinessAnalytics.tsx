@@ -21,7 +21,7 @@ export const BusinessAnalytics: React.FC = () => {
     const fetchAnalytics = async () => {
       if (!user) return;
 
-      // Получаем все посты бизнеса
+      
       const postsQuery = query(
         collection(db, 'posts'),
         where('businessId', '==', user.uid)
@@ -31,7 +31,7 @@ export const BusinessAnalytics: React.FC = () => {
       let totalViews = 0;
       let totalReplies = 0;
 
-      // Для каждого поста получаем просмотры и отклики
+      
       for (const postDoc of postsSnapshot.docs) {
         const post = postDoc.data();
         totalViews += post.views || 0;

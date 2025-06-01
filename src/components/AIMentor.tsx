@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { FiSend, FiChevronsDown, FiStar, FiBookOpen, FiFileText, FiTrendingUp, FiUser, FiDownload } from 'react-icons/fi';
 import { BsLightningCharge, BsStars, BsGear, BsBraces, BsGraphUp, BsPalette } from 'react-icons/bs';
 
-// Types
+
 interface Message {
   id: string;
   content: string;
@@ -92,12 +92,12 @@ const AIMentor = () => {
     }
   ];
 
-  // Auto-scroll to bottom when new messages arrive
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Handle scroll detection for scroll-to-bottom button
+  
   useEffect(() => {
     const handleScroll = () => {
       if (!chatContainerRef.current) return;
@@ -114,7 +114,7 @@ const AIMentor = () => {
     }
   }, []);
 
-  // Auto-resize textarea
+  
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = 'auto';
@@ -126,14 +126,14 @@ const AIMentor = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Handle sending a message
+  
   const handleSendMessage = async (e?: React.FormEvent, questionText?: string) => {
     if (e) e.preventDefault();
     
     const messageText = questionText || input;
     if (!messageText.trim() || isLoading) return;
 
-    // Create new message from user
+    
     const userMessage: Message = {
       id: Date.now().toString(),
       content: messageText,
@@ -141,23 +141,23 @@ const AIMentor = () => {
       timestamp: new Date()
     };
     
-    // Add user message to chat
+    
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      // Get user's name and role for personalization
+     
       const userName = user?.displayName || userData?.firstName || 'there';
       const userRole = userData?.role || 'job seeker';
       
-      // Create context for the AI
+      
       const context = `The user's name is ${userName}. They are a ${userRole}.`;
       
-      // Send to AI and get response
+      
       const response = await generateText(messageText, context);
       
-      // Ensure we have a string response
+      
       let aiResponseText = 'Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте еще раз.';
       
       if (typeof response === 'string') {
@@ -170,7 +170,7 @@ const AIMentor = () => {
         }
       }
       
-      // Create AI message
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: aiResponseText,
@@ -179,12 +179,12 @@ const AIMentor = () => {
         model: 'gemini-pro'
       };
       
-      // Add AI message to chat
+      
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       
-      // Create error message
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: 'Произошла ошибка при получении ответа. Пожалуйста, попробуйте позже.',
@@ -193,14 +193,14 @@ const AIMentor = () => {
         isError: true
       };
       
-      // Add error message to chat
+      
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Format timestamp for messages
+  
   const formatTimestamp = (date: Date) => {
     return new Intl.DateTimeFormat('ru-RU', { 
       hour: 'numeric', 
@@ -208,7 +208,7 @@ const AIMentor = () => {
     }).format(date);
   };
 
-  // Animations
+  
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -478,11 +478,11 @@ const AIMentor = () => {
                 </div>
               )}
               
-              {/* Reference for scrolling to bottom */}
+              
               <div ref={messagesEndRef} />
           </div>
 
-            {/* Topic suggestions based on selected category */}
+            
             <AnimatePresence>
               {selectedCategory && (
                 <motion.div 
@@ -514,7 +514,7 @@ const AIMentor = () => {
               )}
             </AnimatePresence>
 
-            {/* Message input */}
+            
             <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <form onSubmit={handleSendMessage} className="flex items-end gap-2">
                 <div className="relative flex-1">
@@ -559,7 +559,7 @@ const AIMentor = () => {
         </div>
       </div>
 
-      {/* Scroll to bottom button */}
+      
       <AnimatePresence>
         {showScrollButton && (
           <motion.button

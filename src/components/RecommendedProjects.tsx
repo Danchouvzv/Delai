@@ -260,7 +260,7 @@ const RecommendedProjects: React.FC = () => {
                 // Дополнительное действие при клике на кнопку
               }}
             >
-              View Details
+              Подробнее
             </Button>
           </Flex>
         </CardBody>
@@ -306,8 +306,8 @@ const RecommendedProjects: React.FC = () => {
       <VStack spacing={6} align="stretch" maxW="1200px" mx="auto">
         <Flex justifyContent="space-between" alignItems="center">
           <Box>
-            <Heading size="lg" mb={1}>Recommended Projects</Heading>
-            <Text color="gray.500">Projects that match your skills and interests</Text>
+            <Heading size="lg" mb={1}>Рекомендуемые проекты</Heading>
+            <Text color="gray.500">Проекты, соответствующие вашим навыкам и интересам</Text>
           </Box>
           <Button 
             colorScheme="teal" 
@@ -316,7 +316,7 @@ const RecommendedProjects: React.FC = () => {
             as={Link}
             to="/networking"
           >
-            Find More
+            Найти больше
           </Button>
         </Flex>
         
@@ -337,14 +337,14 @@ const RecommendedProjects: React.FC = () => {
             borderColor={borderColor}
             bg={cardBg}
           >
-            <Heading size="md" mb={3}>No Recommendations Yet</Heading>
-            <Text mb={4}>We're working on finding the perfect projects for you. Check back soon or explore available projects.</Text>
+            <Heading size="md" mb={3}>Рекомендации пока отсутствуют</Heading>
+            <Text mb={4}>Мы работаем над подбором идеальных проектов для вас. Проверьте позже или изучите доступные проекты.</Text>
             <Button 
               colorScheme="teal" 
               as={Link} 
               to="/projects"
             >
-              Browse All Projects
+              Просмотреть все проекты
             </Button>
           </Box>
         )}

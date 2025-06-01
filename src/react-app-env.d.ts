@@ -38,7 +38,7 @@ declare global {
       path: React.SVGProps<SVGPathElement>;
       svg: React.SVGProps<SVGSVGElement>;
       circle: React.SVGProps<SVGCircleElement>;
-      // Добавьте остальные HTML теги если понадобятся
+      // Теперь прост будет добавлять остальные HTML теги если понадобятся
     }
   }
 }

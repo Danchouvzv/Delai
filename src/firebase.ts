@@ -153,25 +153,15 @@ try {
     console.log("✅ Firebase Functions initialized successfully");
   } catch (functionsError) {
     console.error("❌ Firebase Functions initialization failed:", functionsError);
-    // Non-critical, continue without rethrowing
   }
   
   console.log("🔥 All Firebase services initialized");
   
 } catch (error) {
   console.error("❌ CRITICAL: Firebase initialization failed:", error);
-  // Show an error UI if needed here
   alert("Критическая ошибка при инициализации Firebase. Пожалуйста, обновите страницу или попробуйте позже.");
 }
 
-// Export the Firebase services
+
 export { auth, db, storage, functions };
 
-// NOTE: For production deployment, these values should be stored in .env file:
-// VITE_FIREBASE_API_KEY=AIzaSyDSVo3dr51l-eMYD1gDm1FsTG1lAUsiq1k
-// VITE_FIREBASE_AUTH_DOMAIN=jumysal-76195.firebaseapp.com
-// VITE_FIREBASE_PROJECT_ID=jumysal-76195
-// VITE_FIREBASE_STORAGE_BUCKET=jumysal-76195.firebasestorage.app
-// VITE_FIREBASE_MESSAGING_SENDER_ID=54916948108
-// VITE_FIREBASE_APP_ID=1:54916948108:web:22c67b3d1de6f0716c1ba9
-// VITE_FIREBASE_MEASUREMENT_ID=G-LE0VPJ7423

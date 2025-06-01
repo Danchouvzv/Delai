@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, Component, ErrorInfo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, Firestore, limit, updateDoc, arrayUnion, arrayRemove, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, Firestore, limit, updateDoc, arrayUnion, arrayRemove, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Post } from '../types';
@@ -1138,21 +1138,82 @@ const CreateChatModal = ({
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
-  const handleSend = () => {
-    if (!message.trim() || !job) return;
+  const handleSend = async () => {
+    if (!message.trim() || !job || !user) return;
     
     setSending(true);
-    // Simulate sending - replace with actual API call
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      // Получаем данные пользователя
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      
+      if (!userDoc.exists()) {
+        throw new Error('User profile not found');
+      }
+      
+      const userData = userDoc.data();
+      
+      // Получаем данные работодателя
+      const employerDoc = await getDoc(doc(db, 'users', job.userId || ''));
+      const employerData = employerDoc.exists() ? employerDoc.data() : { displayName: job.companyName || 'Работодатель' };
+
+      // Создаем чат для общения между работодателем и соискателем
+      const chatRoom = await addDoc(collection(db, 'chats'), {
+        jobId: job.id,
+        jobTitle: job.title,
+        employerId: job.userId || (job.user ? job.user.id : null),
+        employerName: employerData.displayName || job.companyName,
+        applicantId: user.uid,
+        applicantName: userData.displayName || userData.firstName + ' ' + userData.lastName || 'Соискатель',
+        participants: [user.uid, job.userId || (job.user ? job.user.id : null)],
+        createdAt: serverTimestamp(),
+        lastMessage: message,
+        lastMessageAt: serverTimestamp(),
+        unreadCount: 1,
+        unreadBy: [job.userId || (job.user ? job.user.id : null)]
+      });
+
+      // Создаем первое сообщение в чате
+      await addDoc(collection(db, 'chats', chatRoom.id, 'messages'), {
+        text: message,
+        senderId: user.uid,
+        senderName: userData.displayName || userData.firstName + ' ' + userData.lastName || 'Соискатель',
+        createdAt: serverTimestamp(),
+        status: 'sent',
+        type: 'text'
+      });
+
+      // Создаем запись в коллекции applications
+      await addDoc(collection(db, 'applications'), {
+        userId: user.uid,
+        userName: userData.displayName || userData.firstName + ' ' + userData.lastName || 'Соискатель',
+        jobId: job.id,
+        jobTitle: job.title,
+        employerId: job.userId || (job.user ? job.user.id : null),
+        status: 'pending',
+        appliedAt: serverTimestamp(),
+        chatRoomId: chatRoom.id,
+        message: message
+      });
+
       setSending(false);
       setSent(true);
+      
+      // После успешной отправки закрываем модальное окно и перенаправляем на чат
       setTimeout(() => {
         onClose();
-        setMessage('');
-        setSent(false);
+        navigate(`/chat/${chatRoom.id}?from=job_application&jobId=${job.id}`);
       }, 1500);
-    }, 1000);
+    } catch (err) {
+      console.error('Error applying for job:', err);
+      setError('Не удалось отправить заявку. Пожалуйста, попробуйте позже.');
+      setSending(false);
+    }
   };
   
   if (!isOpen || !job) return null;
@@ -1185,13 +1246,21 @@ const CreateChatModal = ({
             Отклик успешно отправлен! Работодатель свяжется с вами в ближайшее время.
           </motion.div>
         ) : (
-          <textarea
-            className="w-full p-3 mb-4 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            rows={4}
-            placeholder="Почему вы подходите на эту должность? (Сопроводительное письмо)"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
+          <>
+            <textarea
+              className="w-full p-3 mb-4 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              rows={4}
+              placeholder="Почему вы подходите на эту должность? (Сопроводительное письмо)"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-md">
+                {error}
+              </div>
+            )}
+          </>
         )}
         
         <div className="flex justify-end space-x-3">

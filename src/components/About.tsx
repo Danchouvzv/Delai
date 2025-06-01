@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, useAnimation, useInView, AnimatePresence } from 'framer-motion';
 import Sparkles from './Sparkles';
 
-// SVG icons as React components
+
 const IconArrowRight = ({ className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -32,7 +32,7 @@ const IconZap = ({ size = 24 }) => (
   </svg>
 );
 
-// Анимационные варианты
+
 const fadeInUp = {
   hidden: { opacity: 0, y: 60 },
   visible: {
@@ -58,7 +58,7 @@ const staggerContainer = {
   }
 };
 
-// Компонент для анимированных заголовков
+
 const AnimatedHeading = ({ children, className = "" }) => {
   const controls = useAnimation();
   const ref = useRef(null);
@@ -84,7 +84,7 @@ const AnimatedHeading = ({ children, className = "" }) => {
   );
 };
 
-// Компонент для анимированных секций
+
 const AnimatedSection = ({ children, className = "" }) => {
   const controls = useAnimation();
   const ref = useRef(null);
@@ -192,7 +192,7 @@ const About = () => {
             variants={fadeInUp}
             className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-12"
           >
-            Платформа, созданная школьником для школьников, чтобы помочь сделать первые шаги в IT-карьере
+            Платформа, созданная школьником для школьников, чтобы помочь сделать первые шаги в карьере
           </motion.p>
           
           <motion.div 
@@ -291,7 +291,7 @@ const About = () => {
               variants={fadeInUp}
               className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto"
             >
-              За короткое время мы помогли множеству школьников начать свой путь в IT
+              За короткое время мы помогли множеству школьников начать свой путь в Карьере
             </motion.p>
           </div>
           
@@ -303,7 +303,7 @@ const About = () => {
           </motion.div>
         </AnimatedSection>
         
-        {/* Наши ценности */}
+        
         <AnimatedSection className="mb-32">
           <div className="text-center mb-16">
             <AnimatedHeading>Наши ценности</AnimatedHeading>

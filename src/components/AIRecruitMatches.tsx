@@ -84,12 +84,12 @@ const AIRecruitMatches: React.FC<AIRecruitMatchesProps> = ({ jobId, isEmployer }
     }
   };
 
-  // If AI matching is not enabled or this is not the employer, don't show anything
+  
   if ((!jobDetails?.aiMatching && !loading) || !isEmployer) {
     return null;
   }
 
-  // Format percentage score
+  
   const formatScore = (score: number): string => {
     return `${Math.round(score * 100)}%`;
   };

@@ -1,19 +1,20 @@
-import * as functions from 'firebase-functions';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import * as admin from 'firebase-admin';
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
-// Инициализация Firebase Admin SDK, если еще не инициализирована
+
 if (!admin.apps.length) {
   admin.initializeApp();
 }
 
 const db = admin.firestore();
 
-// Настройка Gemini API
-const API_KEY = process.env.GEMINI_API_KEY || '';
-const MODEL_NAME = "gemini-1.5-flash"; // fallback на gemini-pro при необходимости
 
-// Определение типов для данных
+const API_KEY = process.env.GEMINI_API_KEY || '';
+const MODEL_NAME = "gemini-1.5-flash"; 
+
+
 interface Profile {
   uid: string;
   role: 'seeker' | 'mentor' | 'founder';
@@ -45,9 +46,7 @@ interface AiMatch {
   reason: string;
 }
 
-/**
- * Нормализация данных профиля для отправки в Gemini
- */
+
 function normalizeProfile(doc: admin.firestore.DocumentSnapshot): Profile {
   const data = doc.data() || {};
   
@@ -83,9 +82,7 @@ function normalizeProject(doc: admin.firestore.DocumentSnapshot): Project {
   };
 }
 
-/**
- * Разбиение массива на чанки указанного размера
- */
+
 function chunk<T>(array: T[], size: number): T[][] {
   const chunked: T[][] = [];
   for (let i = 0; i < array.length; i += size) {
@@ -94,9 +91,7 @@ function chunk<T>(array: T[], size: number): T[][] {
   return chunked;
 }
 
-/**
- * Создание промпта для Gemini AI
- */
+
 function buildPrompt(profiles: Profile[], projects: Project[]): string {
   return `
 SYSTEM:
@@ -128,9 +123,7 @@ ${JSON.stringify(projects)}
 `;
 }
 
-/**
- * Вызов Gemini API с поддержкой fallback и повторных попыток
- */
+
 async function callGemini(prompt: string): Promise<string> {
   if (!API_KEY) {
     throw new Error('Gemini API key is not configured');
@@ -139,7 +132,7 @@ async function callGemini(prompt: string): Promise<string> {
   const genAI = new GoogleGenerativeAI(API_KEY);
   const model = genAI.getGenerativeModel({ model: MODEL_NAME });
   
-  // Настройки безопасности
+  
   const safetySettings = [
     {
       category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -160,7 +153,7 @@ async function callGemini(prompt: string): Promise<string> {
   ];
 
   try {
-    // Вызов Gemini API
+    
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -177,7 +170,7 @@ async function callGemini(prompt: string): Promise<string> {
   } catch (error) {
     console.error('Error calling Gemini:', error);
     
-    // Fallback на другую модель при ошибке
+    
     try {
       const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
       const result = await fallbackModel.generateContent({
@@ -200,156 +193,158 @@ async function callGemini(prompt: string): Promise<string> {
   }
 }
 
-/**
- * Cloud Function для ежедневного матчмейкинга
- */
-export const matchmakeDaily = functions.pubsub
-  .schedule('every 24 hours')
-  .onRun(async () => {
-    try {
-      console.log('Starting matchmakeDaily');
-      
-      // 1. Получаем все активные задания на матчмейкинг
-      const jobs = await db.collection('matchJobs').limit(100).get();
-      console.log(`Found ${jobs.size} matchJobs to process`);
-      
-      if (jobs.empty) {
-        console.log('No jobs to process');
-        return null;
-      }
 
-      // 2. Собираем профили и проекты
-      const profiles: Profile[] = [];
-      const projects: Project[] = [];
+export const matchmakeDaily = onSchedule({
+  schedule: 'every 24 hours',
+  timeZone: 'UTC',
+  retryCount: 3
+}, async () => {
+  try {
+    console.log('Starting matchmakeDaily');
+    
+    
+    const jobs = await db.collection('matchJobs').limit(100).get();
+    console.log(`Found ${jobs.size} matchJobs to process`);
+    
+    if (jobs.empty) {
+      console.log('No jobs to process');
+      return;
+    }
+
+    
+    const profiles: Profile[] = [];
+    const projects: Project[] = [];
+    
+    for (const job of jobs.docs) {
+      const docRef = job.data().docRef;
+      if (!docRef) continue;
       
-      for (const job of jobs.docs) {
-        const docRef = job.data().docRef;
-        if (!docRef) continue;
-        
-        const doc = await db.doc(docRef).get();
-        if (!doc.exists) {
-          await job.ref.delete(); // Удаляем невалидное задание
-          continue;
-        }
-        
-        const parentCollection = doc.ref.parent.id;
-        if (parentCollection === 'networkingProfiles') {
-          profiles.push(normalizeProfile(doc));
-        } else if (parentCollection === 'projects') {
-          projects.push(normalizeProject(doc));
-        }
-        
-        // Удаляем обработанное задание
+      const doc = await db.doc(docRef).get();
+      if (!doc.exists) {
         await job.ref.delete();
       }
       
-      if (profiles.length === 0 || projects.length === 0) {
-        console.log('Not enough data for matching');
-        return null;
+      const parentCollection = doc.ref.parent.id;
+      if (parentCollection === 'networkingProfiles') {
+        profiles.push(normalizeProfile(doc));
+      } else if (parentCollection === 'projects') {
+        projects.push(normalizeProject(doc));
       }
       
-      console.log(`Processing ${profiles.length} profiles and ${projects.length} projects`);
-
-      // 3. Разбиваем профили на пакеты для обработки
-      const batches = chunk(profiles, 30);
-      let totalMatches = 0;
       
-      // 4. Обрабатываем каждый пакет
-      for (const batch of batches) {
-        // Создаем промпт для AI
-        const prompt = buildPrompt(batch, projects);
+      await job.ref.delete();
+    }
+    
+    if (profiles.length === 0 || projects.length === 0) {
+      console.log('Not enough data for matching');
+      return;
+    }
+    
+    console.log(`Processing ${profiles.length} profiles and ${projects.length} projects`);
+
+  
+    const batches = chunk(profiles, 30);
+    let totalMatches = 0;
+    
+    // 4. тип каждый пакет обрабытываем
+    for (const batch of batches) {
+      const prompt = buildPrompt(batch, projects);
+      
+      // Вызываем наш гемини апи
+      console.log(`Calling Gemini API with ${batch.length} profiles and ${projects.length} projects`);
+      const aiResponse = await callGemini(prompt);
+      
+      try {
+        // Парсим 
+        const matches: AiMatch[] = JSON.parse(aiResponse);
+        console.log(`Received ${matches.length} matches from AI`);
         
-        // Вызываем Gemini API
-        console.log(`Calling Gemini API with ${batch.length} profiles and ${projects.length} projects`);
-        const aiResponse = await callGemini(prompt);
+        // Подготавливаем пакетную запись
+        const batchWrite = db.batch();
         
-        try {
-          // Парсим результат
-          const matches: AiMatch[] = JSON.parse(aiResponse);
-          console.log(`Received ${matches.length} matches from AI`);
-          
-          // Подготавливаем пакетную запись
-          const batchWrite = db.batch();
-          
-          for (const match of matches) {
-            // Проверяем валидность данных
-            if (!match.fromUid || !match.toProjectId || match.score === undefined) {
-              console.warn('Invalid match data:', match);
-              continue;
-            }
-            
-            // Генерируем уникальный ID для матча
-            const matchId = `${match.fromUid}_${match.toProjectId}`;
-            
-            // Добавляем метаданные и timestamp
-            const matchData = {
-              ...match,
-              matchType: 'ai',
-              createdAt: admin.firestore.FieldValue.serverTimestamp(),
-              // TTL для автоматического удаления через 14 дней
-              expiresAt: admin.firestore.Timestamp.fromDate(
-                new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-              )
-            };
-            
-            // Записываем для пользователя
-            batchWrite.set(
-              db.doc(`matches/${match.fromUid}/${matchId}`),
-              matchData
-            );
-            
-            // Записываем зеркально для проекта
-            batchWrite.set(
-              db.doc(`matchesProjects/${match.toProjectId}/${matchId}`),
-              matchData
-            );
-            
-            totalMatches++;
+        for (const match of matches) {
+          if (!match.fromUid || !match.toProjectId || match.score === undefined) {
+            console.warn('Invalid match data:', match);
+            continue;
           }
           
-          // Выполняем пакетную запись
-          await batchWrite.commit();
-          console.log(`Committed ${totalMatches} matches to Firestore`);
+          // Генерируем уникальный ID для матча
+          const matchId = `${match.fromUid}_${match.toProjectId}`;
           
-        } catch (parseError) {
-          console.error('Failed to parse AI response:', parseError);
-          console.error('Raw response:', aiResponse);
+          // Добавляем метаданные и timestamp
+          const matchData = {
+            ...match,
+            matchType: 'ai',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            // TTL для автоматического удаления через 14 дней
+            expiresAt: admin.firestore.Timestamp.fromDate(
+              new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+            )
+          };
           
-          // Записываем ошибку для анализа
-          await db.collection('matchesErrors').add({
-            error: 'parse_error',
-            message: (parseError as Error).message,
-            rawResponse: aiResponse,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
-          });
+          // Записываем для нашего пользовтел
+          batchWrite.set(
+            db.doc(`matches/${match.fromUid}/${matchId}`),
+            matchData
+          );
+          
+          // Записываем зеркально 
+          batchWrite.set(
+            db.doc(`matchesProjects/${match.toProjectId}/${matchId}`),
+            matchData
+          );
+          
+          totalMatches++;
         }
+        
+        
+        await batchWrite.commit();
+        console.log(`Committed ${totalMatches} matches to Firestore`);
+        
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError);
+        console.error('Raw response:', aiResponse);
+        
+        
+        await db.collection('matchesErrors').add({
+          error: 'parse_error',
+          message: (parseError as Error).message,
+          rawResponse: aiResponse,
+          timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
       }
-      
-      console.log(`Matching complete. Created ${totalMatches} matches in total`);
-      return null;
-      
-    } catch (error) {
-      console.error('Error in matchmakeDaily:', error);
-      throw error;
     }
-  });
+    
+    console.log(`Matching complete. Created ${totalMatches} matches in total`);
+    
+  } catch (error) {
+    console.error('Error in matchmakeDaily:', error);
+    throw error;
+  }
+});
 
-/**
- * Тригер на создание или обновление профиля/проекта
- */
-export const enqueueMatchJob = functions.firestore
-  .document('{collection}/{docId}')
-  .onCreate((snapshot, context) => {
-    const { collection, docId } = context.params;
+
+export const enqueueMatchJob = onDocumentCreated(
+  '{collection}/{docId}', 
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      console.log('No data associated with the event');
+      return;
+    }
+
+    const collection = event.params.collection;
+    const docId = event.params.docId;
     
-    // Обрабатываем только профили и проекты
+    
     if (collection !== 'networkingProfiles' && collection !== 'projects') {
-      return null;
+      return;
     }
     
-    // Добавляем задание в очередь матчмейкинга
-    return db.collection('matchJobs').add({
+    
+    await db.collection('matchJobs').add({
       docRef: `${collection}/${docId}`,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
-  }); 
+  }
+); 

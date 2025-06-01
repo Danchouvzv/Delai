@@ -1,342 +1,385 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Box, 
+  Button, 
+  Text, 
+  Flex, 
+  Icon, 
+  useColorModeValue,
+  Progress,
+  VStack,
+  HStack,
+  Badge,
+  Tooltip,
+  Alert,
+  AlertIcon,
+  CloseButton
+} from '@chakra-ui/react';
+import { 
+  FaFileUpload, 
+  FaFilePdf, 
+  FaFileWord, 
+  FaFileAlt, 
+  FaCloudUploadAlt,
+  FaExclamationCircle
+} from 'react-icons/fa';
+import { MdOutlineFileUpload } from 'react-icons/md';
+import { IoCloudDone, IoCloudUpload } from 'react-icons/io5';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUpload, FiFile, FiX, FiCheck, FiCpu, FiAward, FiLayout } from 'react-icons/fi';
-import { AiOutlineFileSearch, AiOutlineRobot } from 'react-icons/ai';
-import { BsFiletypePdf, BsFiletypeDocx, BsFiletypeTxt, BsStars } from 'react-icons/bs';
 
 interface ResumeUploaderProps {
-  onFileSelected: (file: File) => void;
-  onAnalyze: () => void;
-  file: File | null;
-  error: string | null;
+  onUpload: (file: File) => Promise<string | null>;
+  onAnalyze: (fileUrl: string) => Promise<void>;
   isAnalyzing?: boolean;
 }
 
-const ResumeUploader: React.FC<ResumeUploaderProps> = ({
-  onFileSelected,
+const ResumeUploader: React.FC<ResumeUploaderProps> = ({ 
+  onUpload, 
   onAnalyze,
-  file,
-  error,
   isAnalyzing = false
 }) => {
-  const [isDragActive, setIsDragActive] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-
-  // Имитация прогресса загрузки для улучшения UX
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const bgColor = useColorModeValue('gray.50', 'gray.700');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const hoverBorderColor = useColorModeValue('teal.300', 'teal.200');
+  const dragBorderColor = useColorModeValue('teal.500', 'teal.300');
+  const textColor = useColorModeValue('gray.500', 'gray.300');
+  const iconColor = useColorModeValue('teal.500', 'teal.300');
+  
+  // Симуляция прогресса загрузки
   useEffect(() => {
-    if (file && uploadProgress < 100) {
+    if (isUploading && uploadProgress < 95) {
       const timer = setTimeout(() => {
-        setUploadProgress(Math.min(uploadProgress + 25, 100));
-      }, 300);
+        setUploadProgress(prev => prev + 5);
+      }, 100);
       return () => clearTimeout(timer);
     }
-  }, [file, uploadProgress]);
-
-  // Сбрасываем прогресс при выборе нового файла
-  useEffect(() => {
-    if (file) {
-      setUploadProgress(0);
-    }
-  }, [file]);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      onFileSelected(acceptedFiles[0]);
-    }
-  }, [onFileSelected]);
-
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/plain': ['.txt']
-    },
-    maxFiles: 1,
-    onDragEnter: () => setIsDragActive(true),
-    onDragLeave: () => setIsDragActive(false)
-  });
-
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'pdf':
-        return <BsFiletypePdf className="w-8 h-8 text-red-500" />;
-      case 'doc':
-      case 'docx':
-        return <BsFiletypeDocx className="w-8 h-8 text-blue-600" />;
-      case 'txt':
-        return <BsFiletypeTxt className="w-8 h-8 text-gray-600" />;
-      default:
-        return <FiFile className="w-8 h-8 text-blue-500" />;
-    }
+  }, [isUploading, uploadProgress]);
+  
+  const resetUploader = () => {
+    setFile(null);
+    setFileUrl(null);
+    setUploadProgress(0);
+    setUploadError(null);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.2
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const droppedFile = e.dataTransfer.files[0];
+    processFile(droppedFile);
+  };
+  
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFile(e.target.files[0]);
+    }
+  };
+  
+  const processFile = (selectedFile: File) => {
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setUploadError('Пожалуйста, загрузите файл в формате PDF, DOC, DOCX или TXT');
+      return;
+    }
+    
+    if (selectedFile.size > 5 * 1024 * 1024) { // 5 MB
+      setUploadError('Размер файла превышает 5 МБ');
+      return;
+    }
+    
+    setFile(selectedFile);
+    setUploadError(null);
+  };
+  
+  const handleUpload = async () => {
+    if (!file) return;
+    
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      const url = await onUpload(file);
+      if (url) {
+        setFileUrl(url);
+        setUploadProgress(100);
+      } else {
+        setUploadError('Ошибка при загрузке файла');
       }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError('Ошибка при загрузке файла');
+    } finally {
+      setIsUploading(false);
     }
   };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
+  
+  const handleAnalyze = async () => {
+    if (fileUrl) {
+      await onAnalyze(fileUrl);
+    }
   };
+  
+  const FileIcon = () => {
+    if (!file) return <FaCloudUploadAlt />;
+    
+    switch (file.type) {
+      case 'application/pdf':
+        return <FaFilePdf />;
+      case 'application/msword':
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        return <FaFileWord />;
+      case 'text/plain':
+        return <FaFileAlt />;
+      default:
+        return <FaFileUpload />;
+    }
+  };
+  
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' bytes';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+  
+  const MotionBox = motion(Box);
+  const MotionFlex = motion(Flex);
+  const MotionIcon = motion(Icon);
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="max-w-4xl mx-auto"
-    >
-      <motion.div 
-        variants={itemVariants}
-        className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl p-8 border border-blue-100"
-      >
-        <div
-          {...getRootProps()}
-          className={`
-            relative overflow-hidden
-            border-3 border-dashed rounded-xl p-10 text-center cursor-pointer
-            transition-all duration-300 ease-in-out
-            ${isDragActive 
-              ? 'border-blue-500 bg-blue-50 scale-105 shadow-lg' 
-              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'}
-          `}
-        >
-          <input {...getInputProps()} />
-          
-          {/* Пульсирующий круг на заднем плане */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <motion.div
-              animate={{
-                scale: isDragActive ? [1, 1.1, 1] : [1, 1.05, 1],
-                opacity: isDragActive ? [0.1, 0.2, 0.1] : [0.05, 0.1, 0.05],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="w-64 h-64 rounded-full bg-blue-400"
+    <AnimatePresence mode="wait">
+      <VStack spacing={4} w="100%">
+        {uploadError && (
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            <Text fontSize="sm">{uploadError}</Text>
+            <CloseButton 
+              position="absolute" 
+              right="8px" 
+              top="8px" 
+              onClick={() => setUploadError(null)} 
             />
-          </div>
-          
-          <motion.div
-            initial={{ scale: 1 }}
-            animate={{ 
-              scale: isDragActive ? 1.05 : 1,
-              y: isDragActive ? -5 : 0
-            }}
-            className="space-y-6 relative z-10"
+          </Alert>
+        )}
+        
+        {!file ? (
+          <MotionBox
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            w="100%"
           >
-            <motion.div 
-              className="flex justify-center"
-              animate={{ 
-                y: isDragActive ? [0, -10, 0] : 0 
-              }}
-              transition={{ 
-                duration: 1.5,
-                repeat: isDragActive ? Infinity : 0,
-                ease: "easeInOut"
-              }}
+            <Box
+              p={6}
+              borderWidth="2px"
+              borderStyle="dashed"
+              borderRadius="lg"
+              borderColor={isDragging ? dragBorderColor : borderColor}
+              bg={bgColor}
+              position="relative"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              cursor="pointer"
+              onClick={() => fileInputRef.current?.click()}
+              transition="all 0.3s"
+              _hover={{ borderColor: hoverBorderColor }}
+              textAlign="center"
             >
-              <motion.div
-                whileHover={{ rotate: 15, scale: 1.1 }}
-                className="p-5 bg-white rounded-full shadow-md"
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+                accept=".pdf,.doc,.docx,.txt"
+              />
+              
+              <MotionFlex
+                direction="column"
+                align="center"
+                justify="center"
+                position="relative"
+                zIndex="1"
               >
-                <AiOutlineFileSearch
-                  className={`w-12 h-12 ${isDragActive ? 'text-blue-600' : 'text-blue-500'}`}
-                />
-              </motion.div>
-            </motion.div>
-            
-            <div className="space-y-3">
-              <h3 className="text-xl font-bold text-gray-900">
-                {isDragActive ? 'Отпустите файл для загрузки' : 'Перетащите файл резюме сюда'}
-              </h3>
-              <p className="text-md text-gray-600">
-                или <span className="text-blue-600 font-medium">нажмите для выбора файла</span>
-              </p>
-            </div>
-            
-            <div className="flex justify-center space-x-4">
-              <motion.div whileHover={{ scale: 1.1 }} className="flex flex-col items-center">
-                <BsFiletypePdf className="w-8 h-8 text-red-500 mb-2" />
-                <span className="text-xs text-gray-500">PDF</span>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} className="flex flex-col items-center">
-                <BsFiletypeDocx className="w-8 h-8 text-blue-600 mb-2" />
-                <span className="text-xs text-gray-500">DOCX</span>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} className="flex flex-col items-center">
-                <BsFiletypeTxt className="w-8 h-8 text-gray-600 mb-2" />
-                <span className="text-xs text-gray-500">TXT</span>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-
-        <AnimatePresence>
-          {file && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, y: -20 }}
-              animate={{ opacity: 1, height: 'auto', y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="mt-6"
-            >
-              <div className="flex items-center p-5 bg-white rounded-xl shadow-md border border-blue-100">
-                <div className="mr-4">
-                  {getFileIcon(file.name)}
-                </div>
-                <div className="flex-grow">
-                  <div className="text-md font-medium text-gray-900 mb-1">
-                    {file.name}
-                  </div>
-                  <div className="h-2 w-full bg-gray-100 rounded-full">
-                    <motion.div
-                      initial={{ width: "0%" }}
-                      animate={{ width: `${uploadProgress}%` }}
-                      className="h-full bg-blue-600 rounded-full"
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB • {uploadProgress === 100 ? 'Готов к анализу' : 'Загрузка...'}
-                  </div>
-                </div>
-                
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFileSelected(null as any);
+                <MotionIcon
+                  as={IoCloudUpload}
+                  boxSize="3rem"
+                  color={iconColor}
+                  mb={3}
+                  animate={{ 
+                    y: isDragging ? [0, -10, 0] : 0 
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-2"
-                >
-                  <FiX className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-
-              <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: uploadProgress === 100 ? 1 : 0.7, y: 0 }}
-                whileHover={{ scale: uploadProgress === 100 ? 1.03 : 1 }}
-                whileTap={{ scale: uploadProgress === 100 ? 0.98 : 1 }}
-                onClick={onAnalyze}
-                disabled={uploadProgress < 100 || isAnalyzing}
-                className={`mt-6 w-full flex items-center justify-center px-6 py-4 text-base font-bold rounded-xl
-                  ${uploadProgress === 100 && !isAnalyzing
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700"
-                    : "bg-gray-100 text-gray-400"
-                  } 
-                  transition-all duration-300 ease-in-out`}
-              >
-                {isAnalyzing ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="mr-3"
-                    >
-                      <AiOutlineRobot className="w-6 h-6" />
-                    </motion.div>
-                    Анализируем ваше резюме...
-                  </>
-                ) : (
-                  <>
-                    <BsStars className="w-6 h-6 mr-3" />
-                    Начать AI-анализ резюме
-                  </>
-                )}
-              </motion.button>
-            </motion.div>
-          )}
-
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-6 p-5 bg-red-50 rounded-xl border border-red-100"
-            >
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <FiX className="h-5 w-5 text-red-500" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    Ошибка загрузки
-                  </h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    {error}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      <motion.div 
-        variants={itemVariants}
-        className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3"
-      >
-        {[
-          {
-            icon: <AiOutlineRobot className="w-8 h-8" />,
-            title: 'AI-анализ',
-            description: 'Мгновенная оценка вашего резюме с помощью искусственного интеллекта',
-            color: 'from-blue-500 to-blue-600',
-            delay: 0.1
-          },
-          {
-            icon: <FiLayout className="w-8 h-8" />,
-            title: 'Улучшение структуры',
-            description: 'Рекомендации по оптимизации структуры и содержания',
-            color: 'from-purple-500 to-purple-600',
-            delay: 0.2
-          },
-          {
-            icon: <FiAward className="w-8 h-8" />,
-            title: 'Конкурентное преимущество',
-            description: 'Выделитесь среди других кандидатов с идеальным резюме',
-            color: 'from-green-500 to-green-600',
-            delay: 0.3
-          }
-        ].map((feature, index) => (
-          <motion.div
-            key={index}
-            variants={itemVariants}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className="relative p-6 rounded-xl shadow-lg overflow-hidden"
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-90`}></div>
+                  transition={{ 
+                    repeat: isDragging ? Infinity : 0, 
+                    duration: 1 
+                  }}
+                />
+                
+                <Text fontWeight="bold" mb={2}>
+                  Перетащите файл резюме или нажмите для выбора
+                </Text>
+                <Text fontSize="sm" color={textColor}>
+                  Поддерживаемые форматы: PDF, DOCX, TXT (макс. 5МБ)
+                </Text>
+              </MotionFlex>
+              
+              {isDragging && (
+                <MotionBox
+                  position="absolute"
+                  top="50%"
+                  left="50%"
+                  borderRadius="50%"
+                  w="150px"
+                  h="150px"
+                  bg={`${iconColor}20`}
+                  transform="translate(-50%, -50%)"
+                  zIndex="0"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.6, 0.3]
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
+            </Box>
             
-            <div className="relative z-10">
-              <div className="p-3 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg inline-block mb-4">
-                <div className="text-white">
-                  {feature.icon}
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-white text-opacity-80">
-                {feature.description}
-              </p>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-    </motion.div>
+            <Flex justify="center" mt={4} wrap="wrap" gap={2}>
+              <Tooltip label="PDF файлы">
+                <Badge colorScheme="red" p={2} borderRadius="md">
+                  <HStack spacing={1}>
+                    <Icon as={FaFilePdf} />
+                    <Text>PDF</Text>
+                  </HStack>
+                </Badge>
+              </Tooltip>
+              
+              <Tooltip label="Word документы">
+                <Badge colorScheme="blue" p={2} borderRadius="md">
+                  <HStack spacing={1}>
+                    <Icon as={FaFileWord} />
+                    <Text>DOCX</Text>
+                  </HStack>
+                </Badge>
+              </Tooltip>
+              
+              <Tooltip label="Текстовые файлы">
+                <Badge colorScheme="gray" p={2} borderRadius="md">
+                  <HStack spacing={1}>
+                    <Icon as={FaFileAlt} />
+                    <Text>TXT</Text>
+                  </HStack>
+                </Badge>
+              </Tooltip>
+            </Flex>
+          </MotionBox>
+        ) : (
+          <MotionBox
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            w="100%"
+          >
+            <Box
+              p={5}
+              borderWidth="1px"
+              borderRadius="lg"
+              borderColor={borderColor}
+              bg={bgColor}
+            >
+              <VStack spacing={4} align="stretch">
+                <Flex align="center" justify="space-between">
+                  <HStack>
+                    <Icon as={FileIcon} color={iconColor} boxSize="1.5rem" />
+                    <VStack align="start" spacing={0}>
+                      <Text fontWeight="medium" fontSize="sm" noOfLines={1}>
+                        {file.name}
+                      </Text>
+                      <Text fontSize="xs" color={textColor}>
+                        {formatFileSize(file.size)}
+                      </Text>
+                    </VStack>
+                  </HStack>
+                  
+                  <CloseButton 
+                    size="sm" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetUploader();
+                    }} 
+                  />
+                </Flex>
+                
+                {isUploading && (
+                  <Box>
+                    <Text fontSize="xs" mb={1}>
+                      Загрузка: {uploadProgress}%
+                    </Text>
+                    <Progress 
+                      value={uploadProgress} 
+                      size="sm" 
+                      colorScheme="teal" 
+                      borderRadius="full" 
+                    />
+                  </Box>
+                )}
+                
+                <Flex gap={2} justify="center">
+                  {!fileUrl ? (
+                    <Button
+                      colorScheme="teal"
+                      leftIcon={<Icon as={MdOutlineFileUpload} />}
+                      onClick={handleUpload}
+                      isLoading={isUploading}
+                      loadingText="Загрузка..."
+                      w="100%"
+                    >
+                      Загрузить
+                    </Button>
+                  ) : (
+                    <Button
+                      colorScheme="purple"
+                      leftIcon={<Icon as={IoCloudDone} />}
+                      onClick={handleAnalyze}
+                      isLoading={isAnalyzing}
+                      loadingText="Анализ..."
+                      w="100%"
+                    >
+                      Анализировать
+                    </Button>
+                  )}
+                </Flex>
+              </VStack>
+            </Box>
+          </MotionBox>
+        )}
+      </VStack>
+    </AnimatePresence>
   );
 };
 

@@ -41,14 +41,14 @@ const AdminModeration: React.FC = () => {
     loadPendingPosts();
   }, []);
 
-  // Обработчик одобрения вакансии
+  
   const handleApprovePost = async (post: Post) => {
     try {
       await approvePost(post.id);
       setPendingPosts(pendingPosts.filter(p => p.id !== post.id));
       setSuccessMessage(`Вакансия "${post.title}" успешно одобрена`);
       
-      // Скрываем сообщение через 3 секунды
+      
       setTimeout(() => {
         setSuccessMessage(null);
       }, 3000);
