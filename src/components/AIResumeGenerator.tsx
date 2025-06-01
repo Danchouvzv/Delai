@@ -251,9 +251,14 @@ const AIResumeGenerator: React.FC = () => {
                   boxShadow="lg"
                   borderTop="4px solid"
                   borderColor={`${step.color}.500`}
-                  _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
-                  transition="all 0.3s"
-                  h="100%"
+                  sx={{ 
+                    height: "100%",
+                    transition: "all 0.3s",
+                    _hover: { 
+                      transform: 'translateY(-5px)', 
+                      boxShadow: 'xl'
+                    }
+                  }}
                 >
                   <Flex direction="column" h="100%">
                     <Flex 

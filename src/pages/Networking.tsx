@@ -3,7 +3,7 @@ import {
   Box, Container, Heading, Text, Tabs, TabList, Tab, TabPanels, TabPanel,
   Button, VStack, HStack, Flex, useColorModeValue, Image, Icon, SimpleGrid,
   Card, CardBody, Divider, Badge, Avatar, Link as ChakraLink, useToast,
-  Tag, TagLabel, TagLeftIcon, Grid, Circle, Tooltip, IconButton
+  Tag, TagLabel, TagLeftIcon, Grid, Circle, Tooltip, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormLabel, Textarea
 } from '@chakra-ui/react';
 import { 
   FaUserAlt, FaBriefcase, FaStar, FaRobot, FaUsers, FaLightbulb, 
@@ -42,6 +42,12 @@ const Networking: React.FC = () => {
     'linear(to-r, teal.400, blue.500)', 
     'linear(to-r, teal.500, blue.600)'
   );
+  
+  // Добавляем новые состояния
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [applicationText, setApplicationText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Проверяем наличие профиля пользователя
   useEffect(() => {
@@ -119,10 +125,62 @@ const Networking: React.FC = () => {
     }
   ];
   
+  // Обработчик для открытия модального окна отклика
+  const handleApplyToProject = (projectId: string) => {
+    setSelectedProject(projectId);
+    setIsApplyModalOpen(true);
+    setApplicationText('');
+  };
+  
+  // Обработчик для отправки заявки на проект
+  const handleSubmitApplication = async () => {
+    if (!selectedProject || !user || !applicationText.trim()) {
+      toast({
+        title: "Ошибка",
+        description: "Пожалуйста, заполните текст заявки",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Здесь будет код для отправки заявки в базу данных
+      // В демо-версии просто имитируем задержку
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Заявка отправлена",
+        description: "Владелец проекта получит уведомление о вашем интересе",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      
+      setIsApplyModalOpen(false);
+      setSelectedProject(null);
+      setApplicationText('');
+    } catch (error) {
+      console.error("Ошибка при отправке заявки:", error);
+      toast({
+        title: "Ошибка отправки",
+        description: "Не удалось отправить заявку. Пожалуйста, попробуйте позже.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   // Если пользователь не авторизован
   if (!user && !loading) {
     return (
-      <Box py={10} px={4} bgGradient={bgGradient} minH="100vh">
+      <Box py={10} px={4} bgGradient="linear(to-br, purple.50, blue.50, indigo.50)" minH="100vh">
         <Container maxW="1200px">
           <MotionFlex 
             direction="column" 
@@ -131,7 +189,7 @@ const Networking: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Box 
+            <MotionBox 
               mb={8}
               position="relative"
               _before={{
@@ -142,20 +200,20 @@ const Networking: React.FC = () => {
                 transform: 'translateX(-50%)',
                 width: '100px',
                 height: '5px',
-                background: gradientOverlay,
+                bgGradient: "linear(to-r, purple.400, blue.500, cyan.400)",
                 borderRadius: 'full'
               }}
             >
               <Heading 
                 as="h1" 
                 size="2xl" 
-                bgGradient="linear(to-r, teal.400, blue.500, purple.600)" 
+                bgGradient="linear(to-r, purple.400, blue.500, cyan.400)" 
                 bgClip="text"
                 textAlign="center"
               >
                 Нетворкинг JumysAL
               </Heading>
-            </Box>
+            </MotionBox>
             
             <Text 
               fontSize="xl" 
@@ -177,21 +235,26 @@ const Networking: React.FC = () => {
                 as={RouterLink} 
                 to="/login" 
                 size="lg" 
-                colorScheme="teal"
-                bgGradient={gradientOverlay}
+                bgGradient="linear(to-r, purple.400, blue.500)"
+                color="white"
                 _hover={{
-                  bgGradient: 'linear(to-r, teal.500, blue.600)'
+                  bgGradient: "linear(to-r, purple.500, blue.600)",
+                  transform: "translateY(-2px)",
+                  shadow: "lg"
                 }}
-                rightIcon={<FaArrowRight />}
                 px={8}
                 py={7}
-                boxShadow="lg"
+                shadow="md"
                 fontWeight="bold"
+                rightIcon={<Icon as={FaArrowRight} transition="transform 0.3s" _groupHover={{ transform: "translateX(4px)" }} />}
+                role="group"
+                transition="all 0.3s"
               >
                 Войти и начать
               </Button>
             </MotionBox>
             
+            {/* Features section with improved styling */}
             <Box w="full" mt={8}>
               <Heading 
                 size="lg" 
@@ -206,7 +269,7 @@ const Networking: React.FC = () => {
                   transform: 'translateX(-50%)',
                   width: '50px',
                   height: '3px',
-                  bgGradient: gradientOverlay,
+                  bgGradient: "linear(to-r, purple.400, blue.500)",
                   borderRadius: 'full'
                 }}
               >
@@ -220,17 +283,22 @@ const Networking: React.FC = () => {
                 {features.map((feature, index) => (
                   <MotionCard 
                     key={index} 
-                    bg={cardBg} 
+                    bg={useColorModeValue('white', 'gray.800')} 
                     borderRadius="2xl" 
                     overflow="hidden" 
                     boxShadow="xl"
                     borderWidth="1px"
-                    borderColor={borderColor}
+                    borderColor={useColorModeValue('gray.200', 'gray.700')}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -10, boxShadow: "2xl" }}
+                    whileHover={{ 
+                      y: -10, 
+                      boxShadow: "2xl",
+                      borderColor: "purple.200"
+                    }}
                     height="100%"
+                    role="group"
                   >
                     <CardBody>
                       <Flex direction="column" align="center" textAlign="center" height="100%">
@@ -247,6 +315,11 @@ const Networking: React.FC = () => {
                             background: `${feature.color}10`,
                             opacity: 0.7
                           }}
+                          _groupHover={{
+                            transform: "scale(1.1)",
+                            bg: `${feature.color}30`
+                          }}
+                          transition="all 0.3s ease"
                         >
                           <motion.div
                             animate={
@@ -272,6 +345,8 @@ const Networking: React.FC = () => {
                           size="md" 
                           mb={4}
                           color={useColorModeValue('gray.700', 'white')}
+                          _groupHover={{ color: feature.color }}
+                          transition="color 0.3s"
                         >
                           {feature.title}
                         </Heading>
@@ -289,6 +364,7 @@ const Networking: React.FC = () => {
               </Grid>
             </Box>
             
+            {/* Testimonials with improved styling */}
             <Box w="full" mt={20}>
               <Heading 
                 size="lg" 
@@ -303,7 +379,7 @@ const Networking: React.FC = () => {
                   transform: 'translateX(-50%)',
                   width: '50px',
                   height: '3px',
-                  bgGradient: gradientOverlay,
+                  bgGradient: "linear(to-r, purple.400, blue.500)",
                   borderRadius: 'full'
                 }}
               >
@@ -314,16 +390,20 @@ const Networking: React.FC = () => {
                 {testimonials.map((testimonial, index) => (
                   <MotionCard
                     key={index}
-                    bg={cardBg}
+                    bg={useColorModeValue('white', 'gray.800')}
                     borderRadius="2xl"
                     overflow="hidden"
                     boxShadow="lg"
                     borderWidth="1px"
-                    borderColor={borderColor}
+                    borderColor={useColorModeValue('gray.200', 'gray.700')}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
-                    whileHover={{ y: -5 }}
+                    whileHover={{ 
+                      y: -5, 
+                      boxShadow: "xl",
+                      borderColor: "purple.200"
+                    }}
                     position="relative"
                     _before={{
                       content: '""',
@@ -332,16 +412,29 @@ const Networking: React.FC = () => {
                       left: 0,
                       width: '100%',
                       height: '5px',
-                      bgGradient: gradientOverlay
+                      bgGradient: "linear(to-r, purple.400, blue.500)"
                     }}
                   >
                     <CardBody>
+                      <Box 
+                        position="absolute" 
+                        top={4} 
+                        right={4} 
+                        color="purple.400" 
+                        fontSize="4xl"
+                        opacity={0.2}
+                        fontFamily="Georgia, serif"
+                      >
+                        "
+                      </Box>
                       <Flex direction="column" height="100%">
                         <Text
                           fontSize="md"
                           fontStyle="italic"
                           color={useColorModeValue('gray.600', 'gray.300')}
                           mb={6}
+                          position="relative"
+                          zIndex={1}
                         >
                           "{testimonial.text}"
                         </Text>
@@ -352,6 +445,8 @@ const Networking: React.FC = () => {
                             name={testimonial.name} 
                             src={testimonial.avatar}
                             mr={3}
+                            border="2px solid"
+                            borderColor="purple.200"
                           />
                           <Box>
                             <Text fontWeight="bold">{testimonial.name}</Text>
@@ -367,6 +462,7 @@ const Networking: React.FC = () => {
               </Grid>
             </Box>
             
+            {/* CTA with improved styling */}
             <MotionBox
               mt={20}
               w="full"
@@ -378,17 +474,46 @@ const Networking: React.FC = () => {
                 direction={{ base: "column", md: "row" }}
                 align="center"
                 justify="center"
-                bg={useColorModeValue('teal.50', 'rgba(49, 151, 149, 0.1)')}
+                bg={useColorModeValue('purple.50', 'rgba(109, 99, 255, 0.1)')}
                 borderRadius="2xl"
                 p={10}
                 boxShadow="xl"
                 textAlign="center"
+                position="relative"
+                overflow="hidden"
+                _before={{
+                  content: '""',
+                  position: 'absolute',
+                  top: '-50px',
+                  right: '-50px',
+                  width: '150px',
+                  height: '150px',
+                  bg: 'purple.100',
+                  borderRadius: 'full',
+                  opacity: 0.4,
+                  zIndex: 0,
+                  filter: 'blur(20px)'
+                }}
+                _after={{
+                  content: '""',
+                  position: 'absolute',
+                  bottom: '-60px',
+                  left: '-60px',
+                  width: '180px',
+                  height: '180px',
+                  bg: 'blue.100',
+                  borderRadius: 'full',
+                  opacity: 0.4,
+                  zIndex: 0,
+                  filter: 'blur(30px)'
+                }}
               >
-                <Box flex="1" mb={{ base: 6, md: 0 }} mr={{ md: 10 }}>
+                <Box flex="1" mb={{ base: 6, md: 0 }} mr={{ md: 10 }} position="relative" zIndex={1}>
                   <Heading 
                     size="lg" 
                     mb={4}
-                    color={useColorModeValue('teal.600', 'teal.300')}
+                    bgGradient="linear(to-r, purple.400, blue.500)"
+                    bgClip="text"
                   >
                     Готовы найти свой идеальный проект?
                   </Heading>
@@ -403,21 +528,27 @@ const Networking: React.FC = () => {
                 <MotionBox
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  position="relative"
+                  zIndex={1}
                 >
                   <Button
                     as={RouterLink}
                     to="/signup"
                     size="lg"
-                    colorScheme="teal"
-                    bgGradient={gradientOverlay}
+                    bgGradient="linear(to-r, purple.400, blue.500)"
+                    color="white"
                     _hover={{
-                      bgGradient: 'linear(to-r, teal.500, blue.600)'
+                      bgGradient: "linear(to-r, purple.500, blue.600)",
+                      transform: "translateY(-2px)",
+                      shadow: "lg"
                     }}
-                    rightIcon={<FaRocket />}
+                    rightIcon={<Icon as={FaRocket} transition="transform 0.3s" _groupHover={{ transform: "translateX(4px)" }} />}
                     px={8}
                     py={7}
                     boxShadow="lg"
                     fontWeight="bold"
+                    role="group"
+                    transition="all 0.3s"
                   >
                     Зарегистрироваться
                   </Button>
@@ -460,14 +591,49 @@ const Networking: React.FC = () => {
   
   return (
     <Box minH="100vh">
-      {/* Заголовок */}
-      <Box py={8} px={4} bgGradient={bgGradient}>
-        <Container maxW="1200px">
+      {/* Заголовок с улучшенным стилем */}
+      <Box 
+        py={8} 
+        px={4} 
+        bgGradient="linear(to-r, purple.50, blue.50, cyan.50)"
+        position="relative"
+        overflow="hidden"
+        _dark={{
+          bgGradient: "linear(to-r, purple.900, blue.900, cyan.900)"
+        }}
+      >
+        {/* Декоративные элементы */}
+        <Box
+          position="absolute"
+          top="-20%"
+          right="-10%"
+          width="300px"
+          height="300px"
+          bg="purple.100"
+          borderRadius="full"
+          filter="blur(40px)"
+          opacity="0.6"
+          _dark={{ bg: "purple.800", opacity: "0.3" }}
+        />
+        <Box
+          position="absolute"
+          bottom="-30%"
+          left="-5%"
+          width="250px"
+          height="250px"
+          bg="blue.100"
+          borderRadius="full"
+          filter="blur(40px)"
+          opacity="0.5"
+          _dark={{ bg: "blue.800", opacity: "0.3" }}
+        />
+        
+        <Container maxW="1200px" position="relative" zIndex={1}>
           <Flex direction={{ base: 'column', md: 'row' }} align="center" justify="space-between">
             <Box mb={{ base: 6, md: 0 }}>
               <Heading 
                 size="xl" 
-                bgGradient="linear(to-r, teal.400, blue.500)" 
+                bgGradient="linear(to-r, purple.400, blue.500, cyan.400)" 
                 bgClip="text"
               >
                 Нетворкинг
@@ -481,11 +647,20 @@ const Networking: React.FC = () => {
               <Button
                 as={RouterLink}
                 to="/networking/projects"
-                leftIcon={<FaBriefcase />}
-                colorScheme="blue"
-                variant="solid"
-                boxShadow="md"
-                _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                leftIcon={<Icon as={FaBriefcase} />}
+                bg="white"
+                color="purple.500"
+                _hover={{ 
+                  bg: "purple.50",
+                  transform: "translateY(-2px)",
+                  boxShadow: "md"
+                }}
+                _dark={{ 
+                  bg: "gray.800",
+                  color: "purple.300",
+                  _hover: { bg: "gray.700" }
+                }}
+                boxShadow="sm"
                 transition="all 0.2s"
               >
                 Просмотр проектов
@@ -493,11 +668,15 @@ const Networking: React.FC = () => {
               
               <Button
                 onClick={() => setTabIndex(2)}
-                leftIcon={<FaLightbulb />}
-                colorScheme="purple"
-                variant="solid"
-                boxShadow="md"
-                _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                leftIcon={<Icon as={FaLightbulb} />}
+                bgGradient="linear(to-r, purple.400, blue.500)"
+                color="white"
+                _hover={{ 
+                  bgGradient: "linear(to-r, purple.500, blue.600)",
+                  transform: "translateY(-2px)",
+                  boxShadow: "md"
+                }}
+                boxShadow="sm"
                 transition="all 0.2s"
               >
                 Создать проект
@@ -507,23 +686,62 @@ const Networking: React.FC = () => {
         </Container>
       </Box>
       
-      {/* Содержимое вкладок */}
+      {/* Содержимое вкладок с улучшенным стилем */}
       <Container maxW="1200px" py={6}>
         <Tabs 
           variant="soft-rounded" 
-          colorScheme="teal" 
+          colorScheme="purple" 
           index={tabIndex} 
           onChange={setTabIndex}
           isLazy
         >
-          <TabList mb="1em" borderBottom="1px" borderColor={borderColor} pb={2}>
-            <Tab fontWeight="semibold" mx={1} _selected={{ color: 'white', bg: 'teal.500' }}>
+          <TabList 
+            mb="1em" 
+            borderBottom="1px" 
+            borderColor={useColorModeValue('gray.200', 'gray.700')} 
+            pb={2}
+            overflowX="auto"
+            css={{
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': {
+                display: 'none'
+              }
+            }}
+          >
+            <Tab 
+              fontWeight="semibold" 
+              mx={1} 
+              _selected={{ 
+                color: 'white', 
+                bg: 'purple.500',
+                boxShadow: 'md'
+              }}
+              minW="fit-content"
+            >
               <Icon as={FaStar} mr={2} /> Рекомендации
             </Tab>
-            <Tab fontWeight="semibold" mx={1} _selected={{ color: 'white', bg: 'teal.500' }}>
+            <Tab 
+              fontWeight="semibold" 
+              mx={1} 
+              _selected={{ 
+                color: 'white', 
+                bg: 'purple.500',
+                boxShadow: 'md'
+              }}
+              minW="fit-content"
+            >
               <Icon as={FaUserAlt} mr={2} /> Мой профиль
             </Tab>
-            <Tab fontWeight="semibold" mx={1} _selected={{ color: 'white', bg: 'teal.500' }}>
+            <Tab 
+              fontWeight="semibold" 
+              mx={1} 
+              _selected={{ 
+                color: 'white', 
+                bg: 'purple.500',
+                boxShadow: 'md'
+              }}
+              minW="fit-content"
+            >
               <Icon as={FaBriefcase} mr={2} /> Создать проект
             </Tab>
           </TabList>
@@ -532,17 +750,21 @@ const Networking: React.FC = () => {
             {/* Вкладка рекомендаций */}
             <TabPanel p={0}>
               <VStack spacing={8} align="stretch">
-                <RecommendedProjects />
+                <RecommendedProjects onApply={handleApplyToProject} />
                 
                 <Box mt={8} textAlign="center">
                   <Button
                     as={RouterLink}
                     to="/networking/projects"
                     size="lg"
-                    colorScheme="teal"
-                    rightIcon={<FaBriefcase />}
+                    rightIcon={<Icon as={FaBriefcase} />}
+                    bgGradient="linear(to-r, purple.400, blue.500)"
+                    color="white"
+                    _hover={{ 
+                      bgGradient: "linear(to-r, purple.500, blue.600)",
+                      transform: "translateY(-2px)"
+                    }}
                     boxShadow="md"
-                    _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
                     transition="all 0.2s"
                   >
                     Все проекты
@@ -563,6 +785,49 @@ const Networking: React.FC = () => {
           </TabPanels>
         </Tabs>
       </Container>
+      
+      {/* Модальное окно для отклика на проект */}
+      <Modal isOpen={isApplyModalOpen} onClose={() => setIsApplyModalOpen(false)}>
+        <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
+        <ModalContent borderRadius="xl">
+          <ModalHeader borderBottomWidth="1px" pb={4}>
+            Отклик на проект
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody py={6}>
+            <VStack spacing={4} align="stretch">
+              <FormControl isRequired>
+                <FormLabel>Сопроводительное сообщение</FormLabel>
+                <Textarea 
+                  placeholder="Расскажите, почему вы заинтересованы в этом проекте и какой вклад можете внести..."
+                  value={applicationText}
+                  onChange={(e) => setApplicationText(e.target.value)}
+                  minH="150px"
+                />
+              </FormControl>
+              
+              <Text fontSize="sm" color="gray.500">
+                Ваше сообщение будет отправлено владельцу проекта вместе с информацией из вашего профиля.
+              </Text>
+            </VStack>
+          </ModalBody>
+          <ModalFooter borderTopWidth="1px" pt={4}>
+            <Button variant="ghost" mr={3} onClick={() => setIsApplyModalOpen(false)}>
+              Отмена
+            </Button>
+            <Button 
+              bgGradient="linear(to-r, purple.400, blue.500)"
+              color="white"
+              _hover={{ bgGradient: "linear(to-r, purple.500, blue.600)" }}
+              onClick={handleSubmitApplication}
+              isLoading={isSubmitting}
+              loadingText="Отправка..."
+            >
+              Отправить заявку
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

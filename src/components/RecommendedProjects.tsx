@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Card, CardBody, CardHeader, Flex, Heading, Text, Badge, Button, Stack, Skeleton, Image, useColorModeValue, HStack, VStack, Icon, useToast } from '@chakra-ui/react';
-import { FaStar, FaFire, FaUserFriends, FaGlobe, FaBriefcase, FaMapMarkerAlt } from 'react-icons/fa';
+import { Box, Card, CardBody, CardHeader, Flex, Heading, Text, Badge, Button, Stack, Skeleton, Image, useColorModeValue, HStack, VStack, Icon, useToast, SimpleGrid, Avatar, Divider, IconButton, Tooltip } from '@chakra-ui/react';
+import { FaStar, FaFire, FaUserFriends, FaGlobe, FaBriefcase, FaMapMarkerAlt, FaLaptopHouse, FaArrowRight, FaThumbsUp } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Интерфейс для данных рекомендованного проекта
 interface RecommendedProject {
@@ -26,16 +26,113 @@ interface RecommendedProject {
     ownerUid: string;
     ownerName?: string;
     ownerAvatar?: string;
+    teamSize: number;
+    isOpen: boolean;
   };
 }
 
-const MotionCard = motion(Card);
+// Добавляем интерфейс для свойств
+interface RecommendedProjectsProps {
+  onApply?: (projectId: string) => void;
+}
 
-const RecommendedProjects: React.FC = () => {
+const MotionCard = motion(Card);
+const MotionBox = motion(Box);
+
+// Варианты анимации для карточек
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.1,
+      duration: 0.4,
+      ease: [0.43, 0.13, 0.23, 0.96]
+    }
+  }),
+  hover: {
+    y: -8,
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    transition: {
+      duration: 0.3
+    }
+  }
+};
+
+// Режимы работы с переводом
+const modeTranslations = {
+  remote: 'Удалённо',
+  onsite: 'На месте',
+  hybrid: 'Гибридно'
+};
+
+// Мокап данные для проектов
+const mockProjects = [
+  {
+    id: 'proj1',
+    title: 'Мобильное приложение для изучения языков',
+    description: 'Разработка приложения для интерактивного изучения иностранных языков с использованием геймификации и ИИ.',
+    tags: ['React Native', 'Mobile', 'AI', 'Education'],
+    skillsNeeded: ['React Native', 'TypeScript', 'Firebase', 'UI/UX'],
+    mode: 'remote',
+    ownerUid: 'user1',
+    ownerName: 'Алексей К.',
+    ownerAvatar: '/assets/team/alex.jpg',
+    teamSize: 4,
+    isOpen: true,
+    matchScore: 0.87
+  },
+  {
+    id: 'proj2',
+    title: 'Платформа для фрилансеров',
+    description: 'Создание веб-платформы для соединения фрилансеров с клиентами, с системой безопасных платежей и управления проектами.',
+    tags: ['Web', 'Platform', 'Marketplace'],
+    skillsNeeded: ['React', 'Node.js', 'MongoDB', 'Payment API'],
+    mode: 'hybrid',
+    ownerUid: 'user2',
+    ownerName: 'Мария С.',
+    ownerAvatar: '/assets/team/maria.jpg',
+    teamSize: 5,
+    isOpen: true,
+    matchScore: 0.92
+  },
+  {
+    id: 'proj3',
+    title: 'Система умного дома',
+    description: 'Разработка системы управления умным домом с интеграцией IoT устройств и голосовым управлением.',
+    tags: ['IoT', 'Smart Home', 'Voice Control'],
+    skillsNeeded: ['Python', 'Raspberry Pi', 'AWS', 'IoT Protocols'],
+    mode: 'remote',
+    ownerUid: 'user3',
+    ownerName: 'Тимур А.',
+    ownerAvatar: '/assets/team/timur.jpg',
+    teamSize: 3,
+    isOpen: true,
+    matchScore: 0.78
+  },
+  {
+    id: 'proj4',
+    title: 'E-commerce решение для малого бизнеса',
+    description: 'Создание доступного и масштабируемого e-commerce решения для малых предприятий с интеграцией популярных платежных систем.',
+    tags: ['E-commerce', 'Business', 'Web'],
+    skillsNeeded: ['Shopify', 'JavaScript', 'CSS', 'Marketing'],
+    mode: 'onsite',
+    ownerUid: 'user4',
+    ownerName: 'Анна В.',
+    ownerAvatar: '/assets/team/anna.jpg',
+    teamSize: 2,
+    isOpen: true,
+    matchScore: 0.85
+  }
+];
+
+const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) => {
   const [user] = useAuthState(auth);
   const [projects, setProjects] = useState<RecommendedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const navigate = useNavigate();
   
   const bgGradient = useColorModeValue(
     'linear(to-r, blue.50, teal.50)',
@@ -132,138 +229,172 @@ const RecommendedProjects: React.FC = () => {
     fetchRecommendedProjects();
   }, [user, toast]);
   
-  // Визуализация оценки соответствия
+  // Отображение оценки соответствия
   const renderMatchScore = (score: number) => {
     let color = 'green';
-    let label = 'Excellent Match';
+    let label = 'Идеальное соответствие';
     
-    if (score < 0.5) {
-      color = 'orange';
-      label = 'Good Match';
+    if (score < 0.85) {
+      color = 'blue';
+      label = 'Хорошее соответствие';
     }
-    if (score < 0.4) {
-      color = 'yellow';
-      label = 'Potential Match';
+    if (score < 0.75) {
+      color = 'orange';
+      label = 'Среднее соответствие';
     }
     
     return (
-      <HStack spacing={1}>
-        <Badge colorScheme={color} fontSize="sm" px={2} py={1} borderRadius="full">
-          {Math.round(score * 100)}% Match
+      <Tooltip label={label} placement="top">
+        <Badge 
+          colorScheme={color} 
+          variant="solid" 
+          borderRadius="full" 
+          px={2} 
+          display="flex" 
+          alignItems="center" 
+          gap={1}
+        >
+          <Icon as={FaFire} boxSize={3} />
+          {Math.round(score * 100)}%
         </Badge>
-        <Text fontSize="xs" color="gray.500">
-          {label}
-        </Text>
-      </HStack>
+      </Tooltip>
     );
   };
 
   // Отображение карточки проекта
   const renderProjectCard = (project: RecommendedProject, index: number) => {
+    const modeText = modeTranslations[project.projectData?.mode as keyof typeof modeTranslations] || project.projectData?.mode;
+    const modeIcon = 
+      project.projectData?.mode === 'remote' ? FaGlobe : 
+      project.projectData?.mode === 'onsite' ? FaMapMarkerAlt : 
+      FaLaptopHouse;
+    
     return (
       <MotionCard
         key={project.id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: index * 0.1 }}
+        custom={index}
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        whileHover="hover"
         bg={cardBg}
         borderWidth="1px"
+        borderRadius="xl"
         borderColor={borderColor}
-        borderRadius="lg"
         overflow="hidden"
         boxShadow="md"
-        _hover={{ boxShadow: 'lg', borderColor: 'teal.300' }}
-        cursor="pointer"
-        as={Link}
-        to={`/project/${project.projectId}`}
+        position="relative"
+        role="group"
+        transition="all 0.3s"
+        h="100%"
       >
+        {/* Декоративный верхний бордер */}
+        <Box 
+          position="absolute" 
+          top="0" 
+          left="0" 
+          right="0" 
+          h="5px" 
+          bgGradient="linear(to-r, purple.400, blue.500)" 
+        />
+        
         <CardHeader pb={2}>
-          <Flex justify="space-between" align="center">
-            <Heading size="md" fontWeight="bold" noOfLines={1}>
+          <Flex justifyContent="space-between" alignItems="flex-start">
+            <Heading size="md" fontWeight="bold" noOfLines={1} color={textColor}>
               {project.projectData?.title || 'Unnamed Project'}
             </Heading>
-            {renderMatchScore(project.score)}
+            {project.score && renderMatchScore(project.score)}
+          </Flex>
+          
+          <Flex mt={2} alignItems="center">
+            <Avatar 
+              size="xs" 
+              name={project.projectData?.ownerName} 
+              src={project.projectData?.ownerAvatar} 
+              mr={2} 
+              border="1px solid"
+              borderColor={borderColor}
+            />
+            <Text fontSize="sm" color={subTextColor}>
+              {project.projectData?.ownerName || 'Unknown User'}
+            </Text>
           </Flex>
         </CardHeader>
         
-        <CardBody pt={0}>
-          <Text fontSize="sm" color="gray.500" mb={3} noOfLines={2}>
+        <CardBody pt={0} pb={2}>
+          <Text fontSize="sm" color={subTextColor} noOfLines={2} mb={3}>
             {project.projectData?.description || 'No description provided'}
           </Text>
           
-          <Box mb={3} maxHeight="80px" overflow="hidden">
-            <Flex flexWrap="wrap" gap={2}>
-              {project.projectData?.tags?.slice(0, 5).map((tag, i) => (
-                <Badge key={i} colorScheme="teal" fontSize="xs" px={2} py={1} borderRadius="full">
-                  {tag}
-                </Badge>
-              ))}
-              {project.projectData?.tags && project.projectData.tags.length > 5 && (
-                <Badge colorScheme="gray" fontSize="xs" px={2} py={1} borderRadius="full">
-                  +{project.projectData.tags.length - 5} more
-                </Badge>
-              )}
-            </Flex>
-          </Box>
-          
-          <HStack mb={3} spacing={4}>
-            <Flex align="center">
-              <Icon as={FaGlobe} color="blue.400" mr={1} />
-              <Text fontSize="xs">{project.projectData?.mode || 'Remote'}</Text>
-            </Flex>
-            
-            <Flex align="center">
-              <Icon as={FaBriefcase} color="purple.400" mr={1} />
-              <Text fontSize="xs">{project.projectData?.skillsNeeded?.length || 0} skills needed</Text>
-            </Flex>
-            
-            <Flex align="center">
-              <Icon as={FaFire} color="orange.400" mr={1} />
-              <Text fontSize="xs">AI Recommended</Text>
-            </Flex>
-          </HStack>
-          
-          <Box 
-            bg={highlightColor} 
-            p={2} 
-            borderRadius="md" 
-            fontSize="sm"
-            fontStyle="italic"
-          >
-            <Text noOfLines={2}>{project.reason || 'Recommended by JumysAL AI'}</Text>
-          </Box>
-          
-          <Flex mt={4} justify="space-between" align="center">
-            <HStack>
-              {project.projectData?.ownerAvatar ? (
-                <Image 
-                  src={project.projectData.ownerAvatar}
-                  alt={project.projectData.ownerName}
-                  borderRadius="full"
-                  boxSize="24px"
-                />
-              ) : (
-                <Icon as={FaUserFriends} color="gray.400" boxSize="24px" />
-              )}
-              <Text fontSize="xs" color="gray.500">
-                By {project.projectData?.ownerName || 'Unknown User'}
-              </Text>
-            </HStack>
-            
-            <Button 
-              size="sm" 
-              colorScheme="teal" 
-              variant="outline"
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // Дополнительное действие при клике на кнопку
-              }}
-            >
-              Подробнее
-            </Button>
+          <Flex flexWrap="wrap" gap={2} mb={3}>
+            {project.projectData?.tags?.slice(0, 3).map((tag, i) => (
+              <Badge 
+                key={i} 
+                bg={tagBg} 
+                color={tagColor} 
+                fontSize="xs" 
+                borderRadius="full" 
+                px={2} 
+                py={0.5}
+              >
+                {tag}
+              </Badge>
+            ))}
+            {project.projectData?.tags && project.projectData.tags.length > 3 && (
+              <Badge bg={tagBg} color={tagColor} fontSize="xs" borderRadius="full" px={2} py={0.5}>
+                +{project.projectData.tags.length - 3}
+              </Badge>
+            )}
           </Flex>
         </CardBody>
+        
+        <Divider />
+        
+        <CardFooter pt={2} pb={3}>
+          <Flex justifyContent="space-between" alignItems="center" w="full">
+            <HStack spacing={3}>
+              <Flex align="center">
+                <Icon as={modeIcon} color="blue.400" mr={1} />
+                <Text fontSize="xs">{modeText}</Text>
+              </Flex>
+              
+              <Flex align="center">
+                <Icon as={FaUserFriends} color="purple.400" mr={1} />
+                <Text fontSize="xs">Команда: {project.projectData?.teamSize || 0}</Text>
+              </Flex>
+            </HStack>
+            
+            <HStack>
+              {onApply && (
+                <Tooltip label="Откликнуться на проект">
+                  <IconButton
+                    aria-label="Откликнуться"
+                    icon={<FaThumbsUp />}
+                    size="sm"
+                    colorScheme="purple"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onApply(project.id);
+                    }}
+                  />
+                </Tooltip>
+              )}
+              
+              <Button
+                size="sm"
+                colorScheme="purple"
+                variant="outline"
+                rightIcon={<FaArrowRight />}
+                onClick={() => navigate(`/project/${project.projectId}`)}
+                _groupHover={{ bg: 'purple.500', color: 'white' }}
+                transition="all 0.3s"
+              >
+                Подробнее
+              </Button>
+            </HStack>
+          </Flex>
+        </CardFooter>
       </MotionCard>
     );
   };
@@ -271,33 +402,30 @@ const RecommendedProjects: React.FC = () => {
   // Отображение скелетонов во время загрузки
   const renderSkeletons = () => {
     return Array(4).fill(0).map((_, index) => (
-      <Card key={index} borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md">
-        <CardHeader pb={2}>
-          <Flex justify="space-between" align="center">
-            <Skeleton height="24px" width="200px" />
-            <Skeleton height="20px" width="80px" />
-          </Flex>
-        </CardHeader>
-        
-        <CardBody pt={0}>
-          <Skeleton height="40px" mb={3} />
-          
-          <Flex mb={3} gap={2}>
-            <Skeleton height="20px" width="60px" borderRadius="full" />
-            <Skeleton height="20px" width="70px" borderRadius="full" />
-            <Skeleton height="20px" width="80px" borderRadius="full" />
-          </Flex>
-          
-          <Skeleton height="20px" mb={3} />
-          
-          <Skeleton height="60px" mb={4} />
-          
-          <Flex justify="space-between" align="center">
-            <Skeleton height="24px" width="120px" />
-            <Skeleton height="32px" width="100px" />
-          </Flex>
-        </CardBody>
-      </Card>
+      <Box 
+        key={`skeleton-${index}`} 
+        p={5} 
+        borderWidth="1px" 
+        borderRadius="lg" 
+        bg={cardBg}
+        borderColor={borderColor}
+        shadow="sm"
+      >
+        <Flex justify="space-between" mb={3}>
+          <Skeleton height="24px" width="70%" />
+          <Skeleton height="24px" width="20%" borderRadius="full" />
+        </Flex>
+        <SkeletonText mt={2} noOfLines={2} spacing={2} />
+        <Flex mt={4} mb={3} gap={2}>
+          <Skeleton height="20px" width="80px" borderRadius="full" />
+          <Skeleton height="20px" width="90px" borderRadius="full" />
+        </Flex>
+        <Divider my={3} />
+        <Flex justify="space-between" align="center" mt={3}>
+          <Skeleton height="20px" width="120px" />
+          <Skeleton height="36px" width="100px" borderRadius="md" />
+        </Flex>
+      </Box>
     ));
   };
   
