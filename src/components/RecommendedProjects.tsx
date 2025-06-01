@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Card, CardBody, CardHeader, Flex, Heading, Text, Badge, Button, Stack, Skeleton, Image, useColorModeValue, HStack, VStack, Icon, useToast, SimpleGrid, Avatar, Divider, IconButton, Tooltip } from '@chakra-ui/react';
+import { Box, Card, CardBody, CardHeader, Flex, Heading, Text, Badge, Button, Stack, Skeleton, Image, useColorModeValue, HStack, VStack, Icon, useToast, SimpleGrid, Avatar, Divider, IconButton, Tooltip, SkeletonText } from '@chakra-ui/react';
 import { FaStar, FaFire, FaUserFriends, FaGlobe, FaBriefcase, FaMapMarkerAlt, FaLaptopHouse, FaArrowRight, FaThumbsUp } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
@@ -142,6 +142,11 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const highlightColor = useColorModeValue('teal.100', 'teal.800');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const subTextColor = useColorModeValue('gray.600', 'gray.400');
+  const tagBg = useColorModeValue('purple.50', 'purple.900');
+  const tagColor = useColorModeValue('purple.600', 'purple.200');
+  const sectionBg = useColorModeValue('purple.50', 'gray.900');
   
   // Загрузка рекомендованных проектов
   useEffect(() => {
@@ -430,53 +435,95 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
   };
   
   return (
-    <Box py={8} px={4} bgGradient={bgGradient}>
-      <VStack spacing={6} align="stretch" maxW="1200px" mx="auto">
-        <Flex justifyContent="space-between" alignItems="center">
-          <Box>
-            <Heading size="lg" mb={1}>Рекомендуемые проекты</Heading>
-            <Text color="gray.500">Проекты, соответствующие вашим навыкам и интересам</Text>
-          </Box>
-          <Button 
-            colorScheme="teal" 
-            size="sm" 
-            rightIcon={<FaStar />}
-            as={Link}
-            to="/networking"
-          >
-            Найти больше
-          </Button>
-        </Flex>
+    <Box
+      bg={sectionBg}
+      borderRadius="2xl"
+      p={6}
+      boxShadow="md"
+      position="relative"
+      overflow="hidden"
+      _before={{
+        content: '""',
+        position: 'absolute',
+        top: '-60px',
+        right: '-60px',
+        width: '150px',
+        height: '150px',
+        bg: 'purple.100',
+        borderRadius: 'full',
+        opacity: 0.4,
+        filter: 'blur(30px)',
+        _dark: { bg: 'purple.900', opacity: 0.2 }
+      }}
+      _after={{
+        content: '""',
+        position: 'absolute',
+        bottom: '-50px',
+        left: '-50px',
+        width: '120px',
+        height: '120px',
+        bg: 'blue.100',
+        borderRadius: 'full',
+        opacity: 0.3,
+        filter: 'blur(25px)',
+        _dark: { bg: 'blue.900', opacity: 0.2 }
+      }}
+    >
+      <Flex 
+        direction={{ base: 'column', md: 'row' }} 
+        justify="space-between" 
+        align={{ base: 'start', md: 'center' }} 
+        mb={6}
+        position="relative"
+        zIndex={1}
+      >
+        <Box>
+          <Heading size="lg" mb={1} color={textColor}>
+            Рекомендуемые проекты
+          </Heading>
+          <Text color={subTextColor}>
+            Проекты, подобранные специально для вас на основе вашего профиля и интересов
+          </Text>
+        </Box>
         
+        <Button
+          colorScheme="purple"
+          variant="outline"
+          rightIcon={<FaArrowRight />}
+          onClick={() => navigate('/networking/projects')}
+          mt={{ base: 4, md: 0 }}
+          _hover={{
+            transform: "translateX(4px)",
+            transition: "transform 0.3s"
+          }}
+        >
+          Все проекты
+        </Button>
+      </Flex>
+      
+      <Box position="relative" zIndex={1}>
         {loading ? (
-          <Stack spacing={4} mt={4}>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
             {renderSkeletons()}
-          </Stack>
+          </SimpleGrid>
         ) : projects.length > 0 ? (
-          <Stack spacing={4} mt={4}>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
             {projects.map((project, index) => renderProjectCard(project, index))}
-          </Stack>
+          </SimpleGrid>
         ) : (
-          <Box 
-            p={6} 
-            textAlign="center" 
-            borderWidth="1px" 
-            borderRadius="lg" 
-            borderColor={borderColor}
-            bg={cardBg}
-          >
-            <Heading size="md" mb={3}>Рекомендации пока отсутствуют</Heading>
-            <Text mb={4}>Мы работаем над подбором идеальных проектов для вас. Проверьте позже или изучите доступные проекты.</Text>
+          <Box textAlign="center" p={6} bg={highlightColor} borderRadius="lg">
+            <Icon as={FaBriefcase} boxSize={12} color="purple.300" mb={4} />
+            <Heading size="md" mb={2}>Рекомендации появятся скоро</Heading>
+            <Text mb={4}>Завершите свой профиль, чтобы получать персонализированные рекомендации проектов</Text>
             <Button 
-              colorScheme="teal" 
-              as={Link} 
-              to="/projects"
+              colorScheme="purple" 
+              onClick={() => navigate('/networking/projects')}
             >
               Просмотреть все проекты
             </Button>
           </Box>
         )}
-      </VStack>
+      </Box>
     </Box>
   );
 };
