@@ -4,7 +4,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserProvider } from './contexts/UserContext';
 
-// Компоненты
+
 import Login from './components/Login';
 import Signup from './components/Signup';
 import ProfileNew from './components/ProfileNew';
@@ -38,6 +38,11 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { UserData } from './types';
+import Applications from './pages/Applications';
+
+// Импорт компонентов для нетворкинга
+import Networking from './pages/Networking';
+import NetworkingProjects from './pages/NetworkingProjects';
 
 
 initializeTheme();
@@ -63,7 +68,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/login" />;
   }
 
-  // Проверка роли, если указаны разрешенные роли
+  
   if (allowedRoles && (!userData?.role || !allowedRoles.includes(userData.role))) {
     return <Navigate to="/" />;
   }
@@ -71,7 +76,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   return <>{children}</>;
 };
 
-// Компонент для определения правильного дашборда в зависимости от роли пользователя
+
 const DashboardRouter: React.FC = () => {
   const { userData, loading } = useAuth();
   
@@ -84,7 +89,7 @@ const DashboardRouter: React.FC = () => {
     );
   }
 
-  // Перенаправляем на соответствующий дашборд в зависимости от роли
+  
   const userRole = userData?.role as string;
   if (userRole === 'employer' || userRole === 'business') {
     return <EmployerDashboard />;
@@ -93,7 +98,7 @@ const DashboardRouter: React.FC = () => {
   }
 };
 
-// Корневой маршрут компонент для перенаправления в зависимости от статуса авторизации
+
 const RootRoute: React.FC = () => {
   const { user, loading } = useAuth();
   
@@ -106,11 +111,11 @@ const RootRoute: React.FC = () => {
     );
   }
   
-  // Если пользователь авторизован, направляем на дашборд, если нет - на домашнюю страницу
+  
   return user ? <DashboardRouter /> : <Home />;
 };
 
-// ProfileEdit wrapper component to handle props
+
 const ProfileEditWrapper: React.FC = () => {
   const { user, userData } = useAuth();
   const navigate = useNavigate();
@@ -238,13 +243,21 @@ const App: React.FC = () => {
                   }
                 />
 
-                {/* Маршруты для дашборда работодателя и студента теперь доступны, 
-                    но перенаправление в основном идет на них с корня */}
+                
                 <Route 
                   path="/employer/dashboard" 
                   element={
                     <ProtectedRoute allowedRoles={['employer', 'business']}>
                       <EmployerDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route 
+                  path="/employer/applications" 
+                  element={
+                    <ProtectedRoute allowedRoles={['employer', 'business']}>
+                      <Applications />
                     </ProtectedRoute>
                   }
                 />
@@ -263,6 +276,34 @@ const App: React.FC = () => {
                 <Route 
                   path="/resume-review" 
                   element={<ResumeReview />}
+                />
+
+                {/* Новые маршруты для нетворкинга */}
+                <Route 
+                  path="/networking" 
+                  element={
+                    <ProtectedRoute>
+                      <Networking />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route 
+                  path="/networking/projects" 
+                  element={
+                    <ProtectedRoute>
+                      <NetworkingProjects />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route 
+                  path="/project/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <NetworkingProjects />
+                    </ProtectedRoute>
+                  }
                 />
                 
                 {/* Админ-панель с вложенными маршрутами */}

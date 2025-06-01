@@ -17,7 +17,7 @@ const Navbar = () => {
   const avatarRef = useRef<HTMLButtonElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
-      // Check localStorage or system preference
+      
       const savedTheme = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       return savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -25,7 +25,7 @@ const Navbar = () => {
     return false;
   });
 
-  // Apply dark mode class to html element
+  
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -36,7 +36,7 @@ const Navbar = () => {
     }
   }, [isDarkMode]);
 
-  // Close user menu when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -193,6 +193,27 @@ const Navbar = () => {
                     </Link>
                   )}
                 </Menu.Item>
+                
+                {/* Ссылка на страницу заявок - только для работодателей */}
+                {userData?.role === 'employer' || userData?.role === 'business' ? (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <Link
+                        to="/employer/applications"
+                        className={`${
+                          active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
+                        } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Заявки на вакансии
+                      </Link>
+                    )}
+                  </Menu.Item>
+                ) : null}
+                
                 <Menu.Item>
                   {({ active }) => (
                     <Link
@@ -266,6 +287,24 @@ const Navbar = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
                       Проверка резюме
+                    </Link>
+                  )}
+                </Menu.Item>
+                
+                <Menu.Item>
+                  {({ active }) => (
+                    <Link
+                      to="/networking"
+                      className={`${
+                        active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
+                      } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      Нетворкинг
+                      <span className="ml-1.5 px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full">Новое</span>
                     </Link>
                   )}
                 </Menu.Item>
@@ -453,6 +492,21 @@ const Navbar = () => {
               </svg>
               Сообщения
             </Link>
+            
+            {/* Ссылка на заявки для работодателей */}
+            {(userData?.role === 'employer' || userData?.role === 'business') && (
+              <Link
+                to="/employer/applications"
+                className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-lighter/80"
+                role="menuitem"
+                onClick={() => setUserMenuOpen(false)}
+              >
+                <svg className="w-5 h-5 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Заявки на вакансии
+              </Link>
+            )}
             
             {/* Admin Panel Link - Only visible for admin users */}
             {userData?.role === 'admin' && (
