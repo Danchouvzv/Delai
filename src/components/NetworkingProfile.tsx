@@ -285,22 +285,22 @@ const NetworkingProfile: React.FC = () => {
   const handleSuggestSkills = async () => {
     if (!profile.bio) {
       toast({
-        title: 'Insufficient information',
-        description: 'Please add a bio first to get skill suggestions.',
+        title: 'Bio required',
+        description: 'Please fill out your bio first to get skill suggestions.',
         status: 'warning',
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
       return;
     }
     
+    setSuggestingSkills(true);
+    
     try {
-      setSuggestingSkills(true);
-      
       const prompt = `
         Based on the following bio, suggest 5-8 skills that this person might have. 
         Return only a list of skills as a JSON array of strings, nothing else. 
-        Be specific and professional.
+        For example: ["JavaScript", "React", "Node.js", "CSS", "HTML"]
         
         Bio: "${profile.bio}"
         
@@ -310,7 +310,27 @@ const NetworkingProfile: React.FC = () => {
       const response = await generateText(prompt);
       
       try {
-        const suggestedSkills = JSON.parse(response);
+        // Попытка найти JSON массив в ответе
+        const jsonMatch = response.match(/\[.*?\]/s);
+        let suggestedSkills;
+        
+        if (jsonMatch) {
+          // Если найден JSON массив, парсим его
+          suggestedSkills = JSON.parse(jsonMatch[0]);
+        } else {
+          // Если JSON массив не найден, разбиваем ответ на строки и ищем навыки
+          suggestedSkills = response
+            .split(/[\n,]/)
+            .map(item => item.trim())
+            .filter(item => 
+              item && 
+              !item.includes('[') && 
+              !item.includes(']') && 
+              !item.includes('{') && 
+              !item.includes('}') &&
+              item.length > 1
+            );
+        }
         
         if (Array.isArray(suggestedSkills)) {
           // Убираем дубликаты

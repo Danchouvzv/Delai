@@ -55,7 +55,7 @@ const RecommendedProjects: React.FC = () => {
         setLoading(true);
         
         // Получаем рекомендации для текущего пользователя
-        const matchesRef = collection(db, `matches/${user.uid}`);
+        const matchesRef = collection(db, 'matches', user.uid, 'recommendations');
         const matchesQuery = query(
           matchesRef,
           orderBy('score', 'desc'),
