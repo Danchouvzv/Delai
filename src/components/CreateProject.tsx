@@ -210,20 +210,39 @@ const CreateProject: React.FC = () => {
       setSuggestingSkills(true);
       
       const prompt = `
-        Based on the following project description and tags, suggest 5-8 skills that would be needed for this project. 
+        Based on the following project description, suggest 5-8 skills that would be needed for this project. 
         Return only a list of skills as a JSON array of strings, nothing else.
-        Be specific and professional, focusing on technical skills, soft skills, and domain knowledge required.
+        For example: ["JavaScript", "React", "Node.js", "CSS", "HTML"]
         
-        Project title: "${project.title}"
         Project description: "${project.description}"
-        Project tags: ${project.tags.join(', ')}
+        
         Current skills needed: ${project.skillsNeeded.join(', ')}
       `;
       
       const response = await generateText(prompt);
       
       try {
-        const suggestedSkills = JSON.parse(response);
+        // Попытка найти JSON массив в ответе
+        const jsonMatch = response.match(/\[.*?\]/s);
+        let suggestedSkills;
+        
+        if (jsonMatch) {
+          // Если найден JSON массив, парсим его
+          suggestedSkills = JSON.parse(jsonMatch[0]);
+        } else {
+          // Если JSON массив не найден, разбиваем ответ на строки и ищем навыки
+          suggestedSkills = response
+            .split(/[\n,]/)
+            .map(item => item.trim())
+            .filter(item => 
+              item && 
+              !item.includes('[') && 
+              !item.includes(']') && 
+              !item.includes('{') && 
+              !item.includes('}') &&
+              item.length > 1
+            );
+        }
         
         if (Array.isArray(suggestedSkills)) {
           // Показываем превью

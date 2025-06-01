@@ -113,20 +113,11 @@ const NetworkingProjects: React.FC = () => {
       // Создаем базовый запрос
       let projectsQuery: Query = collection(db, 'projects');
       
-      // Добавляем фильтры
-      if (filters.isOpenOnly) {
-        projectsQuery = query(projectsQuery, where('isOpen', '==', true));
-      }
-      
-      if (filters.mode !== 'all') {
-        projectsQuery = query(projectsQuery, where('mode', '==', filters.mode));
-      }
-      
-      // Добавляем сортировку
+      // Добавляем только сортировку на уровне базы данных
       projectsQuery = query(
         projectsQuery, 
         orderBy(filters.sortBy, filters.sortDirection),
-        limit(10)
+        limit(20) // Увеличиваем лимит, так как будем фильтровать на клиенте
       );
       
       // Если загружаем следующую страницу
@@ -144,7 +135,7 @@ const NetworkingProjects: React.FC = () => {
       setLastVisible(lastDoc);
       
       // Проверяем, есть ли еще данные
-      setHasMore(projectsSnapshot.docs.length === 10);
+      setHasMore(projectsSnapshot.docs.length === 20);
       
       if (projectsSnapshot.empty) {
         setProjects(reset ? [] : [...projects]);
@@ -182,8 +173,18 @@ const NetworkingProjects: React.FC = () => {
         })
       );
       
-      // Применяем клиентскую фильтрацию для поиска, тегов и навыков
+      // Применяем клиентскую фильтрацию для всех фильтров
       let filteredProjects = fetchedProjects;
+      
+      // Фильтрация по isOpen на клиенте
+      if (filters.isOpenOnly) {
+        filteredProjects = filteredProjects.filter(project => project.isOpen === true);
+      }
+      
+      // Фильтрация по режиму работы на клиенте
+      if (filters.mode !== 'all') {
+        filteredProjects = filteredProjects.filter(project => project.mode === filters.mode);
+      }
       
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();

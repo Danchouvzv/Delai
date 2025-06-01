@@ -131,18 +131,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 
                 const userDataPromises = otherParticipants.map(async (participantId: string) => {
                   if (participantId !== user.uid) {
-                    const userDoc = doc(firestore, 'users', participantId);
-                    const userDocSnap = await getDoc(userDoc);
-                    
-                    if (userDocSnap.exists()) {
-                      const userData = userDocSnap.data();
-                      otherUserData.push({
-                        uid: participantId,
-                        displayName: userData.displayName || 'Пользователь',
-                        photoURL: userData.photoURL || 'https://via.placeholder.com/40',
-                        status: userData.status,
-                        role: userData.role
-                      });
+                    try {
+                      const userDoc = doc(firestore, 'users', participantId);
+                      const userDocSnap = await getDoc(userDoc);
+                      
+                      if (userDocSnap.exists()) {
+                        const userData = userDocSnap.data();
+                        otherUserData.push({
+                          uid: participantId,
+                          displayName: userData.displayName || 'Пользователь',
+                          photoURL: userData.photoURL || 'https://via.placeholder.com/40',
+                          status: userData.status,
+                          role: userData.role
+                        });
+                      }
+                    } catch (error) {
+                      console.error(`Error fetching user data for ${participantId}:`, error);
                     }
                   }
                 });
