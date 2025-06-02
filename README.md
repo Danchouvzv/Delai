@@ -261,4 +261,30 @@ jobs:
 
 > *Build for the future, hire the future.*
 
+## Git Workflow
+
+The project uses Husky to enforce code quality checks before commits:
+
+1. Before each commit, the pre-commit hook will:
+   - Run ESLint to check for code issues (`npm run lint`)
+   - Run Prettier to verify code formatting (`npm run format:check`)
+
+2. If any issues are found, the commit will be rejected with appropriate error messages.
+
+3. Fix the issues and try committing again.
+
+### Setting up the pre-commit hook
+
+The pre-commit hook is automatically installed when you run `npm install` due to the `prepare` script in package.json. However, if you need to set it up manually:
+
+```bash
+# Initialize husky
+npx husky init
+
+# Make the pre-commit hook executable
+chmod +x .husky/pre-commit
+```
+
+The pre-commit hook is configured to run linting and formatting checks before each commit. This ensures that all code committed to the repository meets the project's quality standards.
+
 
