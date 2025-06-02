@@ -31,16 +31,16 @@ const Networking: React.FC = () => {
   const navigate = useNavigate();
   
   const bgGradient = useColorModeValue(
-    'linear(to-br, blue.50, purple.50, teal.50)',
-    'linear(to-br, blue.900, purple.900, teal.900)'
+    'linear(to-br, orange.50, purple.50, cyan.50)',
+    'linear(to-br, orange.900, purple.900, cyan.900)'
   );
   
   const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const accentColor = useColorModeValue('teal.500', 'teal.300');
+  const borderColor = useColorModeValue('orange.100', 'purple.700');
+  const accentColor = useColorModeValue('orange.500', 'orange.300');
   const gradientOverlay = useColorModeValue(
-    'linear(to-r, teal.400, blue.500)', 
-    'linear(to-r, teal.500, blue.600)'
+    'linear(to-r, orange.400, purple.500)', 
+    'linear(to-r, orange.500, purple.600)'
   );
   
   // Добавляем новые состояния
@@ -78,21 +78,21 @@ const Networking: React.FC = () => {
       title: 'ИИ-подбор соответствий',
       description: 'Наш алгоритм соединяет вас с проектами и людьми, которые соответствуют вашим навыкам и интересам',
       icon: FaRobot,
-      color: 'purple.400',
+      color: 'orange.400',
       animation: 'float'
     },
     {
       title: 'Поиск соратников',
       description: 'Найдите единомышленников для создания команды или присоединитесь к интересным проектам',
       icon: FaUsers,
-      color: 'blue.400',
+      color: 'purple.400',
       animation: 'pulse'
     },
     {
       title: 'Открытие проектов',
       description: 'Просматривайте отобранный список проектов, ищущих сотрудников с вашим опытом',
       icon: FaBriefcase,
-      color: 'teal.400',
+      color: 'cyan.400',
       animation: 'bounce'
     },
     {
@@ -180,7 +180,7 @@ const Networking: React.FC = () => {
   // Если пользователь не авторизован
   if (!user && !loading) {
     return (
-      <Box py={10} px={4} bgGradient="linear(to-br, purple.50, blue.50, indigo.50)" minH="100vh">
+      <Box py={10} px={4} bgGradient="linear(to-br, orange.50, purple.50, cyan.50)" minH="100vh">
         <Container maxW="1200px">
           <MotionFlex 
             direction="column" 
@@ -200,14 +200,14 @@ const Networking: React.FC = () => {
                 transform: 'translateX(-50%)',
                 width: '100px',
                 height: '5px',
-                bgGradient: "linear(to-r, purple.400, blue.500, cyan.400)",
+                bgGradient: "linear(to-r, orange.400, purple.500, cyan.400)",
                 borderRadius: 'full'
               }}
             >
               <Heading 
                 as="h1" 
                 size="2xl" 
-                bgGradient="linear(to-r, purple.400, blue.500, cyan.400)" 
+                bgGradient="linear(to-r, orange.400, purple.500, cyan.400)" 
                 bgClip="text"
                 textAlign="center"
               >
@@ -235,10 +235,10 @@ const Networking: React.FC = () => {
                 as={RouterLink} 
                 to="/login" 
                 size="lg" 
-                bgGradient="linear(to-r, purple.400, blue.500)"
+                bgGradient="linear(to-r, orange.400, purple.500)"
                 color="white"
                 _hover={{
-                  bgGradient: "linear(to-r, purple.500, blue.600)",
+                  bgGradient: "linear(to-r, orange.500, purple.600)",
                   transform: "translateY(-2px)",
                   shadow: "lg"
                 }}
@@ -269,7 +269,7 @@ const Networking: React.FC = () => {
                   transform: 'translateX(-50%)',
                   width: '50px',
                   height: '3px',
-                  bgGradient: "linear(to-r, purple.400, blue.500)",
+                  bgGradient: "linear(to-r, orange.400, purple.500)",
                   borderRadius: 'full'
                 }}
               >
@@ -295,7 +295,7 @@ const Networking: React.FC = () => {
                     whileHover={{ 
                       y: -10, 
                       boxShadow: "2xl",
-                      borderColor: "purple.200"
+                      borderColor: "orange.200"
                     }}
                     height="100%"
                     role="group"
@@ -379,7 +379,7 @@ const Networking: React.FC = () => {
                   transform: 'translateX(-50%)',
                   width: '50px',
                   height: '3px',
-                  bgGradient: "linear(to-r, purple.400, blue.500)",
+                  bgGradient: "linear(to-r, orange.400, purple.500)",
                   borderRadius: 'full'
                 }}
               >
@@ -402,7 +402,7 @@ const Networking: React.FC = () => {
                     whileHover={{ 
                       y: -5, 
                       boxShadow: "xl",
-                      borderColor: "purple.200"
+                      borderColor: "orange.200"
                     }}
                     position="relative"
                     _before={{
@@ -412,7 +412,7 @@ const Networking: React.FC = () => {
                       left: 0,
                       width: '100%',
                       height: '5px',
-                      bgGradient: "linear(to-r, purple.400, blue.500)"
+                      bgGradient: "linear(to-r, orange.400, purple.500)"
                     }}
                   >
                     <CardBody>
@@ -420,7 +420,7 @@ const Networking: React.FC = () => {
                         position="absolute" 
                         top={4} 
                         right={4} 
-                        color="purple.400" 
+                        color="orange.400" 
                         fontSize="4xl"
                         opacity={0.2}
                         fontFamily="Georgia, serif"
@@ -446,7 +446,7 @@ const Networking: React.FC = () => {
                             src={testimonial.avatar}
                             mr={3}
                             border="2px solid"
-                            borderColor="purple.200"
+                            borderColor="orange.200"
                           />
                           <Box>
                             <Text fontWeight="bold">{testimonial.name}</Text>
@@ -474,7 +474,7 @@ const Networking: React.FC = () => {
                 direction={{ base: "column", md: "row" }}
                 align="center"
                 justify="center"
-                bg={useColorModeValue('purple.50', 'rgba(109, 99, 255, 0.1)')}
+                bg={useColorModeValue('orange.50', 'rgba(109, 99, 255, 0.1)')}
                 borderRadius="2xl"
                 p={10}
                 boxShadow="xl"
@@ -488,7 +488,7 @@ const Networking: React.FC = () => {
                   right: '-50px',
                   width: '150px',
                   height: '150px',
-                  bg: 'purple.100',
+                  bg: 'orange.100',
                   borderRadius: 'full',
                   opacity: 0.4,
                   zIndex: 0,
@@ -501,7 +501,7 @@ const Networking: React.FC = () => {
                   left: '-60px',
                   width: '180px',
                   height: '180px',
-                  bg: 'blue.100',
+                  bg: 'purple.100',
                   borderRadius: 'full',
                   opacity: 0.4,
                   zIndex: 0,
@@ -512,7 +512,7 @@ const Networking: React.FC = () => {
                   <Heading 
                     size="lg" 
                     mb={4}
-                    bgGradient="linear(to-r, purple.400, blue.500)"
+                    bgGradient="linear(to-r, orange.400, purple.500)"
                     bgClip="text"
                   >
                     Готовы найти свой идеальный проект?
@@ -535,10 +535,10 @@ const Networking: React.FC = () => {
                     as={RouterLink}
                     to="/signup"
                     size="lg"
-                    bgGradient="linear(to-r, purple.400, blue.500)"
+                    bgGradient="linear(to-r, orange.400, purple.500)"
                     color="white"
                     _hover={{
-                      bgGradient: "linear(to-r, purple.500, blue.600)",
+                      bgGradient: "linear(to-r, orange.500, purple.600)",
                       transform: "translateY(-2px)",
                       shadow: "lg"
                     }}
@@ -569,7 +569,7 @@ const Networking: React.FC = () => {
           <VStack spacing={8}>
             <Heading 
               size="xl" 
-              bgGradient="linear(to-r, teal.400, blue.500)" 
+              bgGradient="linear(to-r, orange.400, purple.500)" 
               bgClip="text"
             >
               Заполните свой профиль нетворкинга
@@ -595,11 +595,11 @@ const Networking: React.FC = () => {
       <Box 
         py={8} 
         px={4} 
-        bgGradient="linear(to-r, purple.50, blue.50, cyan.50)"
+        bgGradient="linear(to-r, orange.50, purple.50, cyan.50)"
         position="relative"
         overflow="hidden"
         _dark={{
-          bgGradient: "linear(to-r, purple.900, blue.900, cyan.900)"
+          bgGradient: "linear(to-r, orange.900, purple.900, cyan.900)"
         }}
       >
         {/* Декоративные элементы */}
@@ -609,11 +609,11 @@ const Networking: React.FC = () => {
           right="-10%"
           width="300px"
           height="300px"
-          bg="purple.100"
+          bg="orange.100"
           borderRadius="full"
           filter="blur(40px)"
           opacity="0.6"
-          _dark={{ bg: "purple.800", opacity: "0.3" }}
+          _dark={{ bg: "orange.800", opacity: "0.3" }}
         />
         <Box
           position="absolute"
@@ -621,11 +621,11 @@ const Networking: React.FC = () => {
           left="-5%"
           width="250px"
           height="250px"
-          bg="blue.100"
+          bg="purple.100"
           borderRadius="full"
           filter="blur(40px)"
           opacity="0.5"
-          _dark={{ bg: "blue.800", opacity: "0.3" }}
+          _dark={{ bg: "purple.800", opacity: "0.3" }}
         />
         
         <Container maxW="1200px" position="relative" zIndex={1}>
@@ -633,7 +633,7 @@ const Networking: React.FC = () => {
             <Box mb={{ base: 6, md: 0 }}>
               <Heading 
                 size="xl" 
-                bgGradient="linear(to-r, purple.400, blue.500, cyan.400)" 
+                bgGradient="linear(to-r, orange.400, purple.500, cyan.400)" 
                 bgClip="text"
               >
                 Нетворкинг
@@ -649,15 +649,15 @@ const Networking: React.FC = () => {
                 to="/networking/projects"
                 leftIcon={<Icon as={FaBriefcase} />}
                 bg="white"
-                color="purple.500"
+                color="orange.500"
                 _hover={{ 
-                  bg: "purple.50",
+                  bg: "orange.50",
                   transform: "translateY(-2px)",
                   boxShadow: "md"
                 }}
                 _dark={{ 
                   bg: "gray.800",
-                  color: "purple.300",
+                  color: "orange.300",
                   _hover: { bg: "gray.700" }
                 }}
                 boxShadow="sm"
@@ -669,10 +669,10 @@ const Networking: React.FC = () => {
               <Button
                 onClick={() => setTabIndex(2)}
                 leftIcon={<Icon as={FaLightbulb} />}
-                bgGradient="linear(to-r, purple.400, blue.500)"
+                bgGradient="linear(to-r, orange.400, purple.500)"
                 color="white"
                 _hover={{ 
-                  bgGradient: "linear(to-r, purple.500, blue.600)",
+                  bgGradient: "linear(to-r, orange.500, purple.600)",
                   transform: "translateY(-2px)",
                   boxShadow: "md"
                 }}
@@ -690,7 +690,7 @@ const Networking: React.FC = () => {
       <Container maxW="1200px" py={6}>
         <Tabs 
           variant="soft-rounded" 
-          colorScheme="purple" 
+          colorScheme="orange" 
           index={tabIndex} 
           onChange={setTabIndex}
           isLazy
@@ -713,7 +713,7 @@ const Networking: React.FC = () => {
               mx={1} 
               _selected={{ 
                 color: 'white', 
-                bg: 'purple.500',
+                bg: 'orange.500',
                 boxShadow: 'md'
               }}
               minW="fit-content"
@@ -725,7 +725,7 @@ const Networking: React.FC = () => {
               mx={1} 
               _selected={{ 
                 color: 'white', 
-                bg: 'purple.500',
+                bg: 'orange.500',
                 boxShadow: 'md'
               }}
               minW="fit-content"
@@ -737,7 +737,7 @@ const Networking: React.FC = () => {
               mx={1} 
               _selected={{ 
                 color: 'white', 
-                bg: 'purple.500',
+                bg: 'orange.500',
                 boxShadow: 'md'
               }}
               minW="fit-content"
@@ -758,10 +758,10 @@ const Networking: React.FC = () => {
                     to="/networking/projects"
                     size="lg"
                     rightIcon={<Icon as={FaBriefcase} />}
-                    bgGradient="linear(to-r, purple.400, blue.500)"
+                    bgGradient="linear(to-r, orange.400, purple.500)"
                     color="white"
                     _hover={{ 
-                      bgGradient: "linear(to-r, purple.500, blue.600)",
+                      bgGradient: "linear(to-r, orange.500, purple.600)",
                       transform: "translateY(-2px)"
                     }}
                     boxShadow="md"
@@ -816,9 +816,9 @@ const Networking: React.FC = () => {
               Отмена
             </Button>
             <Button 
-              bgGradient="linear(to-r, purple.400, blue.500)"
+              bgGradient="linear(to-r, orange.400, purple.500)"
               color="white"
-              _hover={{ bgGradient: "linear(to-r, purple.500, blue.600)" }}
+              _hover={{ bgGradient: "linear(to-r, orange.500, purple.600)" }}
               onClick={handleSubmitApplication}
               isLoading={isSubmitting}
               loadingText="Отправка..."

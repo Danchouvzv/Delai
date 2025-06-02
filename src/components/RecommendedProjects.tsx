@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Card, CardBody, CardHeader, Flex, Heading, Text, Badge, Button, Stack, Skeleton, Image, useColorModeValue, HStack, VStack, Icon, useToast, SimpleGrid, Avatar, Divider, IconButton, Tooltip, SkeletonText } from '@chakra-ui/react';
-import { FaStar, FaFire, FaUserFriends, FaGlobe, FaBriefcase, FaMapMarkerAlt, FaLaptopHouse, FaArrowRight, FaThumbsUp } from 'react-icons/fa';
+import { Box, Card, CardBody, CardHeader, CardFooter, Flex, Heading, Text, Badge, Button, Stack, Skeleton, SkeletonText, Image, useColorModeValue, HStack, VStack, Icon, useToast, SimpleGrid, Avatar, Divider, IconButton, Tooltip } from '@chakra-ui/react';
+import { FaStar, FaFire, FaUserFriends, FaGlobe, FaBriefcase, FaMapMarkerAlt, FaLaptopHouse, FaArrowRight, FaThumbsUp, FaRocket, FaBolt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -134,19 +134,22 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
   const toast = useToast();
   const navigate = useNavigate();
   
+  // Новая цветовая схема с более яркими и креативными цветами
   const bgGradient = useColorModeValue(
-    'linear(to-r, blue.50, teal.50)',
-    'linear(to-r, blue.900, teal.900)'
+    'linear(to-br, rgba(255,140,0,0.05), rgba(147,51,234,0.07), rgba(59,130,246,0.05))',
+    'linear(to-br, rgba(255,140,0,0.1), rgba(147,51,234,0.1), rgba(59,130,246,0.1))'
   );
   
   const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const highlightColor = useColorModeValue('teal.100', 'teal.800');
+  const borderColor = useColorModeValue('orange.100', 'purple.800');
+  const highlightColor = useColorModeValue('orange.100', 'purple.800');
+  
+  // Обновленные цвета для более креативного стиля
   const textColor = useColorModeValue('gray.800', 'white');
-  const subTextColor = useColorModeValue('gray.600', 'gray.400');
-  const tagBg = useColorModeValue('purple.50', 'purple.900');
-  const tagColor = useColorModeValue('purple.600', 'purple.200');
-  const sectionBg = useColorModeValue('purple.50', 'gray.900');
+  const subTextColor = useColorModeValue('gray.600', 'gray.300');
+  const tagBg = useColorModeValue('orange.50', 'purple.900');
+  const tagColor = useColorModeValue('orange.600', 'purple.200');
+  const sectionBg = useColorModeValue('gray.50', 'gray.900');
   
   // Загрузка рекомендованных проектов
   useEffect(() => {
@@ -234,17 +237,23 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
     fetchRecommendedProjects();
   }, [user, toast]);
   
-  // Отображение оценки соответствия
+  // Отображение оценки соответствия с обновленным дизайном
   const renderMatchScore = (score: number) => {
-    let color = 'green';
-    let label = 'Идеальное соответствие';
+    let color;
+    let icon;
+    let label;
     
-    if (score < 0.85) {
-      color = 'blue';
-      label = 'Хорошее соответствие';
-    }
-    if (score < 0.75) {
+    if (score >= 0.85) {
       color = 'orange';
+      icon = FaRocket;
+      label = 'Идеальное соответствие';
+    } else if (score >= 0.75) {
+      color = 'purple';
+      icon = FaBolt;
+      label = 'Хорошее соответствие';
+    } else {
+      color = 'blue';
+      icon = FaStar;
       label = 'Среднее соответствие';
     }
     
@@ -255,24 +264,29 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
           variant="solid" 
           borderRadius="full" 
           px={2} 
+          py={1}
           display="flex" 
           alignItems="center" 
           gap={1}
+          boxShadow="0px 2px 4px rgba(0,0,0,0.1)"
         >
-          <Icon as={FaFire} boxSize={3} />
+          <Icon as={icon} boxSize={3} />
           {Math.round(score * 100)}%
         </Badge>
       </Tooltip>
     );
   };
 
-  // Отображение карточки проекта
+  // Отображение карточки проекта с обновленным дизайном
   const renderProjectCard = (project: RecommendedProject, index: number) => {
     const modeText = modeTranslations[project.projectData?.mode as keyof typeof modeTranslations] || project.projectData?.mode;
     const modeIcon = 
       project.projectData?.mode === 'remote' ? FaGlobe : 
       project.projectData?.mode === 'onsite' ? FaMapMarkerAlt : 
       FaLaptopHouse;
+    
+    // Определяем цвет для карточки на основе оценки соответствия
+    const cardAccentColor = project.score >= 0.85 ? 'orange' : project.score >= 0.75 ? 'purple' : 'blue';
     
     return (
       <MotionCard
@@ -287,38 +301,50 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
         borderRadius="xl"
         borderColor={borderColor}
         overflow="hidden"
-        boxShadow="md"
+        boxShadow="lg"
         position="relative"
         role="group"
         transition="all 0.3s"
         h="100%"
+        _hover={{
+          transform: "translateY(-8px)",
+          boxShadow: "xl",
+          borderColor: `${cardAccentColor}.300`
+        }}
       >
-        {/* Декоративный верхний бордер */}
+        {/* Декоративный градиентный верхний бордер */}
         <Box 
           position="absolute" 
           top="0" 
           left="0" 
           right="0" 
-          h="5px" 
-          bgGradient="linear(to-r, purple.400, blue.500)" 
+          h="6px" 
+          bgGradient={`linear(to-r, ${cardAccentColor}.400, ${cardAccentColor === 'orange' ? 'red.400' : cardAccentColor === 'purple' ? 'pink.400' : 'cyan.400'})`}
         />
         
         <CardHeader pb={2}>
           <Flex justifyContent="space-between" alignItems="flex-start">
-            <Heading size="md" fontWeight="bold" noOfLines={1} color={textColor}>
+            <Heading 
+              size="md" 
+              fontWeight="bold" 
+              noOfLines={1} 
+              color={textColor}
+              _groupHover={{ color: `${cardAccentColor}.500` }}
+              transition="color 0.3s"
+            >
               {project.projectData?.title || 'Unnamed Project'}
             </Heading>
             {project.score && renderMatchScore(project.score)}
           </Flex>
           
-          <Flex mt={2} alignItems="center">
+          <Flex mt={3} alignItems="center">
             <Avatar 
-              size="xs" 
+              size="sm" 
               name={project.projectData?.ownerName} 
               src={project.projectData?.ownerAvatar} 
               mr={2} 
-              border="1px solid"
-              borderColor={borderColor}
+              border="2px solid"
+              borderColor={`${cardAccentColor}.200`}
             />
             <Text fontSize="sm" color={subTextColor}>
               {project.projectData?.ownerName || 'Unknown User'}
@@ -327,45 +353,63 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
         </CardHeader>
         
         <CardBody pt={0} pb={2}>
-          <Text fontSize="sm" color={subTextColor} noOfLines={2} mb={3}>
+          <Text 
+            fontSize="sm" 
+            color={subTextColor} 
+            noOfLines={2} 
+            mb={4}
+            lineHeight="1.6"
+          >
             {project.projectData?.description || 'No description provided'}
           </Text>
           
-          <Flex flexWrap="wrap" gap={2} mb={3}>
+          <Flex flexWrap="wrap" gap={2} mb={4}>
             {project.projectData?.tags?.slice(0, 3).map((tag, i) => (
               <Badge 
                 key={i} 
                 bg={tagBg} 
                 color={tagColor} 
                 fontSize="xs" 
+                fontWeight="medium"
                 borderRadius="full" 
-                px={2} 
-                py={0.5}
+                px={3} 
+                py={1}
+                _hover={{ transform: "scale(1.05)" }}
+                transition="transform 0.2s"
+                boxShadow="0px 1px 2px rgba(0,0,0,0.05)"
               >
                 {tag}
               </Badge>
             ))}
             {project.projectData?.tags && project.projectData.tags.length > 3 && (
-              <Badge bg={tagBg} color={tagColor} fontSize="xs" borderRadius="full" px={2} py={0.5}>
+              <Badge 
+                bg={tagBg} 
+                color={tagColor} 
+                fontSize="xs" 
+                borderRadius="full" 
+                px={3} 
+                py={1}
+                boxShadow="0px 1px 2px rgba(0,0,0,0.05)"
+              >
                 +{project.projectData.tags.length - 3}
               </Badge>
             )}
           </Flex>
         </CardBody>
         
-        <Divider />
+        <Divider borderColor={`${cardAccentColor}.100`} />
         
-        <CardFooter pt={2} pb={3}>
+        <CardFooter pt={3} pb={3}>
           <Flex justifyContent="space-between" alignItems="center" w="full">
-            <HStack spacing={3}>
+            <HStack spacing={4}>
               <Flex align="center">
-                <Icon as={modeIcon} color="blue.400" mr={1} />
-                <Text fontSize="xs">{modeText}</Text>
+                <Icon as={modeIcon} color={`${cardAccentColor}.500`} mr={1.5} />
+                <Text fontSize="xs" fontWeight="medium">{modeText}</Text>
               </Flex>
               
               <Flex align="center">
-                <Icon as={FaUserFriends} color="purple.400" mr={1} />
-                <Text fontSize="xs">Команда: {project.projectData?.teamSize || 0}</Text>
+                <Icon as={FaUserFriends} color={`${cardAccentColor}.500`} mr={1.5} />
+                <Text fontSize="xs" fontWeight="medium">Команда: {project.projectData?.teamSize || 0}</Text>
               </Flex>
             </HStack>
             
@@ -376,24 +420,35 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
                     aria-label="Откликнуться"
                     icon={<FaThumbsUp />}
                     size="sm"
-                    colorScheme="purple"
+                    colorScheme={cardAccentColor}
                     variant="ghost"
                     onClick={(e) => {
                       e.stopPropagation();
                       onApply(project.id);
                     }}
+                    _hover={{
+                      bg: `${cardAccentColor}.100`,
+                      transform: "scale(1.1)"
+                    }}
+                    transition="all 0.2s"
                   />
                 </Tooltip>
               )}
               
               <Button
                 size="sm"
-                colorScheme="purple"
+                colorScheme={cardAccentColor}
                 variant="outline"
                 rightIcon={<FaArrowRight />}
                 onClick={() => navigate(`/project/${project.projectId}`)}
-                _groupHover={{ bg: 'purple.500', color: 'white' }}
+                _groupHover={{ 
+                  bg: `${cardAccentColor}.500`, 
+                  color: 'white',
+                  borderColor: `${cardAccentColor}.500`
+                }}
                 transition="all 0.3s"
+                fontWeight="medium"
+                boxShadow="sm"
               >
                 Подробнее
               </Button>
@@ -404,126 +459,208 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({ onApply }) =>
     );
   };
   
-  // Отображение скелетонов во время загрузки
+  // Отображение скелетонов во время загрузки с обновленным дизайном
   const renderSkeletons = () => {
     return Array(4).fill(0).map((_, index) => (
       <Box 
         key={`skeleton-${index}`} 
         p={5} 
         borderWidth="1px" 
-        borderRadius="lg" 
+        borderRadius="xl" 
         bg={cardBg}
         borderColor={borderColor}
-        shadow="sm"
+        shadow="lg"
+        position="relative"
+        overflow="hidden"
       >
+        {/* Анимированный градиент для скелетона */}
+        <Box
+          position="absolute"
+          top="0"
+          left="0"
+          right="0"
+          height="6px"
+          bgGradient="linear(to-r, orange.300, purple.400, blue.300)"
+          opacity="0.7"
+        />
+        
         <Flex justify="space-between" mb={3}>
-          <Skeleton height="24px" width="70%" />
-          <Skeleton height="24px" width="20%" borderRadius="full" />
+          <Skeleton height="24px" width="70%" startColor="orange.100" endColor="purple.200" />
+          <Skeleton height="24px" width="20%" borderRadius="full" startColor="orange.100" endColor="purple.200" />
         </Flex>
-        <SkeletonText mt={2} noOfLines={2} spacing={2} />
+        
+        <Flex align="center" mb={3}>
+          <Skeleton height="36px" width="36px" borderRadius="full" mr={2} startColor="orange.100" endColor="purple.200" />
+          <Skeleton height="18px" width="120px" startColor="orange.100" endColor="purple.200" />
+        </Flex>
+        
+        <SkeletonText mt={2} noOfLines={2} spacing={2} startColor="orange.100" endColor="purple.200" />
+        
         <Flex mt={4} mb={3} gap={2}>
-          <Skeleton height="20px" width="80px" borderRadius="full" />
-          <Skeleton height="20px" width="90px" borderRadius="full" />
+          <Skeleton height="20px" width="80px" borderRadius="full" startColor="orange.100" endColor="purple.200" />
+          <Skeleton height="20px" width="90px" borderRadius="full" startColor="orange.100" endColor="purple.200" />
+          <Skeleton height="20px" width="70px" borderRadius="full" startColor="orange.100" endColor="purple.200" />
         </Flex>
+        
         <Divider my={3} />
+        
         <Flex justify="space-between" align="center" mt={3}>
-          <Skeleton height="20px" width="120px" />
-          <Skeleton height="36px" width="100px" borderRadius="md" />
+          <Skeleton height="20px" width="120px" startColor="orange.100" endColor="purple.200" />
+          <Skeleton height="36px" width="100px" borderRadius="md" startColor="orange.100" endColor="purple.200" />
         </Flex>
       </Box>
     ));
   };
   
   return (
-    <Box
-      bg={sectionBg}
+    <Box 
+      py={10} 
+      px={6} 
+      bgGradient={bgGradient}
       borderRadius="2xl"
-      p={6}
-      boxShadow="md"
       position="relative"
       overflow="hidden"
-      _before={{
-        content: '""',
-        position: 'absolute',
-        top: '-60px',
-        right: '-60px',
-        width: '150px',
-        height: '150px',
-        bg: 'purple.100',
-        borderRadius: 'full',
-        opacity: 0.4,
-        filter: 'blur(30px)',
-        _dark: { bg: 'purple.900', opacity: 0.2 }
-      }}
-      _after={{
-        content: '""',
-        position: 'absolute',
-        bottom: '-50px',
-        left: '-50px',
-        width: '120px',
-        height: '120px',
-        bg: 'blue.100',
-        borderRadius: 'full',
-        opacity: 0.3,
-        filter: 'blur(25px)',
-        _dark: { bg: 'blue.900', opacity: 0.2 }
-      }}
     >
-      <Flex 
-        direction={{ base: 'column', md: 'row' }} 
-        justify="space-between" 
-        align={{ base: 'start', md: 'center' }} 
-        mb={6}
-        position="relative"
-        zIndex={1}
-      >
-        <Box>
-          <Heading size="lg" mb={1} color={textColor}>
-            Рекомендуемые проекты
-          </Heading>
-          <Text color={subTextColor}>
-            Проекты, подобранные специально для вас на основе вашего профиля и интересов
-          </Text>
-        </Box>
-        
-        <Button
-          colorScheme="purple"
-          variant="outline"
-          rightIcon={<FaArrowRight />}
-          onClick={() => navigate('/networking/projects')}
-          mt={{ base: 4, md: 0 }}
-          _hover={{
-            transform: "translateX(4px)",
-            transition: "transform 0.3s"
-          }}
-        >
-          Все проекты
-        </Button>
-      </Flex>
+      {/* Декоративные элементы фона */}
+      <Box
+        position="absolute"
+        top="-10%"
+        right="-5%"
+        width="300px"
+        height="300px"
+        bg="orange.50"
+        borderRadius="full"
+        filter="blur(70px)"
+        opacity="0.4"
+        zIndex={0}
+        _dark={{ bg: "orange.900", opacity: "0.2" }}
+      />
+      <Box
+        position="absolute"
+        bottom="-15%"
+        left="-10%"
+        width="400px"
+        height="400px"
+        bg="purple.50"
+        borderRadius="full"
+        filter="blur(90px)"
+        opacity="0.5"
+        zIndex={0}
+        _dark={{ bg: "purple.900", opacity: "0.2" }}
+      />
       
-      <Box position="relative" zIndex={1}>
+      <VStack spacing={8} align="stretch" maxW="1200px" mx="auto" position="relative" zIndex={1}>
+        <Flex 
+          justifyContent="space-between" 
+          alignItems="center" 
+          flexDirection={{ base: "column", md: "row" }}
+          gap={{ base: 4, md: 0 }}
+        >
+          <Box>
+            <Heading 
+              size="lg" 
+              mb={2}
+              bgGradient="linear(to-r, orange.400, purple.500)"
+              bgClip="text"
+              display="inline-block"
+              position="relative"
+              _after={{
+                content: '""',
+                position: 'absolute',
+                bottom: '-6px',
+                left: '0',
+                width: '40%',
+                height: '3px',
+                bgGradient: "linear(to-r, orange.400, purple.500)",
+                borderRadius: 'full'
+              }}
+            >
+              Рекомендуемые проекты
+            </Heading>
+            <Text color="gray.600" fontWeight="medium" fontSize="md" _dark={{ color: "gray.300" }}>
+              Проекты, соответствующие вашим навыкам и интересам
+            </Text>
+          </Box>
+          <Button 
+            colorScheme="orange" 
+            size="md" 
+            rightIcon={<FaStar />}
+            as={Link}
+            to="/networking"
+            bgGradient="linear(to-r, orange.400, purple.500)"
+            color="white"
+            _hover={{
+              bgGradient: "linear(to-r, orange.500, purple.600)",
+              transform: "translateY(-2px)",
+              boxShadow: "lg"
+            }}
+            boxShadow="md"
+            transition="all 0.3s"
+            fontWeight="medium"
+          >
+            Найти больше
+          </Button>
+        </Flex>
+        
         {loading ? (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+          <Stack spacing={6} mt={6}>
             {renderSkeletons()}
-          </SimpleGrid>
+          </Stack>
         ) : projects.length > 0 ? (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+          <Stack spacing={6} mt={6}>
             {projects.map((project, index) => renderProjectCard(project, index))}
-          </SimpleGrid>
+          </Stack>
         ) : (
-          <Box textAlign="center" p={6} bg={highlightColor} borderRadius="lg">
-            <Icon as={FaBriefcase} boxSize={12} color="purple.300" mb={4} />
-            <Heading size="md" mb={2}>Рекомендации появятся скоро</Heading>
-            <Text mb={4}>Завершите свой профиль, чтобы получать персонализированные рекомендации проектов</Text>
+          <Box 
+            p={8} 
+            textAlign="center" 
+            borderWidth="1px" 
+            borderRadius="xl" 
+            borderColor={borderColor}
+            bg={cardBg}
+            boxShadow="lg"
+            position="relative"
+            overflow="hidden"
+          >
+            {/* Декоративный элемент */}
+            <Box
+              position="absolute"
+              top="0"
+              left="0"
+              right="0"
+              height="6px"
+              bgGradient="linear(to-r, orange.400, purple.500)"
+            />
+            
+            <Heading size="md" mb={4} color="gray.700" _dark={{ color: "gray.200" }}>
+              Рекомендации пока отсутствуют
+            </Heading>
+            <Text mb={6} maxW="600px" mx="auto" color="gray.600" _dark={{ color: "gray.400" }}>
+              Мы работаем над подбором идеальных проектов для вас. Проверьте позже или изучите доступные проекты.
+            </Text>
             <Button 
-              colorScheme="purple" 
-              onClick={() => navigate('/networking/projects')}
+              colorScheme="orange" 
+              as={Link} 
+              to="/projects"
+              bgGradient="linear(to-r, orange.400, purple.500)"
+              color="white"
+              _hover={{
+                bgGradient: "linear(to-r, orange.500, purple.600)",
+                transform: "translateY(-2px)",
+                boxShadow: "lg"
+              }}
+              boxShadow="md"
+              transition="all 0.3s"
+              px={6}
+              py={6}
+              size="lg"
+              fontWeight="medium"
             >
               Просмотреть все проекты
             </Button>
           </Box>
         )}
-      </Box>
+      </VStack>
     </Box>
   );
 };
