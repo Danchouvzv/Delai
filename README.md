@@ -261,6 +261,23 @@ jobs:
 
 > *Build for the future, hire the future.*
 
+## Code Quality
+
+This project uses ESLint and Prettier for code quality and formatting. A pre-commit hook is set up to run formatting checks before each commit.
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Automatically fix some linting errors
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting without making changes
+
+### Linting Guide
+
+For detailed information on fixing linting errors in the project, see [LINTING.md](docs/LINTING.md).
+
 ## Git Workflow
 
 The project uses Husky to enforce code quality checks before commits:
