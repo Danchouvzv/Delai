@@ -266,10 +266,10 @@ jobs:
 The project uses Husky to enforce code quality checks before commits:
 
 1. Before each commit, the pre-commit hook will:
-   - Run ESLint to check for code issues (`npm run lint`)
-   - Run Prettier to verify code formatting (`npm run format:check`)
+   - Check code formatting with Prettier (`npm run format:check`)
+   - (Linting is temporarily disabled due to existing errors)
 
-2. If any issues are found, the commit will be rejected with appropriate error messages.
+2. If any formatting issues are found, the commit will be rejected with appropriate error messages.
 
 3. Fix the issues and try committing again.
 
@@ -285,6 +285,8 @@ npx husky init
 chmod +x .husky/pre-commit
 ```
 
-The pre-commit hook is configured to run linting and formatting checks before each commit. This ensures that all code committed to the repository meets the project's quality standards.
+### Current Limitations
+
+Currently, ESLint checks are disabled in the pre-commit hook due to a large number of existing errors in the codebase. Only formatting checks with Prettier are enforced. Once the codebase is properly fixed, linting checks should be re-enabled in the pre-commit hook.
 
 
