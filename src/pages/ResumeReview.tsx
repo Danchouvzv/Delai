@@ -134,7 +134,7 @@ const ResumeReview: React.FC = () => {
     try {
       // Extract user profile data for context
       const userProfile = {
-        name: userData?.name || '',
+        name: userData?.displayName || '',
         education: userData?.education?.map((edu: any) => ({
           degree: edu.degree || '',
           institution: edu.institution || '',
@@ -182,29 +182,27 @@ const ResumeReview: React.FC = () => {
       
       // Parse the JSON response
       try {
-        // Check if response is an object with a text property
+        let jsonStr = '';
+        
+        // Check if response is an object with a text property or a string
         if (typeof response === 'string') {
           // Find JSON content in the response (in case there's additional text)
           const jsonMatch = response.match(/\{[\s\S]*\}/);
           if (!jsonMatch) throw new Error('No valid JSON found in the response');
-          
-          const jsonStr = jsonMatch[0];
-          const analysisResult = JSON.parse(jsonStr) as ResumeAnalysis;
-          
-          return analysisResult;
+          jsonStr = jsonMatch[0];
         } else if (response && typeof response === 'object' && 'text' in response) {
           // It's an object with a text property
-          const responseText = response.text as string;
+          const responseText = response.text;
           const jsonMatch = responseText.match(/\{[\s\S]*\}/);
           if (!jsonMatch) throw new Error('No valid JSON found in the response');
-          
-          const jsonStr = jsonMatch[0];
-          const analysisResult = JSON.parse(jsonStr) as ResumeAnalysis;
-          
-          return analysisResult;
+          jsonStr = jsonMatch[0];
         } else {
           throw new Error('Unexpected response format from Gemini API');
         }
+        
+        // Parse the JSON string into an object
+        const analysisResult = JSON.parse(jsonStr) as ResumeAnalysis;
+        return analysisResult;
       } catch (parseError) {
         console.error('Error parsing analysis result:', parseError);
         throw new Error('Failed to parse analysis result');

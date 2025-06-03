@@ -222,18 +222,14 @@ export interface UserData {
   
   // Resume Data (original)
   resume?: {
+    url: string;
+    fileName: string;
+    uploadDate: string;
+    analysis?: ResumeAnalysis;
     generatedHtml?: string;
-    lastGenerated?: string;
-    template?: 'modern' | 'professional' | 'academic' | 'creative';
     languages?: string[];
-    analysis?: {
-      score: number;
-      strengths: string[];
-      improvements: string[];
-      detailedFeedback: string;
-      enhancedContent: string;
-      lastAnalyzed: string;
-    };
+    lastGenerated?: string;
+    template?: string;
   };
 
   // Social & Portfolio
@@ -392,3 +388,15 @@ export interface AIGuidanceTemplate {
 } 
 
 export type ResumeTemplate = 'standard' | 'professional' | 'academic' | 'modern' | 'creative'; 
+
+export interface ResumeAnalysis {
+  overallScore: number;
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+  keywordMatch: number;
+  formattingScore: number;
+  contentScore: number;
+  improvedContent?: string;
+} 

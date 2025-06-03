@@ -3,7 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'rea
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserProvider } from './contexts/UserContext';
-
+import { ChakraProvider } from '@chakra-ui/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import theme from './theme';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import Login from './components/Login';
 import Signup from './components/Signup';
@@ -44,6 +47,17 @@ import Applications from './pages/Applications';
 import Networking from './pages/Networking';
 import NetworkingProjects from './pages/NetworkingProjects';
 
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,           // 5 минут кэширования
+      gcTime: 1000 * 60 * 30,             // 30 минут до очистки (ранее cacheTime)
+      retry: 2,                           // до двух попыток при ошибках сети
+      refetchOnWindowFocus: false,        // не перезапрашивать при возвращении фокуса
+    },
+  },
+});
 
 initializeTheme();
 
@@ -177,166 +191,172 @@ const App: React.FC = () => {
   console.log("App rendering");
   
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <UserProvider>
-        <Router>
-          <div className="min-h-screen bg-white dark:bg-dark text-gray-900 dark:text-white">
-            <Navbar />
-            <Routes>
-                {/* Корневой маршрут теперь перенаправляет на дашборд, если пользователь авторизован */}
-                <Route path="/" element={<RootRoute />} />
-                <Route path="/company" element={<CompanyHome />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/jobs" element={<JobsWithErrorBoundary />} />
-              <Route path="/jobs/:id" element={<PostDetail />} />
-              <Route path="/ai-mentor" element={<AIMentor />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/resume-generator" element={<ResumeGenerator />} />
-                <Route path="/faq" element={<FAQPage />} />
-              
-              {/* Protected route for creating posts (only for employers) */}
-              <Route 
-                path="/create-post" 
-                element={
-                  <ProtectedRoute allowedRoles={['employer', 'business']}>
-                    <CreatePost />
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Chat routes */}
-              <Route 
-                path="/chats" 
-                element={
-                  <ProtectedRoute>
-                    <ChatList />
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route 
-                path="/chat/:id" 
-                element={
-                  <ProtectedRoute>
-                    <Chat />
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                      <ProfileNew />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route 
-                  path="/profile/edit" 
-                  element={
-                    <ProtectedRoute>
-                      <ProfileEditWrapper />
-                    </ProtectedRoute>
-                  }
-                />
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider theme={theme}>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <AuthProvider>
+              <UserProvider>
+                <Router>
+                  <div className="min-h-screen bg-white dark:bg-dark text-gray-900 dark:text-white">
+                    <Navbar />
+                    <Routes>
+                      {/* Корневой маршрут теперь перенаправляет на дашборд, если пользователь авторизован */}
+                      <Route path="/" element={<RootRoute />} />
+                      <Route path="/company" element={<CompanyHome />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/jobs" element={<JobsWithErrorBoundary />} />
+                      <Route path="/jobs/:id" element={<PostDetail />} />
+                      <Route path="/ai-mentor" element={<AIMentor />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/resume-generator" element={<ResumeGenerator />} />
+                      <Route path="/faq" element={<FAQPage />} />
+                      
+                      {/* Protected route for creating posts (only for employers) */}
+                      <Route 
+                        path="/create-post" 
+                        element={
+                          <ProtectedRoute allowedRoles={['employer', 'business']}>
+                            <CreatePost />
+                          </ProtectedRoute>
+                        }
+                      />
+                      
+                      {/* Chat routes */}
+                      <Route 
+                        path="/chats" 
+                        element={
+                          <ProtectedRoute>
+                            <ChatList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      
+                      <Route 
+                        path="/chat/:id" 
+                        element={
+                          <ProtectedRoute>
+                            <Chat />
+                          </ProtectedRoute>
+                        }
+                      />
+                      
+                      <Route 
+                        path="/profile" 
+                        element={
+                          <ProtectedRoute>
+                              <ProfileNew />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route 
+                          path="/profile/edit" 
+                          element={
+                            <ProtectedRoute>
+                              <ProfileEditWrapper />
+                            </ProtectedRoute>
+                          }
+                        />
 
-                
-                <Route 
-                  path="/employer/dashboard" 
-                  element={
-                    <ProtectedRoute allowedRoles={['employer', 'business']}>
-                      <EmployerDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route 
-                  path="/employer/applications" 
-                  element={
-                    <ProtectedRoute allowedRoles={['employer', 'business']}>
-                      <Applications />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route 
-                  path="/student/dashboard" 
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'professional']}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route path="/subscription" element={<Subscription />} />
-                
-                <Route 
-                  path="/resume-review" 
-                  element={<ResumeReview />}
-                />
+                        
+                        <Route 
+                          path="/employer/dashboard" 
+                          element={
+                            <ProtectedRoute allowedRoles={['employer', 'business']}>
+                              <EmployerDashboard />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        <Route 
+                          path="/employer/applications" 
+                          element={
+                            <ProtectedRoute allowedRoles={['employer', 'business']}>
+                              <Applications />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        <Route 
+                          path="/student/dashboard" 
+                          element={
+                            <ProtectedRoute allowedRoles={['student', 'professional']}>
+                              <Dashboard />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        <Route path="/subscription" element={<Subscription />} />
+                        
+                        <Route 
+                          path="/resume-review" 
+                          element={<ResumeReview />}
+                        />
 
-                {/* Новые маршруты для нетворкинга */}
-                <Route 
-                  path="/networking" 
-                  element={
-                    <ProtectedRoute>
-                      <Networking />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route 
-                  path="/networking/projects" 
-                  element={
-                    <ProtectedRoute>
-                      <NetworkingProjects />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route 
-                  path="/project/:id" 
-                  element={
-                    <ProtectedRoute>
-                      <NetworkingProjects />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                {/* Админ-панель с вложенными маршрутами */}
-                <Route path="/admin" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }>
-                  <Route index element={<AdminPanel />} />
-                  <Route path="jobs" element={<AdminPanel />} />
-                  <Route path="moderation" element={<AdminModeration />} />
-                  <Route path="stats" element={<AdminStats />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="settings" element={<AdminPanel />} />
-                </Route>
-                
-                {/* Универсальный маршрут дашборда */}
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <DashboardRouter />
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </Router>
-        </UserProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                        {/* Новые маршруты для нетворкинга */}
+                        <Route 
+                          path="/networking" 
+                          element={
+                            <ProtectedRoute>
+                              <Networking />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        <Route 
+                          path="/networking/projects" 
+                          element={
+                            <ProtectedRoute>
+                              <NetworkingProjects />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        <Route 
+                          path="/project/:id" 
+                          element={
+                            <ProtectedRoute>
+                              <NetworkingProjects />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        {/* Админ-панель с вложенными маршрутами */}
+                        <Route path="/admin" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminLayout />
+                          </ProtectedRoute>
+                        }>
+                          <Route index element={<AdminPanel />} />
+                          <Route path="jobs" element={<AdminPanel />} />
+                          <Route path="moderation" element={<AdminModeration />} />
+                          <Route path="stats" element={<AdminStats />} />
+                          <Route path="users" element={<AdminUsers />} />
+                          <Route path="settings" element={<AdminPanel />} />
+                        </Route>
+                        
+                        {/* Универсальный маршрут дашборда */}
+                        <Route 
+                          path="/dashboard" 
+                          element={
+                            <ProtectedRoute>
+                              <DashboardRouter />
+                          </ProtectedRoute>
+                        }
+                      />
+                      
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </div>
+                </Router>
+              </UserProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
+      </ChakraProvider>
+    </QueryClientProvider>
   );
 };
 

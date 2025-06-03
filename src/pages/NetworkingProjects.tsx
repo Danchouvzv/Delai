@@ -18,58 +18,29 @@ import {
   FaGlobe, FaBriefcase, FaUserFriends, FaMapMarkerAlt, FaEye, FaArrowRight,
   FaSearchMinus, FaCheck, FaChevronDown, FaLaptopHouse, FaExclamationCircle
 } from 'react-icons/fa';
-import { collection, query, where, orderBy, limit, getDocs, startAfter, DocumentData, Query, QuerySnapshot } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { QueryDocumentSnapshot } from 'firebase/firestore';
+import { auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import RecommendedProjects from '../components/RecommendedProjects';
 import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
+import { UseAllProjectsParams, useInfiniteProjects, Project as BaseProject } from '../hooks/useAllProjects';
 
-// Типы для проектов
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  skillsNeeded: string[];
-  mode: 'remote' | 'onsite' | 'hybrid';
-  location?: string;
-  ownerUid: string;
-  ownerName?: string;
-  ownerRole?: string;
-  ownerAvatar?: string;
-  teamSize?: number;
-  createdAt: any;
-  isOpen: boolean;
+// Extend the Project interface to include matchScore
+interface Project extends BaseProject {
   matchScore?: number;
 }
 
-// Типы для фильтров
-interface Filters {
-  search: string;
-  tags: string[];
-  skills: string[];
-  mode: string;
-  sortBy: string;
-  sortDirection: 'asc' | 'desc';
-  isOpenOnly: boolean;
-  teamSizeRange: [number, number];
+// Define the page structure for the infinite query
+interface ProjectPage {
+  projects: Project[];
+  lastVisible: any;
+  hasMore: boolean;
 }
 
-const defaultFilters: Filters = {
-  search: '',
-  tags: [],
-  skills: [],
-  mode: 'all',
-  sortBy: 'createdAt',
-  sortDirection: 'desc',
-  isOpenOnly: true,
-  teamSizeRange: [1, 20]
-};
-
 // Режимы работы с переводом
-const modeTranslations = {
+const modeTranslations: Record<string, string> = {
   all: 'Все форматы',
   remote: 'Удалённо',
   onsite: 'На месте',
@@ -118,18 +89,24 @@ const skeletonVariants = {
 
 const NetworkingProjects: React.FC = () => {
   const [user] = useAuthState(auth);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [searchInput, setSearchInput] = useState('');
-  const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
-  const [hasMore, setHasMore] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [skeletonCount, setSkeletonCount] = useState(6);
   const [showFilters, setShowFilters] = useState(false);
-  const [errorState, setErrorState] = useState<{isError: boolean, message: string}>({isError: false, message: ''});
+  
+  // Параметры запроса с использованием React Query
+  const [queryParams, setQueryParams] = useState<UseAllProjectsParams>({
+    isOpenOnly: true,
+    mode: 'all',
+    sortBy: 'createdAt',
+    sortDirection: 'desc',
+    search: '',
+    selectedTags: [],
+    selectedSkills: [],
+    teamSizeRange: [1, 20],
+    pageSize: 12
+  });
   
   // Хук для определения видимости элемента для бесконечной прокрутки
   const [loadMoreRef, inView] = useInView({
@@ -140,6 +117,24 @@ const NetworkingProjects: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const toast = useToast();
+  
+  // Используем React Query для загрузки проектов с правильной типизацией
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error
+  } = useInfiniteProjects(queryParams);
+  
+  // Собираем все проекты из всех страниц с правильной типизацией
+  const projects = data?.pages.flatMap((page) => {
+    // Ensure page is properly typed
+    const typedPage = page as ProjectPage;
+    return typedPage.projects;
+  }) || [];
   
   // Цвета и стили в зависимости от темы
   const bgColor = useColorModeValue('white', 'gray.800');
@@ -176,22 +171,29 @@ const NetworkingProjects: React.FC = () => {
     };
   }, []);
   
-  // Загрузка проектов при изменении фильтров
+  // Загрузка следующей страницы при скролле
   useEffect(() => {
-    fetchProjects(true);
-  }, [filters.isOpenOnly, filters.mode, filters.sortBy, filters.sortDirection]);
-  
-  // Загрузка следующей партии проектов при скролле
-  useEffect(() => {
-    if (inView && !loading && !loadingMore && hasMore) {
-      loadMore();
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  }, [inView, loading, loadingMore, hasMore]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  
+  // Показываем ошибку, если она есть
+  useEffect(() => {
+    if (isError && error) {
+      toast({
+        title: "Ошибка загрузки",
+        description: error instanceof Error ? error.message : "Не удалось загрузить проекты. Пожалуйста, попробуйте позже.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [isError, error, toast]);
   
   // Поиск при нажатии на кнопку или Enter
   const handleSearch = () => {
-    setFilters({ ...filters, search: searchInput });
-    fetchProjects(true);
+    setQueryParams({ ...queryParams, search: searchInput });
   };
   
   // Обработка нажатия Enter в поле поиска
@@ -201,180 +203,19 @@ const NetworkingProjects: React.FC = () => {
     }
   };
   
-  // Функция загрузки проектов
-  const fetchProjects = async (reset = false) => {
-    try {
-      setLoading(reset);
-      setErrorState({isError: false, message: ''});
-      
-      if (reset) {
-        setLastVisible(null);
-        setProjects([]);
-        setHasMore(true);
-      }
-      
-      if (!reset && !hasMore) return;
-      
-      // Создаем базовый запрос
-      let projectsQuery: Query = collection(db, 'projects');
-      
-      // Применяем фильтры на уровне базы данных где возможно
-      // Убираем фильтрацию по isOpen на уровне базы данных, чтобы избежать необходимости в составном индексе
-      
-      if (filters.mode !== 'all') {
-        projectsQuery = query(projectsQuery, where('mode', '==', filters.mode));
-      }
-      
-      // Добавляем сортировку
-      projectsQuery = query(
-        projectsQuery, 
-        orderBy(filters.sortBy, filters.sortDirection),
-        limit(12) // Загружаем партиями по 12 проектов
-      );
-      
-      // Если загружаем следующую страницу
-      if (!reset && lastVisible) {
-        projectsQuery = query(
-          projectsQuery,
-          startAfter(lastVisible)
-        );
-      }
-      
-      const projectsSnapshot = await getDocs(projectsQuery);
-      
-      // Обновляем указатель на последний видимый документ
-      const lastDoc = projectsSnapshot.docs[projectsSnapshot.docs.length - 1];
-      setLastVisible(lastDoc);
-      
-      // Проверяем, есть ли еще данные
-      setHasMore(projectsSnapshot.docs.length === 12);
-      
-      if (projectsSnapshot.empty) {
-        setProjects(reset ? [] : [...projects]);
-        return;
-      }
-      
-      // Преобразуем документы в объекты проектов с загрузкой информации о владельцах
-      const fetchedProjects = await Promise.all(
-        projectsSnapshot.docs.map(async (doc) => {
-          const data = doc.data() as Project;
-          
-          // Загружаем информацию о владельце проекта
-          let ownerName = 'Неизвестный пользователь';
-          let ownerRole = '';
-          let ownerAvatar = '';
-          
-          if (data.ownerUid) {
-            try {
-              const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', data.ownerUid)));
-              if (!userDoc.empty) {
-                const userData = userDoc.docs[0].data();
-                ownerName = userData.displayName || 'Неизвестный пользователь';
-                ownerRole = userData.role || '';
-                ownerAvatar = userData.photoURL || '';
-              }
-            } catch (error) {
-              console.error('Ошибка загрузки данных о владельце проекта:', error);
-            }
-          }
-          
-          return {
-            ...data,
-            id: doc.id,
-            ownerName,
-            ownerRole,
-            ownerAvatar
-          };
-        })
-      );
-      
-      // Применяем клиентскую фильтрацию для поиска и тегов/навыков
-      let filteredProjects = fetchedProjects;
-      
-      // Фильтрация по isOpen на клиенте
-      if (filters.isOpenOnly) {
-        filteredProjects = filteredProjects.filter(project => project.isOpen === true);
-      }
-      
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        filteredProjects = filteredProjects.filter(project => 
-          project.title.toLowerCase().includes(searchLower) ||
-          project.description.toLowerCase().includes(searchLower) ||
-          project.tags.some(tag => tag.toLowerCase().includes(searchLower)) ||
-          project.skillsNeeded.some(skill => skill.toLowerCase().includes(searchLower))
-        );
-      }
-      
-      if (selectedTags.length > 0) {
-        filteredProjects = filteredProjects.filter(project =>
-          selectedTags.some(tag => project.tags.includes(tag))
-        );
-      }
-      
-      if (selectedSkills.length > 0) {
-        filteredProjects = filteredProjects.filter(project =>
-          selectedSkills.some(skill => project.skillsNeeded.includes(skill))
-        );
-      }
-      
-      if (filters.teamSizeRange[0] > 1 || filters.teamSizeRange[1] < 20) {
-        filteredProjects = filteredProjects.filter(project => {
-          const teamSize = project.teamSize || 1;
-          return teamSize >= filters.teamSizeRange[0] && teamSize <= filters.teamSizeRange[1];
-        });
-      }
-      
-      // Имитируем добавление matchScore для отображения в карточке
-      const projectsWithScores = filteredProjects.map(project => ({
-        ...project,
-        matchScore: Math.random() * 0.5 + 0.5 // Генерируем случайные оценки между 0.5 и 1.0 для демонстрации
-      }));
-      
-      // Обновляем список проектов
-      setProjects(reset ? projectsWithScores : [...projects, ...projectsWithScores]);
-      
-      // Если после фильтрации не осталось проектов, показываем сообщение
-      if (reset && projectsWithScores.length === 0) {
-        toast({
-          title: "Проекты не найдены",
-          description: "Попробуйте изменить параметры поиска или фильтры",
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки проектов:', error);
-      setErrorState({
-        isError: true,
-        message: 'Не удалось загрузить проекты. Пожалуйста, попробуйте позже.'
-      });
-      
-      toast({
-        title: "Ошибка загрузки",
-        description: "Не удалось загрузить проекты. Пожалуйста, попробуйте позже.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
-  
-  // Загрузка следующей страницы
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      setLoadingMore(true);
-      fetchProjects(false);
-    }
-  };
-  
   // Сброс фильтров
   const resetFilters = () => {
-    setFilters(defaultFilters);
+    setQueryParams({
+      isOpenOnly: true,
+      mode: 'all',
+      sortBy: 'createdAt',
+      sortDirection: 'desc',
+      search: '',
+      selectedTags: [],
+      selectedSkills: [],
+      teamSizeRange: [1, 20],
+      pageSize: 12
+    });
     setSearchInput('');
     setSelectedTags([]);
     setSelectedSkills([]);
@@ -385,14 +226,12 @@ const NetworkingProjects: React.FC = () => {
       duration: 2000,
       isClosable: true,
     });
-    
-    fetchProjects(true);
   };
   
   // Изменение сортировки
   const toggleSortDirection = () => {
-    const newDirection = filters.sortDirection === 'asc' ? 'desc' : 'asc';
-    setFilters({ ...filters, sortDirection: newDirection });
+    const newDirection = queryParams.sortDirection === 'asc' ? 'desc' : 'asc';
+    setQueryParams({ ...queryParams, sortDirection: newDirection });
   };
   
   // Обработчик изменения тегов
@@ -447,12 +286,11 @@ const NetworkingProjects: React.FC = () => {
   
   // Применение фильтров и закрытие drawer
   const applyFilters = () => {
-    setFilters({
-      ...filters,
-      tags: selectedTags,
-      skills: selectedSkills
+    setQueryParams({
+      ...queryParams,
+      selectedTags,
+      selectedSkills
     });
-    fetchProjects(true);
     onClose();
     
     // Уведомление о применении фильтров
@@ -473,8 +311,8 @@ const NetworkingProjects: React.FC = () => {
   };
   
   // Получение всех уникальных тегов и навыков из проектов
-  const allTags = [...new Set(projects.flatMap(project => project.tags))];
-  const allSkills = [...new Set(projects.flatMap(project => project.skillsNeeded))];
+  const allTags = [...new Set(projects.flatMap(project => project.tags || []))];
+  const allSkills = [...new Set(projects.flatMap(project => project.skillsNeeded || []))];
   
   // Функция для отображения скелетонов загрузки
   const renderSkeletons = () => {
@@ -666,10 +504,10 @@ const NetworkingProjects: React.FC = () => {
     <Flex direction="column" align="center" justify="center" my={10} p={6} bg={highlightColor} borderRadius="lg">
       <Icon as={FaExclamationCircle} color="red.500" boxSize={12} mb={4} />
       <Heading size="md" mb={2}>Произошла ошибка</Heading>
-      <Text textAlign="center" mb={4}>{errorState.message}</Text>
+      <Text textAlign="center" mb={4}>{error instanceof Error ? error.message : "Не удалось загрузить проекты. Пожалуйста, попробуйте позже."}</Text>
       <Button 
         colorScheme="teal" 
-        onClick={() => fetchProjects(true)}
+        onClick={() => resetFilters()}
         leftIcon={<FaSearch />}
       >
         Попробовать снова
@@ -691,6 +529,14 @@ const NetworkingProjects: React.FC = () => {
       </Button>
     </Flex>
   );
+  
+  // Fix the mode type issues
+  const handleModeChange = (newMode: string) => {
+    // Ensure the mode is one of the allowed values
+    if (newMode === 'all' || newMode === 'remote' || newMode === 'onsite' || newMode === 'hybrid') {
+      setQueryParams({ ...queryParams, mode: newMode as UseAllProjectsParams['mode'] });
+    }
+  };
   
   return (
     <Box bgGradient={pageGradient} minH="100vh" p={{ base: 3, md: 6 }}>
@@ -774,9 +620,9 @@ const NetworkingProjects: React.FC = () => {
               </InputGroup>
               
               <Select
-                value={filters.mode}
+                value={queryParams.mode}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
-                  setFilters({ ...filters, mode: e.target.value })}
+                  handleModeChange(e.target.value)}
                 flex={{ md: 1 }}
                 maxW={{ md: '180px' }}
               >
@@ -786,9 +632,9 @@ const NetworkingProjects: React.FC = () => {
               </Select>
               
               <Select
-                value={filters.sortBy}
+                value={queryParams.sortBy}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
-                  setFilters({ ...filters, sortBy: e.target.value })}
+                  setQueryParams({ ...queryParams, sortBy: e.target.value })}
                 flex={{ md: 1 }}
                 maxW={{ md: '200px' }}
               >
@@ -800,7 +646,7 @@ const NetworkingProjects: React.FC = () => {
               <Flex align="center" gap={2}>
                 <IconButton
                   aria-label="Изменить порядок сортировки"
-                  icon={filters.sortDirection === 'desc' ? <FaSortAmountDown /> : <FaSortAmountUpAlt />}
+                  icon={queryParams.sortDirection === 'desc' ? <FaSortAmountDown /> : <FaSortAmountUpAlt />}
                   onClick={toggleSortDirection}
                   variant="ghost"
                   size="md"
@@ -809,8 +655,8 @@ const NetworkingProjects: React.FC = () => {
                 <Flex align="center">
                   <Switch
                     id="open-only"
-                    isChecked={filters.isOpenOnly}
-                    onChange={(e) => setFilters({ ...filters, isOpenOnly: e.target.checked })}
+                    isChecked={queryParams.isOpenOnly}
+                    onChange={(e) => setQueryParams({ ...queryParams, isOpenOnly: e.target.checked })}
                     colorScheme="teal"
                     mr={2}
                   />
@@ -865,20 +711,20 @@ const NetworkingProjects: React.FC = () => {
           {/* Контент: список проектов, состояние загрузки или ошибки */}
           <Box mt={4}>
             <AnimatePresence mode="wait">
-              {loading ? (
+              {isLoading ? (
                 <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6} key="loading">
                   {renderSkeletons()}
                 </SimpleGrid>
-              ) : errorState.isError ? (
+              ) : isError ? (
                 <Box key="error">{renderErrorState()}</Box>
               ) : projects.length > 0 ? (
                 <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6} key="projects">
                   {projects.map((project, index) => renderProjectCard(project, index))}
                   
                   {/* Элемент для отслеживания конца списка для бесконечной прокрутки */}
-                  {hasMore && (
+                  {hasNextPage && (
                     <Box ref={loadMoreRef} height="100px" width="100%" key="loadMore">
-                      {loadingMore && (
+                      {isFetchingNextPage && (
                         <Flex justify="center" align="center" height="100%">
                           <Spinner size="lg" color="teal.500" thickness="3px" />
                         </Flex>
@@ -892,10 +738,10 @@ const NetworkingProjects: React.FC = () => {
             </AnimatePresence>
             
             {/* Кнопка "Загрузить еще" как альтернатива бесконечной прокрутке */}
-            {!loading && !loadingMore && hasMore && projects.length > 0 && (
+            {!isFetchingNextPage && hasNextPage && projects.length > 0 && (
               <Flex justify="center" mt={8}>
                 <Button
-                  onClick={loadMore}
+                  onClick={() => fetchNextPage()}
                   colorScheme="teal"
                   variant="outline"
                   leftIcon={<FaSearch />}
@@ -922,26 +768,26 @@ const NetworkingProjects: React.FC = () => {
               <Box>
                 <FormLabel fontWeight="medium">Размер команды</FormLabel>
                 <Flex align="center">
-                  <Text mr={2} fontWeight="medium">{filters.teamSizeRange[0]}</Text>
+                  <Text mr={2} fontWeight="medium">{queryParams.teamSizeRange[0]}</Text>
                   <RangeSlider
-                    defaultValue={filters.teamSizeRange}
+                    defaultValue={queryParams.teamSizeRange}
                     min={1}
                     max={20}
                     step={1}
-                    onChange={(val: number[]) => setFilters({ ...filters, teamSizeRange: [val[0], val[1]] as [number, number] })}
+                    onChange={(val: number[]) => setQueryParams({ ...queryParams, teamSizeRange: [val[0], val[1]] as [number, number] })}
                     colorScheme="teal"
                   >
                     <RangeSliderTrack bg="teal.100">
                       <RangeSliderFilledTrack bg="teal.500" />
                     </RangeSliderTrack>
-                    <Tooltip label={filters.teamSizeRange[0]} placement="top">
+                    <Tooltip label={queryParams.teamSizeRange[0]} placement="top">
                       <RangeSliderThumb index={0} />
                     </Tooltip>
-                    <Tooltip label={filters.teamSizeRange[1]} placement="top">
+                    <Tooltip label={queryParams.teamSizeRange[1]} placement="top">
                       <RangeSliderThumb index={1} />
                     </Tooltip>
                   </RangeSlider>
-                  <Text ml={2} fontWeight="medium">{filters.teamSizeRange[1]}+</Text>
+                  <Text ml={2} fontWeight="medium">{queryParams.teamSizeRange[1]}+</Text>
                 </Flex>
                 <FormHelperText>Выберите диапазон размера команды</FormHelperText>
               </Box>
@@ -956,9 +802,9 @@ const NetworkingProjects: React.FC = () => {
                       <Button
                         key={value}
                         size="sm"
-                        colorScheme={filters.mode === value ? 'teal' : 'gray'}
-                        variant={filters.mode === value ? 'solid' : 'outline'}
-                        onClick={() => setFilters({ ...filters, mode: value })}
+                        colorScheme={queryParams.mode === value ? 'teal' : 'gray'}
+                        variant={queryParams.mode === value ? 'solid' : 'outline'}
+                        onClick={() => handleModeChange(value)}
                         leftIcon={
                           value === 'remote' ? <FaGlobe /> : 
                           value === 'onsite' ? <FaMapMarkerAlt /> : 

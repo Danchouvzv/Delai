@@ -70,7 +70,7 @@ const handleGeminiError = (error: any): string => {
 };
 
 // Function to generate text using Gemini API
-export async function generateText(prompt: string, role: string = 'career advisor') {
+export async function generateText(prompt: string, role: string = 'career advisor'): Promise<string | { text: string }> {
   try {
     console.log('generateText вызван с параметрами:', { prompt, role });
     
