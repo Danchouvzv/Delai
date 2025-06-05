@@ -13,10 +13,24 @@ import {
   useColorModeValue,
   Button,
   Tooltip,
-  Spacer
+  Spacer,
+  CircularProgress,
+  CircularProgressLabel,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverHeader,
+  PopoverBody,
+  PopoverArrow,
+  PopoverCloseButton,
+  VStack,
+  Divider,
+  Grid,
+  GridItem,
+  Icon
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { FaThumbsUp, FaInfoCircle, FaCheck, FaTimes, FaClock } from 'react-icons/fa';
+import { FaThumbsUp, FaInfoCircle, FaCheck, FaTimes, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { ApplicationStatus } from '../../hooks/useApplicationStatuses';
 
@@ -33,6 +47,16 @@ interface ProjectCardProps {
   teamSize: number;
   onApply?: (projectId: string) => void;
   applicationStatus?: ApplicationStatus;
+  matchScore?: number;
+  factorScores?: {
+    skills: number;
+    interests: number;
+    experience: number;
+    mode: number;
+    availability: number;
+    teamFit: number;
+  };
+  reasonTags?: string[];
 }
 
 /**
@@ -48,7 +72,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   ownerAvatar,
   teamSize,
   onApply,
-  applicationStatus
+  applicationStatus,
+  matchScore,
+  factorScores,
+  reasonTags
 }) => {
   const navigate = useNavigate();
   
@@ -57,23 +84,34 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     navigate(`/project/${projectId}`);
   };
   
-  // Цвета для светлой/темной темы
+  // Улучшенные цвета для светлой/темной темы
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorder = useColorModeValue('gray.200', 'gray.700');
-  const textColor = useColorModeValue('gray.700', 'gray.200');
+  const cardHoverBg = useColorModeValue('gray.50', 'gray.750');
+  const textColor = useColorModeValue('gray.800', 'gray.100');
   const mutedColor = useColorModeValue('gray.600', 'gray.400');
+  const tagBg = useColorModeValue('orange.50', 'orange.900');
+  const tagColor = useColorModeValue('orange.600', 'orange.200');
+  const scoreColor = useColorModeValue(
+    matchScore && matchScore >= 80 ? 'green.500' : 
+    matchScore && matchScore >= 60 ? 'yellow.500' : 
+    'red.500',
+    matchScore && matchScore >= 80 ? 'green.300' : 
+    matchScore && matchScore >= 60 ? 'yellow.300' : 
+    'red.300'
+  );
   
   // Цвета для режимов работы
   const getModeColor = (mode: string) => {
     switch (mode) {
       case 'remote':
-        return 'green';
+        return useColorModeValue('green.500', 'green.300');
       case 'onsite':
-        return 'blue';
+        return useColorModeValue('blue.500', 'blue.300');
       case 'hybrid':
-        return 'purple';
+        return useColorModeValue('purple.500', 'purple.300');
       default:
-        return 'gray';
+        return useColorModeValue('gray.500', 'gray.300');
     }
   };
   
@@ -89,6 +127,59 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       default:
         return mode;
     }
+  };
+  
+  // Render Connect-6 factor scores if available
+  const renderFactorScores = () => {
+    if (!factorScores) return null;
+    
+    const factorLabels = {
+      skills: 'Навыки',
+      interests: 'Интересы',
+      experience: 'Опыт',
+      mode: 'Режим работы',
+      availability: 'Доступность',
+      teamFit: 'Команда'
+    };
+    
+    const getScoreIcon = (score: number) => {
+      if (score >= 0.7) return FaCheckCircle;
+      if (score <= 0.3) return FaTimesCircle;
+      return FaInfoCircle;
+    };
+    
+    const getScoreColor = (score: number) => {
+      if (score >= 0.7) return 'green.500';
+      if (score <= 0.3) return 'red.500';
+      return 'yellow.500';
+    };
+    
+    // Count matched factors (score >= 0.7)
+    const matchedFactors = Object.values(factorScores).filter(score => score >= 0.7).length;
+    
+    return (
+      <VStack align="stretch" spacing={3}>
+        <Text fontWeight="medium" fontSize="sm">
+          {matchedFactors} из 6 факторов совпадают
+        </Text>
+        <Grid templateColumns="repeat(2, 1fr)" gap={2}>
+          {Object.entries(factorScores).map(([factor, score]) => (
+            <GridItem key={factor}>
+              <HStack spacing={1}>
+                <Icon 
+                  as={getScoreIcon(score)} 
+                  color={getScoreColor(score)} 
+                  boxSize="12px" 
+                />
+                <Text fontSize="xs">
+                  {factorLabels[factor as keyof typeof factorLabels]}
+                </Text>
+              </HStack>
+            </GridItem>
+          ))}
+        </Grid>
+      </VStack>
+    );
   };
   
   // Отображение статуса заявки
@@ -161,9 +252,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       overflow="hidden"
       bg={cardBg}
       boxShadow="sm"
-      _hover={{ boxShadow: 'md' }}
+      _hover={{ 
+        boxShadow: 'md',
+        bg: cardHoverBg,
+        borderColor: useColorModeValue('gray.300', 'gray.600')
+      }}
       role="article"
       aria-labelledby={`project-title-${projectId}`}
+      sx={{
+        transition: "all 0.2s ease-in-out",
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: 'lg'
+        }
+      }}
     >
       <Box p={5}>
         <Flex align="center" mb={4}>
@@ -172,6 +274,53 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             {ownerName}
           </Text>
           <Spacer />
+          
+          {/* Match Score with Popover */}
+          {matchScore !== undefined && (
+            <Popover placement="top" trigger="hover">
+              <PopoverTrigger>
+                <Box position="relative" cursor="pointer">
+                  <CircularProgress 
+                    value={matchScore} 
+                    color={scoreColor}
+                    size="40px"
+                    thickness="8px"
+                    mr={3}
+                  >
+                    <CircularProgressLabel fontSize="xs" fontWeight="bold">
+                      {matchScore}%
+                    </CircularProgressLabel>
+                  </CircularProgress>
+                </Box>
+              </PopoverTrigger>
+              <PopoverContent>
+                <PopoverArrow />
+                <PopoverCloseButton />
+                <PopoverHeader fontWeight="semibold">
+                  Совместимость: {matchScore}%
+                </PopoverHeader>
+                <PopoverBody>
+                  {renderFactorScores()}
+                  {reasonTags && reasonTags.length > 0 && (
+                    <>
+                      <Divider my={2} />
+                      <Text fontSize="xs" fontWeight="medium" mb={1}>
+                        Почему этот проект подходит вам:
+                      </Text>
+                      <HStack flexWrap="wrap" spacing={1}>
+                        {reasonTags.slice(0, 3).map((tag, i) => (
+                          <Badge key={i} colorScheme="green" fontSize="2xs" px={1}>
+                            {tag.replace(/_/g, ' ')}
+                          </Badge>
+                        ))}
+                      </HStack>
+                    </>
+                  )}
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
+          )}
+          
           {renderApplicationStatus()}
         </Flex>
         
@@ -197,7 +346,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               key={tag}
               borderRadius="full"
               variant="subtle"
-              colorScheme="orange"
+              bg={tagBg}
+              color={tagColor}
               mb={2}
             >
               <TagLabel>{tag}</TagLabel>
@@ -221,7 +371,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             <Badge colorScheme={getModeColor(mode)}>
               {getModeLabel(mode)}
             </Badge>
-            <Badge>
+            <Badge colorScheme={useColorModeValue('gray', 'gray')}>
               {teamSize} {teamSize === 1 ? 'участник' : teamSize < 5 ? 'участника' : 'участников'}
             </Badge>
           </HStack>
@@ -231,6 +381,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             rightIcon={<FaInfoCircle />}
             variant="ghost"
             colorScheme="blue"
+            _hover={{
+              bg: useColorModeValue('blue.50', 'blue.900')
+            }}
             onClick={(e) => {
               e.stopPropagation();
               goToProject();

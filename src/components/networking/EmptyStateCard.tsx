@@ -37,25 +37,36 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const iconBgColor = useColorModeValue(`${colorScheme}.50`, `${colorScheme}.900`);
   const iconColor = useColorModeValue(`${colorScheme}.500`, `${colorScheme}.200`);
+  const headingColor = useColorModeValue('gray.800', 'gray.100');
+  const textColor = useColorModeValue('gray.600', 'gray.400');
+  
+  // Animation variants
+  const iconAnimation = {
+    initial: { scale: 1 },
+    animate: { 
+      scale: [1, 1.05, 1],
+      transition: { 
+        repeat: Infinity, 
+        repeatType: "reverse" as const,
+        duration: 2
+      }
+    }
+  };
   
   return (
-    <MotionBox
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <Box
+      p={6}
       borderWidth="1px"
-      borderRadius="xl"
-      borderColor={borderColor}
-      p={8}
-      bg={bgColor}
-      boxShadow="sm"
+      borderRadius="lg"
       textAlign="center"
-      maxW="600px"
-      mx="auto"
-      role="alert"
+      sx={{
+        backgroundColor: bgColor,
+        borderColor: borderColor,
+        transition: "all 0.3s ease"
+      }}
     >
       <VStack spacing={6}>
-        <Box
+        <MotionBox
           bg={iconBgColor}
           p={4}
           borderRadius="full"
@@ -63,17 +74,21 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
+          initial="initial"
+          animate="animate"
+          variants={iconAnimation}
         >
           <Icon as={icon} boxSize="40px" color={iconColor} />
-        </Box>
+        </MotionBox>
         
-        <Heading size="md" fontWeight="bold">
-          {title}
-        </Heading>
-        
-        <Text color="gray.500">
-          {description}
-        </Text>
+        <VStack spacing={2}>
+          <Heading as="h3" size="md" color={headingColor}>
+            {title}
+          </Heading>
+          <Text color={textColor} maxW="400px">
+            {description}
+          </Text>
+        </VStack>
         
         {buttonText && onButtonClick && (
           <Button
@@ -82,13 +97,13 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
             size="md"
             mt={2}
             _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
-            transition="all 0.2s"
+            _active={{ transform: 'translateY(0)', boxShadow: 'sm' }}
           >
             {buttonText}
           </Button>
         )}
       </VStack>
-    </MotionBox>
+    </Box>
   );
 };
 
