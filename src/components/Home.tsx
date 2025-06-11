@@ -220,6 +220,16 @@ interface IconCardProps {
   delay?: number;
 }
 
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  link: string;
+  index: number;
+  bgColor: string;
+  iconBgColor: string;
+}
+
 interface UserData {
   displayName?: string;
   userType?: string;
@@ -230,6 +240,42 @@ interface UserData {
 interface UserContentProps {
   userData: UserData | null;
 }
+
+// Определения анимаций
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
+const textRevealVariants = {
+  hidden: { scaleX: 0 },
+  visible: {
+    scaleX: 1,
+    transition: {
+      duration: 0.8,
+      ease: "easeInOut",
+      delay: 0.5
+    }
+  }
+};
 
 // Анимационные стили
 const fadeIn = {
@@ -300,16 +346,96 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
         <AnimatedSection className="mb-12">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="mb-6 lg:mb-0">
-              <h1 className="text-4xl font-extrabold mb-2">
-                <span className="text-slate-800 dark:text-white">Привет, </span>
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                  {userData?.displayName || 'Студент'}
-            </span>
-                <span className="text-blue-500 animate-pulse ml-1">!</span>
-          </h1>
-              <p className="text-slate-600 dark:text-slate-300 text-lg">
-                Найдите идеальную вакансию для начала вашей карьеры
-          </p>
+              <h1 className="text-5xl sm:text-6xl font-extrabold mb-6 leading-tight">
+                <motion.span 
+                  className="relative inline-block"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  <GradientText className="animate-gradient">
+                    Первая зарплата → сегодня
+                  </GradientText>
+                  <motion.span 
+                    className="absolute -bottom-2 left-0 w-full h-3 bg-blue-200/30 dark:bg-blue-900/30 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  ></motion.span>
+                </motion.span>
+                <br />
+                <motion.span 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  className="text-slate-800 dark:text-white relative overflow-hidden inline-block text-3xl sm:text-4xl"
+                >
+                  Платформа, где школьники превращают навыки в реальные деньги
+                  <motion.div 
+                    className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500/30"
+                    variants={textRevealVariants}
+                    initial="hidden"
+                    animate="visible"
+                  />
+                </motion.span>
+              </h1>
+                
+              <motion.p 
+                variants={itemVariants}
+                className="text-xl leading-relaxed text-slate-600 dark:text-slate-300 mb-10"
+              >
+                1 минута регистрации → 1-я оплачиваемая задача. 
+                <span className="font-semibold text-blue-600 dark:text-blue-400 relative">
+                  AI подбирает вакансии, компании платят — ты растёшь.
+                </span>
+              </motion.p>
+                
+              <motion.div 
+                variants={itemVariants}
+                className="flex flex-wrap items-center gap-4"
+              >
+                <Link
+                  to="/signup"
+                  className="relative overflow-hidden rounded-xl group px-6 py-3 text-lg font-medium text-white shadow-xl transition-all duration-300"
+                >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600"></span>
+                  <span className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0"></span>
+                  <motion.span 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-20"
+                    animate={{ 
+                      background: [
+                        "radial-gradient(circle at 100% 0%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+                        "radial-gradient(circle at 0% 100%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+                        "radial-gradient(circle at 100% 0%, rgba(255,255,255,0.2) 0%, transparent 50%)"
+                      ]
+                    }}
+                    transition={{ duration: 5, repeat: Infinity }}
+                  />
+                  <span className="relative z-10 flex items-center">
+                    Забрать первую задачу 🚀
+                    <motion.svg 
+                      className="w-5 h-5 ml-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </motion.svg>
+                  </span>
+                </Link>
+                
+                <Link
+                  to="/jobs"
+                  className="text-lg font-medium text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center transition-all duration-300 group"
+                >
+                  Посмотреть 500+ активных задач
+                  <svg className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </motion.div>
             </div>
             <div>
             <Link
@@ -1453,9 +1579,32 @@ const EmployerContent: React.FC<UserContentProps> = ({ userData }) => {
     </motion.div>
   );
 };
-
 // Компонент для неавторизованных пользователей
 const UnauthorizedContent = () => {
+  // Refs для отслеживания позиции мыши для эффекта параллакса
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // Определяем переменные, используемые в компоненте
+  const xMovement = mousePosition.x * 10;
+  const yMovement = mousePosition.y * 10;
+  
+  // Эффект для отслеживания положения мыши
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const element = heroRef.current;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        setMousePosition({ x, y });
+      }
+    };
+    
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+  
   return (
     <motion.div 
       key="unauthorized-content"
@@ -1464,59 +1613,349 @@ const UnauthorizedContent = () => {
       exit={{ opacity: 0 }}
       className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden relative"
     >
+      {/* Фоновые элементы */}
       <div className="absolute inset-0 bg-[url('/assets/grid-pattern.svg')] bg-center opacity-5 dark:opacity-10"></div>
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-blue-400/10 dark:bg-blue-400/5 blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-indigo-400/10 dark:bg-indigo-400/5 blur-3xl"></div>
+      
+      {/* Анимированные фоновые пузыри */}
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-blue-400/10 dark:bg-blue-400/5 blur-3xl animate-blob"></div>
+      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-indigo-400/10 dark:bg-indigo-400/5 blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full bg-purple-400/10 dark:bg-purple-400/5 blur-3xl animate-blob animation-delay-4000"></div>
+      
+      {/* Декоративные плавающие элементы */}
+      <FloatingElement 
+        className="absolute top-1/4 left-10 w-20 h-20 rounded-lg bg-gradient-to-br from-blue-500/20 to-indigo-500/20 backdrop-blur-md border border-white/20 dark:border-white/5 hidden lg:block"
+        xMovement={30}
+        yMovement={20}
+        duration={12}
+      ></FloatingElement>
+      <FloatingElement 
+        className="absolute top-1/3 right-10 w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 backdrop-blur-md border border-white/20 dark:border-white/5 hidden lg:block"
+        xMovement={-20}
+        yMovement={30}
+        duration={15}
+        delay={2}
+      ></FloatingElement>
+      <FloatingElement 
+        className="absolute bottom-1/4 left-1/4 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border border-white/20 dark:border-white/5 hidden lg:block"
+        xMovement={25}
+        yMovement={-15}
+        duration={10}
+        delay={1}
+      ></FloatingElement>
+      
+      {/* Дополнительные декоративные элементы */}
+      <div className="absolute top-1/2 right-1/5 w-32 h-1 bg-gradient-to-r from-blue-500/20 to-transparent rounded-full hidden lg:block"></div>
+      <div className="absolute bottom-1/3 left-1/6 w-24 h-1 bg-gradient-to-r from-purple-500/20 to-transparent rounded-full hidden lg:block"></div>
       
       <div className="container mx-auto px-4 sm:px-6 relative z-10 py-20">
         {/* Hero секция */}
-        <AnimatedSection className="max-w-5xl mx-auto text-center mb-20">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              Платформа для вашей первой карьерной ступени
-            </span>
-          </h1>
-          <p className="text-xl leading-relaxed text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10">
-            JumysAL соединяет талантливых школьников с перспективными компаниями, помогая вам найти первую стажировку, работу или проект, соответствующие вашим навыкам и расписанию.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              to="/signup"
-              className="relative rounded-xl group bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-lg font-medium text-white shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-105 transition-all duration-300 overflow-hidden"
-            >
-              <span className="relative z-10">Начать сейчас</span>
-              <div className="absolute inset-0 h-full w-full scale-0 rounded-xl bg-white/20 transition-all duration-300 group-hover:scale-100"></div>
-            </Link>
-            <Link
-              to="/jobs"
-              className="text-lg font-medium text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center transition-all duration-300 group"
-            >
-              Смотреть вакансии
-              <svg className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+        <div className="max-w-5xl mx-auto mb-20" ref={heroRef}>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col lg:flex-row items-center"
+          >
+            {/* Левая колонка с текстом */}
+            <div className="lg:w-1/2 lg:pr-10 mb-10 lg:mb-0">
+              <motion.div variants={itemVariants}>
+                <h1 className="text-5xl sm:text-6xl font-extrabold mb-6 leading-tight">
+                  <motion.span 
+                    className="relative inline-block"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    <GradientText className="animate-gradient">
+                      Первая зарплата → сегодня
+                    </GradientText>
+                    <motion.span 
+                      className="absolute -bottom-2 left-0 w-full h-3 bg-blue-200/30 dark:bg-blue-900/30 rounded-full"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.5, duration: 0.8 }}
+                    ></motion.span>
+                  </motion.span>
+                  <br />
+                  <motion.span 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="text-slate-800 dark:text-white relative overflow-hidden inline-block text-3xl sm:text-4xl"
+                  >
+                    Платформа, где школьники превращают навыки в реальные деньги
+                    <motion.div 
+                      className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500/30"
+                      variants={textRevealVariants}
+                      initial="hidden"
+                      animate="visible"
+                    />
+                  </motion.span>
+                </h1>
+                
+                <motion.p 
+                  variants={itemVariants}
+                  className="text-xl leading-relaxed text-slate-600 dark:text-slate-300 mb-10"
+                >
+                  1 минута регистрации → 1-я оплачиваемая задача. 
+                  <span className="font-semibold text-blue-600 dark:text-blue-400 relative">
+                    AI подбирает вакансии, компании платят — ты растёшь.
+                  </span>
+                </motion.p>
+                
+                <motion.div 
+                  variants={itemVariants}
+                  className="flex flex-wrap items-center gap-4"
+                >
+                  <Link
+                    to="/signup"
+                    className="relative overflow-hidden rounded-xl group px-6 py-3 text-lg font-medium text-white shadow-xl transition-all duration-300"
+                  >
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600"></span>
+                    <span className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0"></span>
+                    <motion.span 
+                      className="absolute inset-0 opacity-0 group-hover:opacity-20"
+                      animate={{ 
+                        background: [
+                          "radial-gradient(circle at 100% 0%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+                          "radial-gradient(circle at 0% 100%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+                          "radial-gradient(circle at 100% 0%, rgba(255,255,255,0.2) 0%, transparent 50%)"
+                        ]
+                      }}
+                      transition={{ duration: 5, repeat: Infinity }}
+                    />
+                    <span className="relative z-10 flex items-center">
+                      Забрать первую задачу 🚀
+                      <motion.svg 
+                        className="w-5 h-5 ml-2" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </motion.svg>
+                    </span>
                   </Link>
+                  
+                  <Link
+                    to="/jobs"
+                    className="text-lg font-medium text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center transition-all duration-300 group"
+                  >
+                    Посмотреть 500+ активных задач
+                    <svg className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                </motion.div>
+              </motion.div>
         </div>
-        </AnimatedSection>
+            
+            {/* Правая колонка с изображением и UI элементами */}
+            <div className="lg:w-1/2 relative">
+              <motion.div 
+                className="relative z-10"
+                style={{ 
+                  transform: `perspective(1000px) rotateY(${xMovement * 0.01}deg) rotateX(${-yMovement * 0.01}deg)`
+                }}
+                transition={{ type: "spring", stiffness: 100 }}
+                variants={itemVariants}
+              >
+                <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-indigo-600/90 mix-blend-multiply"></div>
+                  <motion.img 
+                    src="/assets/hero-image.jpg" 
+                    alt="Студенты работают над проектом" 
+                    className="w-full h-full object-cover"
+                    initial={{ scale: 1.2, filter: "blur(5px)" }}
+                    animate={{ scale: 1, filter: "blur(0px)" }}
+                    transition={{ duration: 1.5 }}
+                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80";
+                    }}
+                  />
+                  
+                  {/* Плавающие UI элементы с эффектом параллакса */}
+                  <motion.div 
+                    className="absolute top-6 right-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-white/20 dark:border-slate-700/50 w-48"
+                    initial={{ opacity: 0, y: 20, x: 20 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    style={{ 
+                      transform: `translate(${-xMovement * 0.5}px, ${-yMovement * 0.5}px)`
+                    }}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                        <motion.svg 
+                          className="w-4 h-4" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.8, duration: 0.5, type: "spring" }}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </motion.svg>
+                      </div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-white">Заявка принята</div>
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-300">Компания рассмотрит вашу кандидатуру в течение 48 часов</div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="absolute bottom-6 left-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-white/20 dark:border-slate-700/50 w-56"
+                    initial={{ opacity: 0, y: 20, x: -20 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
+                    transition={{ delay: 0.8, duration: 0.5 }}
+                    style={{ 
+                      transform: `translate(${xMovement * 0.7}px, ${yMovement * 0.7}px)`
+                    }}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mr-3"></div>
+                      <div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">Стажировка в IT</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">Подходит: 95%</div>
+                      </div>
+                    </div>
+                    <motion.div 
+                      className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+                    >
+                      <motion.div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+                        initial={{ width: "0%" }}
+                        animate={{ width: "95%" }}
+                        transition={{ delay: 1.0, duration: 0.8 }}
+                      ></motion.div>
+                    </motion.div>
+                  </motion.div>
 
-        {/* Статистика */}
-        <AnimatedSection delay={0.1} className="mb-24">
+                  {/* Центральное уведомление с эффектом пульсации */}
+                  <motion.div 
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-3 rounded-xl shadow-xl border border-white/20 dark:border-slate-700/50 w-64"
+                    initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 1.2, duration: 0.5 }}
+                    style={{ 
+                      transform: `translate(calc(-50% + ${xMovement * 0.3}px), calc(-50% + ${yMovement * 0.3}px))`
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <motion.div 
+                        className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white mr-4 flex-shrink-0"
+                        animate={{ boxShadow: ["0 0 0 0 rgba(168, 85, 247, 0.4)", "0 0 0 10px rgba(168, 85, 247, 0)", "0 0 0 0 rgba(168, 85, 247, 0)"] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                        </svg>
+                      </motion.div>
+                      <div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">Новое предложение!</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">Компания TechStart ищет талантливых стажеров</div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Летающие частицы */}
+                  <motion.div 
+                    className="absolute inset-0 pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.5, duration: 1 }}
+                  >
+                    {Array.from({ length: 8 }).map((_, index) => (
+                      <motion.div
+                        key={index}
+                        className="absolute w-2 h-2 rounded-full bg-white/50"
+                        initial={{ 
+                          x: Math.random() * 400 - 200, 
+                          y: Math.random() * 400 - 200,
+                          opacity: 0
+                        }}
+                        animate={{ 
+                          x: Math.random() * 400 - 200, 
+                          y: Math.random() * 400 - 200,
+                          opacity: [0, 0.8, 0]
+                        }}
+                        transition={{ 
+                          duration: 3 + Math.random() * 5, 
+                          repeat: Infinity, 
+                          delay: index * 0.5,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    ))}
+                  </motion.div>
+                </div>
+              </motion.div>
+              
+              {/* Декоративные элементы с анимацией */}
+              <motion.div 
+                className="absolute -top-6 -right-6 w-32 h-32 bg-blue-200 dark:bg-blue-900/30 rounded-full blur-2xl -z-10"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div 
+                className="absolute -bottom-6 -left-6 w-32 h-32 bg-indigo-200 dark:bg-indigo-900/30 rounded-full blur-2xl -z-10"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Статистика с анимированными счетчиками и эффектом появления */}
+        <div className="mb-24">
           <div className="flex justify-center">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
             {[
-                { value: '500+', label: 'Активных вакансий' },
-                { value: '200+', label: 'Компаний' },
-                { value: '2,000+', label: 'Студентов' },
-                { value: '85%', label: 'Успешное трудоустройство' },
+                { value: '500+', label: 'Активных вакансий', icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+                { value: '200+', label: 'Компаний', icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
+                { value: '2,000+', label: 'Студентов', icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" },
+                { value: '85%', label: 'Успешное трудоустройство', icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
             ].map((stat, index) => (
-                <div key={index} className="text-center" style={{ animationDelay: `${index * 100}ms` }}>
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stat.value}</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-300">{stat.label}</div>
-              </div>
+                <motion.div 
+                  key={index} 
+                  className="text-center" 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
+                >
+                  <HoverCard className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-5 rounded-xl border border-slate-100 dark:border-slate-700/30">
+                    <motion.div 
+                      className="w-12 h-12 mx-auto mb-3 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"
+                      whileHover={{ rotate: 5 }}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.icon} />
+                      </svg>
+                    </motion.div>
+                    <motion.div 
+                      className="text-3xl font-bold text-blue-600 dark:text-blue-400"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 200, 
+                        damping: 10,
+                        delay: index * 0.1 + 0.5 
+                      }}
+                    >
+                      {stat.value}
+                    </motion.div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300 mt-1">{stat.label}</div>
+                  </HoverCard>
+                </motion.div>
             ))}
           </div>
         </div>
-        </AnimatedSection>
+        </div>
         
         {/* Ключевые особенности */}
         <AnimatedSection delay={0.2} className="mb-24">
@@ -1529,59 +1968,55 @@ const UnauthorizedContent = () => {
             </div>
           </div>
             <h2 className="text-3xl font-bold mb-6 pt-6 dark:text-white">
-              Ключевые <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">особенности</span>
+              Почему JumysAL — это <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">🚀 буст для карьеры</span>
           </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-              JumysAL — это не просто сайт для поиска работы. Мы предлагаем комплексную экосистему для развития вашей карьеры с первых шагов.
+              Мы не просто сайт для поиска работы. Мы — экосистема для быстрого старта и развития твоей карьеры.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: 'Умный поиск вакансий',
-                description: 'Находите вакансии, соответствующие вашим навыкам, интересам и доступному времени.',
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <FeatureCard
+              icon={
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                ),
-                link: '/jobs'
-              },
-              {
-                title: 'ИИ Генератор резюме',
-                description: 'Создавайте профессиональное резюме, адаптированное под конкретные вакансии за считанные секунды.',
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              }
+              title="Задачи, которые подходят на 95%"
+              description="Алгоритм рекомендует только те задания, где ты реально выстрелишь."
+              link="/jobs"
+              index={0}
+              bgColor="bg-gradient-to-br from-blue-600 to-indigo-700"
+              iconBgColor="bg-blue-500/30 backdrop-blur-sm"
+            />
+            
+            <FeatureCard
+              icon={
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                ),
-                link: '/resume-generator'
-              },
-              {
-                title: 'ИИ Карьерный ментор',
-                description: 'Получайте персонализированные карьерные советы и подготовку к собеседованиям от нашего ИИ-ассистента.',
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              }
+              title="PDF-резюме за 12 секунд"
+              description="Жми — AI сам подставит навыки под нужную вакансию."
+              link="/resume-generator"
+              index={1}
+              bgColor="bg-gradient-to-br from-indigo-600 to-purple-700"
+              iconBgColor="bg-indigo-500/30 backdrop-blur-sm"
+            />
+            
+            <FeatureCard
+              icon={
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                   </svg>
-                ),
-                link: '/ai-mentor'
               }
-            ].map((feature, index) => (
-              <Link to={feature.link} key={index} className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-xl border border-slate-100 dark:border-slate-700/30 hover:-translate-y-1 transition-all duration-300" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="mb-6 flex justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center">
-                  {feature.icon}
-                    </div>
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold mb-3 text-center text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{feature.title}</h3>
-                <p className="text-slate-600 dark:text-slate-300 text-center">{feature.description}</p>
-                <div className="w-1/3 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mx-auto mt-6 transform group-hover:scale-x-110 transition-transform duration-300 origin-center"></div>
-              </Link>
-            ))}
+              title="Чат-ментор 24/7"
+              description="Спроси: «Как пройти интервью?» — получи план в тот же миг."
+              link="/ai-mentor"
+              index={2}
+              bgColor="bg-gradient-to-br from-purple-600 to-pink-700"
+              iconBgColor="bg-purple-500/30 backdrop-blur-sm"
+            />
           </div>
         </AnimatedSection>
         
@@ -1608,8 +2043,8 @@ const UnauthorizedContent = () => {
               {[
                 {
                   step: '01',
-                  title: 'Создайте профиль',
-                  description: 'Зарегистрируйтесь и создайте свой профиль с информацией об образовании, навыках и опыте.',
+                  title: 'Создай профиль за 60 сек 🔑',
+                  description: 'Email + Google → добавь 3 навыка → готово.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1618,8 +2053,8 @@ const UnauthorizedContent = () => {
                 },
                 {
                   step: '02',
-                  title: 'Найдите возможности',
-                  description: 'Просматривайте вакансии, отфильтрованные в соответствии с вашими навыками и предпочтениями.',
+                  title: 'Swipe-подбор задач 🎯',
+                  description: 'Листай карточки; AI показывает процент совпадения.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -1628,8 +2063,8 @@ const UnauthorizedContent = () => {
                 },
                 {
                   step: '03',
-                  title: 'Подавайте заявки уверенно',
-                  description: 'Используйте наш ИИ-генератор резюме, чтобы создать адаптированное резюме и подать заявку прямо через платформу.',
+                  title: 'Отклик одним кликом ⚡',
+                  description: 'Генерируем резюме и отправляем — всё, жди ответа.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1638,8 +2073,8 @@ const UnauthorizedContent = () => {
                 },
                 {
                   step: '04',
-                  title: 'Получите свой первый опыт',
-                  description: 'Начните работу, приобретите ценный опыт и получите отзывы для вашего профессионального развития.',
+                  title: 'Получай оплату → апгрейд профиля 💸',
+                  description: 'Закрыл задачу — деньги на Kaspi, отзыв в профиль, рейтинг растёт.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905 0 .905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
@@ -1677,29 +2112,127 @@ const UnauthorizedContent = () => {
         
         {/* CTA */}
         <AnimatedSection delay={0.4} className="mb-24">
-          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl px-8 py-16 text-center text-white overflow-hidden">
-            <div className="absolute inset-0 bg-grid-white/10 bg-[size:30px_30px]"></div>
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="relative overflow-hidden rounded-3xl">
+            {/* Фоновый градиент */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700"></div>
             
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 relative z-10">Готовы начать свою карьеру?</h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-10 relative z-10">
-              Присоединяйтесь к тысячам студентов, которые уже нашли свой первый профессиональный опыт с JumysAL.
-              Создайте аккаунт, чтобы получить доступ ко всем возможностям платформы.
-            </p>
-            <div className="flex flex-wrap justify-center gap-6 relative z-10">
+            {/* Фоновый паттерн */}
+            <div className="absolute inset-0 bg-[url('/assets/grid-pattern.svg')] bg-center opacity-10"></div>
+            
+            {/* Декоративные элементы */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+            
+            {/* Плавающие элементы */}
+            <motion.div 
+              className="absolute top-10 right-10 w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hidden lg:block"
+              animate={{ 
+                y: [0, -15, 0],
+                rotate: [0, 5, 0]
+              }}
+              transition={{ 
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            ></motion.div>
+            
+            <motion.div 
+              className="absolute bottom-10 left-1/4 w-12 h-12 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hidden lg:block"
+              animate={{ 
+                y: [0, 20, 0],
+                rotate: [0, -10, 0]
+              }}
+              transition={{ 
+                duration: 7,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            ></motion.div>
+            
+            {/* Основной контент */}
+            <div className="relative px-8 py-20 text-center text-white z-10">
+              <motion.h2 
+                className="text-4xl md:text-5xl font-bold mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                Готовы начать свою <span className="relative inline-block">
+                  карьеру?
+                  <motion.span 
+                    className="absolute -bottom-2 left-0 w-full h-2 bg-white/30 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  ></motion.span>
+                </span>
+              </motion.h2>
+              
+              <motion.p 
+                className="text-xl text-blue-100 max-w-3xl mx-auto mb-10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.7 }}
+              >
+              Сомневаешься? Проверь бесплатно — первая задача без комиссии.
+              Присоединяйся к тысячам школьников, которые уже зарабатывают с JumysAL.
+              </motion.p>
+              
+              <motion.div 
+                className="flex flex-wrap justify-center gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.7 }}
+              >
               <Link
                 to="/signup"
-                className="px-8 py-4 bg-white text-blue-600 font-medium rounded-xl shadow-lg shadow-blue-700/30 hover:shadow-blue-700/50 transition-all duration-300 hover:scale-105"
+                  className="relative overflow-hidden group px-8 py-4 rounded-xl font-medium shadow-lg shadow-blue-700/30 hover:shadow-blue-700/50 transition-all duration-300"
               >
-                Зарегистрироваться
+                  <span className="absolute inset-0 bg-white"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                  <span className="relative z-10 text-blue-600 group-hover:text-white transition-colors duration-300">Получить первую задачу</span>
               </Link>
+                
               <Link
                 to="/login"
-                className="px-8 py-4 bg-transparent text-white font-medium rounded-xl border-2 border-white/30 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                  className="px-8 py-4 rounded-xl bg-transparent text-white font-medium border-2 border-white/30 hover:bg-white/10 transition-all duration-300"
               >
-                Войти
+                Войти в аккаунт
               </Link>
+              </motion.div>
+              
+              {/* Счетчики */}
+              <motion.div 
+                className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6, duration: 0.7 }}
+              >
+                {[
+                  { value: '500+', label: 'Активных задач' },
+                  { value: '₸ 2.5 млн', label: 'Выплачено за 90 дней' },
+                  { value: '2,000+', label: 'Школьников на платформе' },
+                  { value: '85%', label: 'Получают оффер ≤ 30 дней' },
+                ].map((stat, index) => (
+                  <motion.div 
+                    key={index} 
+                    className="text-center"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
+                  >
+                    <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+                    <div className="text-sm text-blue-100/80">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </motion.div>
                   </div>
                 </div>
         </AnimatedSection>
@@ -1713,18 +2246,16 @@ const UnauthorizedContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative">
               <div>
                 <h2 className="text-3xl font-bold mb-6 text-slate-800 dark:text-white">
-                  Вы <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">компания</span>?
+                  Нужен <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">ответственный джуниор</span>?
                 </h2>
                 <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-                  JumysAL помогает компаниям находить талантливых студентов и выпускников для стажировок, 
-                  проектной работы и постоянного трудоустройства. Создайте профиль компании, 
-                  публикуйте вакансии и используйте ИИ для подбора идеальных кандидатов.
+                  Мы уже нашли его для вас. 24 часа — и задача закрыта силами мотивированных школьников.
                 </p>
                 <Link
                   to="/company"
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-105"
                 >
-                  Узнать больше
+                  Опубликовать задачу за 3 мин ▶︎
                   <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -1742,10 +2273,10 @@ const UnauthorizedContent = () => {
                   </div>
                   <div className="space-y-4">
                     {[
-                      'Доступ к базе талантливых студентов',
-                      'ИИ-подбор кандидатов',
-                      'Аналитика и отчеты',
-                      'Брендинг работодателя'
+                      '⚡ 0 HR-часов — AI сам отбирает лучших',
+                      '📈 До 50 % дешевле, чем фриланс-биржи',
+                      '🔍 Прозрачная аналитика: статус, дедлайны, рейтинг исполнителя',
+                      '💙 Employer branding среди 2000+ NIS-студентов'
                     ].map((item, index) => (
                       <div key={index} className="flex items-center">
                         <div className="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center mr-3 flex-shrink-0">
@@ -1763,6 +2294,153 @@ const UnauthorizedContent = () => {
           </div>
         </AnimatedSection>
       </div>
+    </motion.div>
+  );
+};
+
+// Компонент для интерактивных карточек функций
+const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, link, index, bgColor, iconBgColor }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.1 * index }}
+      whileHover={{ y: -10 }}
+      className={`relative overflow-hidden rounded-2xl ${bgColor} p-8 shadow-xl border border-white/10`}
+    >
+      {/* Декоративный фоновый паттерн */}
+      <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
+      <div className="absolute -left-12 -top-12 w-40 h-40 rounded-full bg-white/5 blur-xl"></div>
+      
+      {/* Иконка */}
+      <div className="relative z-10 mb-6">
+        <div className={`w-16 h-16 rounded-2xl ${iconBgColor} flex items-center justify-center shadow-lg`}>
+          {icon}
+        </div>
+      </div>
+      
+      {/* Контент */}
+      <div className="relative z-10">
+        <h3 className="text-xl font-bold mb-3 text-white">{title}</h3>
+        <p className="text-white/80 mb-6">{description}</p>
+        
+        <Link to={link} className="inline-flex items-center text-white font-medium group">
+          <span>Подробнее</span>
+          <svg 
+            className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </Link>
+      </div>
+    </motion.div>
+  );
+};
+
+// Часть 1: Компоненты для продвинутых анимаций
+// Эти компоненты будут использоваться для создания креативных визуальных эффектов
+interface FloatingElementProps {
+  children?: React.ReactNode;
+  className?: string;
+  xMovement?: number;
+  yMovement?: number;
+  duration?: number;
+  delay?: number;
+}
+
+const FloatingElement: React.FC<FloatingElementProps> = ({ 
+  children, 
+  className = "", 
+  xMovement = 20, 
+  yMovement = 20, 
+  duration = 8, 
+  delay = 0 
+}) => {
+  return (
+    <motion.div
+      className={className}
+      animate={{
+        x: [0, xMovement, 0, -xMovement, 0],
+        y: [0, -yMovement, 0, yMovement, 0],
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        repeatType: "loop",
+        ease: "easeInOut",
+        delay,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+interface ParallaxElementProps {
+  children: React.ReactNode;
+  className?: string;
+  speed?: number;
+  initialOffset?: number;
+}
+
+const ParallaxElement: React.FC<ParallaxElementProps> = ({ children, className = "", speed = 0.5, initialOffset = 0 }) => {
+  const [scrollY, setScrollY] = useState(0);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+  
+  const yOffset = initialOffset + scrollY * speed;
+  
+  return (
+    <div 
+      className={className} 
+      style={{ transform: `translateY(${yOffset}px)` }}
+    >
+      {children}
+    </div>
+  );
+};
+
+interface GradientTextProps {
+  children: React.ReactNode;
+  className?: string;
+  from?: string;
+  to?: string;
+}
+
+const GradientText: React.FC<GradientTextProps> = ({ children, className = "", from = "blue-600", to = "indigo-600" }) => {
+  return (
+    <span className={`bg-clip-text text-transparent bg-gradient-to-r from-${from} to-${to} ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+interface HoverCardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const HoverCard: React.FC<HoverCardProps> = ({ children, className = "" }) => {
+  return (
+    <motion.div
+      className={`transition-all duration-300 ${className}`}
+      whileHover={{ 
+        y: -5, 
+        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+      }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {children}
     </motion.div>
   );
 };
