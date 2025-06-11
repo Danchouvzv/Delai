@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { ChartOptions } from 'chart.js';
+import CountUp from 'react-countup';
 
 // Register ChartJS components
 ChartJS.register(
@@ -353,8 +354,9 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  <GradientText className="animate-gradient">
-                    Первая зарплата → сегодня
+                  <div className="text-slate-800 dark:text-white font-normal mb-2">Нет опыта?</div>
+                  <GradientText className="animate-gradient text-4xl sm:text-5xl font-extrabold">
+                    Оплата через <CountUp end={48} duration={1.5} /> часов
                   </GradientText>
                   <motion.span 
                     className="absolute -bottom-2 left-0 w-full h-3 bg-blue-200/30 dark:bg-blue-900/30 rounded-full"
@@ -370,25 +372,52 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                   transition={{ duration: 0.8, delay: 0.4 }}
                   className="text-slate-800 dark:text-white relative overflow-hidden inline-block text-3xl sm:text-4xl"
                 >
-                  Платформа, где школьники превращают навыки в реальные деньги
-                  <motion.div 
-                    className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500/30"
-                    variants={textRevealVariants}
-                    initial="hidden"
-                    animate="visible"
-                  />
+                  Мы превращаем твои навыки в 
+                  <span className="relative">
+                    деньги
+                    <motion.div 
+                      className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500/30"
+                      variants={textRevealVariants}
+                      initial="hidden"
+                      animate="visible"
+                    />
+            </span>
+                  — даже если кейсов ноль
                 </motion.span>
-              </h1>
+          </h1>
                 
               <motion.p 
                 variants={itemVariants}
                 className="text-xl leading-relaxed text-slate-600 dark:text-slate-300 mb-10"
               >
-                1 минута регистрации → 1-я оплачиваемая задача. 
-                <span className="font-semibold text-blue-600 dark:text-blue-400 relative">
-                  AI подбирает вакансии, компании платят — ты растёшь.
+                <span className="badge badge-gray">
+                  <svg className="badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Оплата ≤ 48 часов
                 </span>
               </motion.p>
+              
+              <div className="flex flex-wrap gap-3 mb-8">
+                {[
+                  { text: '₸2,5 млн выплачено ученикам', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+                  { text: 'Отклик 1 клик — без HR-тестов', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122' },
+                  { text: '85% получают оффер ≤ 30 дн.', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
+                  { text: 'HR закрывает вкладку за 6 сек', icon: 'M6 18L18 6M6 6l12 12' },
+                  { text: 'JumysAL = кейс за 1 день', icon: 'M5 13l4 4L19 7' }
+                ].map((chip, index) => (
+                  <span 
+                    key={index}
+                    className="badge badge-gray"
+                    aria-label={chip.text}
+                  >
+                    <svg className="badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={chip.icon} />
+                    </svg>
+                    {chip.text}
+                  </span>
+                ))}
+              </div>
                 
               <motion.div 
                 variants={itemVariants}
@@ -396,9 +425,10 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
               >
                 <Link
                   to="/signup"
-                  className="relative overflow-hidden rounded-xl group px-6 py-3 text-lg font-medium text-white shadow-xl transition-all duration-300"
+                  className="relative overflow-hidden rounded-xl group px-6 py-3 text-lg font-medium text-white shadow-xl transition-all duration-300 hover:scale-105 will-change-transform"
+                  style={{ boxShadow: "0 10px 30px rgba(59,130,246,.4)" }}
                 >
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600"></span>
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></span>
                   <span className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0"></span>
                   <motion.span 
                     className="absolute inset-0 opacity-0 group-hover:opacity-20"
@@ -412,7 +442,7 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                     transition={{ duration: 5, repeat: Infinity }}
                   />
                   <span className="relative z-10 flex items-center">
-                    Забрать первую задачу 🚀
+                    Забрать первую задачу сейчас →₸
                     <motion.svg 
                       className="w-5 h-5 ml-2" 
                       fill="none" 
@@ -428,9 +458,9 @@ const StudentContent: React.FC<UserContentProps> = ({ userData }) => {
                 
                 <Link
                   to="/jobs"
-                  className="text-lg font-medium text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center transition-all duration-300 group"
+                  className="text-lg font-medium text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center transition-all duration-300 group px-5 py-3 rounded-full border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700"
                 >
-                  Посмотреть 500+ активных задач
+                  Смотреть все 500+ активных задач
                   <svg className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -1584,13 +1614,16 @@ const UnauthorizedContent = () => {
   // Refs для отслеживания позиции мыши для эффекта параллакса
   const heroRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const prefersReducedMotion = useReducedMotion();
   
   // Определяем переменные, используемые в компоненте
-  const xMovement = mousePosition.x * 10;
-  const yMovement = mousePosition.y * 10;
+  const xMovement = prefersReducedMotion ? 0 : mousePosition.x * 10;
+  const yMovement = prefersReducedMotion ? 0 : mousePosition.y * 10;
   
   // Эффект для отслеживания положения мыши
   useEffect(() => {
+    if (prefersReducedMotion) return;
+    
     const handleMouseMove = (e: MouseEvent) => {
       const element = heroRef.current;
       if (element) {
@@ -1603,6 +1636,15 @@ const UnauthorizedContent = () => {
     
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [prefersReducedMotion]);
+
+  // Аналитика для отслеживания кликов по CTA
+  const trackCTAClick = useCallback(() => {
+    // Проверка наличия gtag
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      // @ts-ignore
+      window.gtag('event', 'cta_click', { label: 'first_task' });
+    }
   }, []);
   
   return (
@@ -1624,21 +1666,21 @@ const UnauthorizedContent = () => {
       {/* Декоративные плавающие элементы */}
       <FloatingElement 
         className="absolute top-1/4 left-10 w-20 h-20 rounded-lg bg-gradient-to-br from-blue-500/20 to-indigo-500/20 backdrop-blur-md border border-white/20 dark:border-white/5 hidden lg:block"
-        xMovement={30}
-        yMovement={20}
+        xMovement={prefersReducedMotion ? 0 : 30}
+        yMovement={prefersReducedMotion ? 0 : 20}
         duration={12}
       ></FloatingElement>
       <FloatingElement 
         className="absolute top-1/3 right-10 w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 backdrop-blur-md border border-white/20 dark:border-white/5 hidden lg:block"
-        xMovement={-20}
-        yMovement={30}
+        xMovement={prefersReducedMotion ? 0 : -20}
+        yMovement={prefersReducedMotion ? 0 : 30}
         duration={15}
         delay={2}
       ></FloatingElement>
       <FloatingElement 
         className="absolute bottom-1/4 left-1/4 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border border-white/20 dark:border-white/5 hidden lg:block"
-        xMovement={25}
-        yMovement={-15}
+        xMovement={prefersReducedMotion ? 0 : 25}
+        yMovement={prefersReducedMotion ? 0 : -15}
         duration={10}
         delay={1}
       ></FloatingElement>
@@ -1666,15 +1708,10 @@ const UnauthorizedContent = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    <GradientText className="animate-gradient">
-                      Первая зарплата → сегодня
+                    <div className="text-slate-800 dark:text-white font-normal mb-2">Нет опыта?</div>
+                    <GradientText className="animate-gradient text-4xl sm:text-5xl font-extrabold">
+                      Превращаем навыки в деньги
                     </GradientText>
-                    <motion.span 
-                      className="absolute -bottom-2 left-0 w-full h-3 bg-blue-200/30 dark:bg-blue-900/30 rounded-full"
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{ delay: 0.5, duration: 0.8 }}
-                    ></motion.span>
                   </motion.span>
                   <br />
                   <motion.span 
@@ -1683,13 +1720,7 @@ const UnauthorizedContent = () => {
                     transition={{ duration: 0.8, delay: 0.4 }}
                     className="text-slate-800 dark:text-white relative overflow-hidden inline-block text-3xl sm:text-4xl"
                   >
-                    Платформа, где школьники превращают навыки в реальные деньги
-                    <motion.div 
-                      className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500/30"
-                      variants={textRevealVariants}
-                      initial="hidden"
-                      animate="visible"
-                    />
+                    Даже если кейсов ноль
                   </motion.span>
                 </h1>
                 
@@ -1697,11 +1728,34 @@ const UnauthorizedContent = () => {
                   variants={itemVariants}
                   className="text-xl leading-relaxed text-slate-600 dark:text-slate-300 mb-10"
                 >
-                  1 минута регистрации → 1-я оплачиваемая задача. 
-                  <span className="font-semibold text-blue-600 dark:text-blue-400 relative">
-                    AI подбирает вакансии, компании платят — ты растёшь.
+                  <span className="badge badge-gray">
+                    <svg className="badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Оплата ≤ 48 часов
                   </span>
                 </motion.p>
+                
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {[
+                    { text: '₸2,5 млн выплачено ученикам', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+                    { text: 'Отклик 1 клик — без HR-тестов', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122' },
+                    { text: '85% получают оффер ≤ 30 дн.', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
+                    { text: 'HR закрывает вкладку за 6 сек', icon: 'M6 18L18 6M6 6l12 12' },
+                    { text: 'JumysAL = кейс за 1 день', icon: 'M5 13l4 4L19 7' }
+                  ].map((chip, index) => (
+                    <span 
+                      key={index}
+                      className="badge badge-gray"
+                      aria-label={chip.text}
+                    >
+                      <svg className="badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={chip.icon} />
+                      </svg>
+                      {chip.text}
+                    </span>
+                  ))}
+                </div>
                 
                 <motion.div 
                   variants={itemVariants}
@@ -1709,9 +1763,12 @@ const UnauthorizedContent = () => {
                 >
                   <Link
                     to="/signup"
-                    className="relative overflow-hidden rounded-xl group px-6 py-3 text-lg font-medium text-white shadow-xl transition-all duration-300"
+                    className="relative overflow-hidden rounded-xl group w-full sm:w-auto px-6 py-4 text-lg md:text-xl font-medium text-white shadow-xl transition-all duration-300 hover:scale-105 will-change-transform"
+                    style={{ boxShadow: "0 10px 30px rgba(59,130,246,.4)" }}
+                    onClick={trackCTAClick}
+                    aria-label="Зарегистрироваться и получить первую задачу"
                   >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600"></span>
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></span>
                     <span className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0"></span>
                     <motion.span 
                       className="absolute inset-0 opacity-0 group-hover:opacity-20"
@@ -1724,187 +1781,53 @@ const UnauthorizedContent = () => {
                       }}
                       transition={{ duration: 5, repeat: Infinity }}
                     />
-                    <span className="relative z-10 flex items-center">
-                      Забрать первую задачу 🚀
-                      <motion.svg 
-                        className="w-5 h-5 ml-2" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </motion.svg>
+                    <span className="relative z-10 flex items-center justify-center">
+                      Забрать первую задачу сейчас
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
                     </span>
-                  </Link>
-                  
-                  <Link
-                    to="/jobs"
-                    className="text-lg font-medium text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center transition-all duration-300 group"
-                  >
-                    Посмотреть 500+ активных задач
-                    <svg className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
                   </Link>
                 </motion.div>
               </motion.div>
-        </div>
-            
-            {/* Правая колонка с изображением и UI элементами */}
-            <div className="lg:w-1/2 relative">
-              <motion.div 
-                className="relative z-10"
-                style={{ 
-                  transform: `perspective(1000px) rotateY(${xMovement * 0.01}deg) rotateX(${-yMovement * 0.01}deg)`
-                }}
-                transition={{ type: "spring", stiffness: 100 }}
-                variants={itemVariants}
-              >
-                <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-indigo-600/90 mix-blend-multiply"></div>
-                  <motion.img 
-                    src="/assets/hero-image.jpg" 
-                    alt="Студенты работают над проектом" 
-                    className="w-full h-full object-cover"
-                    initial={{ scale: 1.2, filter: "blur(5px)" }}
-                    animate={{ scale: 1, filter: "blur(0px)" }}
-                    transition={{ duration: 1.5 }}
-                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80";
-                    }}
-                  />
-                  
-                  {/* Плавающие UI элементы с эффектом параллакса */}
-                  <motion.div 
-                    className="absolute top-6 right-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-white/20 dark:border-slate-700/50 w-48"
-                    initial={{ opacity: 0, y: 20, x: 20 }}
-                    animate={{ opacity: 1, y: 0, x: 0 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
-                    style={{ 
-                      transform: `translate(${-xMovement * 0.5}px, ${-yMovement * 0.5}px)`
-                    }}
-                  >
-                    <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
-                        <motion.svg 
-                          className="w-4 h-4" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.8, duration: 0.5, type: "spring" }}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </motion.svg>
-                      </div>
-                      <div className="text-sm font-medium text-slate-900 dark:text-white">Заявка принята</div>
-                    </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-300">Компания рассмотрит вашу кандидатуру в течение 48 часов</div>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className="absolute bottom-6 left-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-white/20 dark:border-slate-700/50 w-56"
-                    initial={{ opacity: 0, y: 20, x: -20 }}
-                    animate={{ opacity: 1, y: 0, x: 0 }}
-                    transition={{ delay: 0.8, duration: 0.5 }}
-                    style={{ 
-                      transform: `translate(${xMovement * 0.7}px, ${yMovement * 0.7}px)`
-                    }}
-                  >
-                    <div className="flex items-center mb-2">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mr-3"></div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">Стажировка в IT</div>
-                        <div className="text-xs text-slate-600 dark:text-slate-300">Подходит: 95%</div>
-                      </div>
-                    </div>
-                    <motion.div 
-                      className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
-                    >
-                      <motion.div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
-                        initial={{ width: "0%" }}
-                        animate={{ width: "95%" }}
-                        transition={{ delay: 1.0, duration: 0.8 }}
-                      ></motion.div>
-                    </motion.div>
-                  </motion.div>
-
-                  {/* Центральное уведомление с эффектом пульсации */}
-                  <motion.div 
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-3 rounded-xl shadow-xl border border-white/20 dark:border-slate-700/50 w-64"
-                    initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 1.2, duration: 0.5 }}
-                    style={{ 
-                      transform: `translate(calc(-50% + ${xMovement * 0.3}px), calc(-50% + ${yMovement * 0.3}px))`
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <motion.div 
-                        className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white mr-4 flex-shrink-0"
-                        animate={{ boxShadow: ["0 0 0 0 rgba(168, 85, 247, 0.4)", "0 0 0 10px rgba(168, 85, 247, 0)", "0 0 0 0 rgba(168, 85, 247, 0)"] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                        </svg>
-                      </motion.div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">Новое предложение!</div>
-                        <div className="text-xs text-slate-600 dark:text-slate-300">Компания TechStart ищет талантливых стажеров</div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Летающие частицы */}
-                  <motion.div 
-                    className="absolute inset-0 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5, duration: 1 }}
-                  >
-                    {Array.from({ length: 8 }).map((_, index) => (
-                      <motion.div
-                        key={index}
-                        className="absolute w-2 h-2 rounded-full bg-white/50"
-                        initial={{ 
-                          x: Math.random() * 400 - 200, 
-                          y: Math.random() * 400 - 200,
-                          opacity: 0
-                        }}
-                        animate={{ 
-                          x: Math.random() * 400 - 200, 
-                          y: Math.random() * 400 - 200,
-                          opacity: [0, 0.8, 0]
-                        }}
-                        transition={{ 
-                          duration: 3 + Math.random() * 5, 
-                          repeat: Infinity, 
-                          delay: index * 0.5,
-                          ease: "easeInOut"
-                        }}
-                      />
-                    ))}
-                  </motion.div>
-                </div>
-              </motion.div>
-              
-              {/* Декоративные элементы с анимацией */}
-              <motion.div 
-                className="absolute -top-6 -right-6 w-32 h-32 bg-blue-200 dark:bg-blue-900/30 rounded-full blur-2xl -z-10"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div 
-                className="absolute -bottom-6 -left-6 w-32 h-32 bg-indigo-200 dark:bg-indigo-900/30 rounded-full blur-2xl -z-10"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              />
             </div>
+            
+            {/* Правая колонка с изображением */}
+            <motion.div 
+              variants={itemVariants}
+              className="lg:w-1/2 relative"
+            >
+              {/* Фоновое свечение позади изображения */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 blur-3xl rounded-full transform scale-95 -translate-y-5"></div>
+              
+              {/* Карточка поверх фото - добавляем тень и непрозрачный фон */}
+              <div className="absolute z-10 bottom-10 -left-5 md:left-5 p-4 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-lg max-w-[280px] backdrop-blur-sm border border-white/50 dark:border-slate-700/50">
+                <div className="flex items-start space-x-4">
+                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-900/30 p-2">
+                    <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-slate-900 dark:text-white">Верифицированные задания</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Все проекты проверены нашей командой</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl transform hover:scale-[1.01] transition-transform duration-300 z-0">
+                <img 
+                  src="/assets/hero-image.jpg" 
+                  alt="Студенты обсуждают проект в современном коворкинге" 
+                  className="w-full h-auto object-cover" 
+                  width="600"
+                  height="450"
+                  loading="eager"
+                  decoding="async"
+                  sizes="(max-width: 768px) 100vw, 600px"
+                />
+              </div>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -1968,10 +1891,10 @@ const UnauthorizedContent = () => {
             </div>
           </div>
             <h2 className="text-3xl font-bold mb-6 pt-6 dark:text-white">
-              Почему JumysAL — это <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">🚀 буст для карьеры</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">3 инструмента</span> для первой зарплаты в 10-м классе
           </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-              Мы не просто сайт для поиска работы. Мы — экосистема для быстрого старта и развития твоей карьеры.
+              Мы не просто сайт вакансий. Мы — твой личный карьерный ускоритель с гарантией первого заработка.
             </p>
           </div>
           
@@ -1982,8 +1905,8 @@ const UnauthorizedContent = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
               }
-              title="Задачи, которые подходят на 95%"
-              description="Алгоритм рекомендует только те задания, где ты реально выстрелишь."
+              title="Задачи с 95% гарантией оплаты"
+              description="AI фильтрует вакансии по твоим навыкам и рекомендует только те, где оплата гарантирована."
               link="/jobs"
               index={0}
               bgColor="bg-gradient-to-br from-blue-600 to-indigo-700"
@@ -1997,7 +1920,7 @@ const UnauthorizedContent = () => {
                   </svg>
               }
               title="PDF-резюме за 12 секунд"
-              description="Жми — AI сам подставит навыки под нужную вакансию."
+              description="Нажми кнопку — AI мгновенно сгенерирует резюме под конкретную вакансию. HR точно заметит."
               link="/resume-generator"
               index={1}
               bgColor="bg-gradient-to-br from-indigo-600 to-purple-700"
@@ -2010,8 +1933,8 @@ const UnauthorizedContent = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                   </svg>
               }
-              title="Чат-ментор 24/7"
-              description="Спроси: «Как пройти интервью?» — получи план в тот же миг."
+              title="AI-ментор доступен 24/7"
+              description="Спроси: «Как пройти собеседование?» — получи готовый план действий через 3 секунды."
               link="/ai-mentor"
               index={2}
               bgColor="bg-gradient-to-br from-purple-600 to-pink-700"
@@ -2031,7 +1954,7 @@ const UnauthorizedContent = () => {
             </div>
           </div>
             <h2 className="text-3xl font-bold mb-6 pt-6 dark:text-white">
-              Как это <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">работает</span>
+              4 шага до <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">первой зарплаты</span>
           </h2>
           </div>
           
@@ -2043,8 +1966,8 @@ const UnauthorizedContent = () => {
               {[
                 {
                   step: '01',
-                  title: 'Создай профиль за 60 сек 🔑',
-                  description: 'Email + Google → добавь 3 навыка → готово.',
+                  title: 'Регистрация за 60 секунд 🔑',
+                  description: 'Быстрее, чем приготовить доширак! Email → Google-аккаунт → выбери 3 навыка → готово.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -2053,8 +1976,8 @@ const UnauthorizedContent = () => {
                 },
                 {
                   step: '02',
-                  title: 'Swipe-подбор задач 🎯',
-                  description: 'Листай карточки; AI показывает процент совпадения.',
+                  title: 'Моментальный подбор задач 🎯',
+                  description: 'Получи бесплатно 5+ идеальных вакансий с процентом совпадения. Листай как в Tinder — только здесь всегда матч!',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -2063,8 +1986,8 @@ const UnauthorizedContent = () => {
                 },
                 {
                   step: '03',
-                  title: 'Отклик одним кликом ⚡',
-                  description: 'Генерируем резюме и отправляем — всё, жди ответа.',
+                  title: 'Один клик = отправленное резюме ⚡',
+                  description: 'Наш AI сам генерирует идеальное резюме под вакансию и отправляет работодателю. Экономия: 45 минут на каждой заявке.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -2073,8 +1996,8 @@ const UnauthorizedContent = () => {
                 },
                 {
                   step: '04',
-                  title: 'Получай оплату → апгрейд профиля 💸',
-                  description: 'Закрыл задачу — деньги на Kaspi, отзыв в профиль, рейтинг растёт.',
+                  title: 'Гарантированная оплата на Kaspi 💸',
+                  description: 'Выполнил задачу — получил деньги, 5★ отзыв в профиль и +50 баллов к рейтингу. Каждый кейс = +30% к будущей зарплате.',
                   icon: (
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905 0 .905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
@@ -2159,8 +2082,8 @@ const UnauthorizedContent = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.7 }}
               >
-                Готовы начать свою <span className="relative inline-block">
-                  карьеру?
+                Первая работа <span className="relative inline-block">
+                  уже ждёт тебя
                   <motion.span 
                     className="absolute -bottom-2 left-0 w-full h-2 bg-white/30 rounded-full"
                     initial={{ scaleX: 0 }}
@@ -2178,8 +2101,8 @@ const UnauthorizedContent = () => {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2, duration: 0.7 }}
               >
-              Сомневаешься? Проверь бесплатно — первая задача без комиссии.
-              Присоединяйся к тысячам школьников, которые уже зарабатывают с JumysAL.
+              Секрет успеха прост: пока другие ищут идеальную стажировку месяцами, ты получишь реальный опыт и деньги уже сегодня. 
+              85% наших пользователей закрывают первую задачу за 48 часов.
               </motion.p>
               
               <motion.div 
@@ -2195,7 +2118,12 @@ const UnauthorizedContent = () => {
               >
                   <span className="absolute inset-0 bg-white"></span>
                   <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                  <span className="relative z-10 text-blue-600 group-hover:text-white transition-colors duration-300">Получить первую задачу</span>
+                  <span className="relative z-10 text-blue-600 group-hover:text-white transition-colors duration-300 flex items-center">
+                    Начать зарабатывать за 5 минут
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
               </Link>
                 
               <Link
@@ -2205,6 +2133,10 @@ const UnauthorizedContent = () => {
                 Войти в аккаунт
               </Link>
               </motion.div>
+              
+              <p className="text-sm text-blue-100/70 mt-4">
+                Регистрация займёт 60 секунд — и ни слова учителю 😉
+              </p>
               
               {/* Счетчики */}
               <motion.div 
@@ -2239,17 +2171,18 @@ const UnauthorizedContent = () => {
         
         {/* Секция для компаний */}
         <AnimatedSection delay={0.5} className="mb-24">
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-100 dark:border-slate-700/30 overflow-hidden relative">
+          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-sm rounded-2xl p-8 shadow-lg border border-slate-100 dark:border-slate-700/30 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-20 -mt-20"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/5 rounded-full -ml-20 -mb-20"></div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative">
               <div>
+                <span className="inline-block text-indigo-600 dark:text-indigo-400 font-semibold mb-2">ДЛЯ КОМПАНИЙ</span>
                 <h2 className="text-3xl font-bold mb-6 text-slate-800 dark:text-white">
-                  Нужен <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">ответственный джуниор</span>?
+                  Нужны <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">результаты вчера</span>? Получите готового исполнителя за 24 часа
                 </h2>
                 <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-                  Мы уже нашли его для вас. 24 часа — и задача закрыта силами мотивированных школьников.
+                  Забудьте о долгом поиске и неоправданных рисках. У нас уже есть пул мотивированных студентов, готовых закрыть ваши задачи с гарантией качества.
                 </p>
                 <Link
                   to="/company"
@@ -2260,6 +2193,9 @@ const UnauthorizedContent = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
               </Link>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                Первая публикация бесплатно. Оплата только за результат.
+              </p>
               </div>
               <div className="relative">
                 <div className="bg-white dark:bg-slate-700 rounded-2xl shadow-xl p-6 border border-slate-100 dark:border-slate-600/30">
@@ -2269,14 +2205,14 @@ const UnauthorizedContent = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">Преимущества для компаний</h3>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">Почему выбирают нас</h3>
                   </div>
                   <div className="space-y-4">
                     {[
-                      '⚡ 0 HR-часов — AI сам отбирает лучших',
-                      '📈 До 50 % дешевле, чем фриланс-биржи',
-                      '🔍 Прозрачная аналитика: статус, дедлайны, рейтинг исполнителя',
-                      '💙 Employer branding среди 2000+ NIS-студентов'
+                      '⚡ Экономия 90% HR-времени — AI сам находит идеальных кандидатов',
+                      '💰 До 50% дешевле фриланс-бирж + оплата только за результат',
+                      '📊 Полная прозрачность: дашборд с реальным статусом задач в реальном времени',
+                      '🎓 Доступ к эксклюзивному пулу из 2000+ талантливых NIS-студентов'
                     ].map((item, index) => (
                       <div key={index} className="flex items-center">
                         <div className="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center mr-3 flex-shrink-0">
@@ -2287,6 +2223,18 @@ const UnauthorizedContent = () => {
                         <p className="text-slate-700 dark:text-slate-200">{item}</p>
                       </div>
             ))}
+          </div>
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-600/30">
+            <div className="flex items-center">
+              <div className="flex -space-x-2 mr-3">
+                <img className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-700" src="https://randomuser.me/api/portraits/women/1.jpg" alt="Пользователь" />
+                <img className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-700" src="https://randomuser.me/api/portraits/men/1.jpg" alt="Пользователь" />
+                <img className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-700" src="https://randomuser.me/api/portraits/women/2.jpg" alt="Пользователь" />
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                <span className="font-medium text-indigo-600 dark:text-indigo-400">37 компаний</span> опубликовали задачи за последние 7 дней
+              </p>
+            </div>
           </div>
         </div>
       </div>

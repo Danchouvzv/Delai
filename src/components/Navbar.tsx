@@ -5,7 +5,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoSvg from '../screenshots/logo.svg'; // Импортируем SVG-логотип
 import ChatNotifications from './ChatNotifications';
-import { Menu } from '@headlessui/react';
+import { Menu, MenuItem } from '@headlessui/react';
+import { HStack, Text } from '@chakra-ui/react';
+import { FaRobot, FaFileAlt, FaFilePdf, FaNetworkWired, FaTasks } from 'react-icons/fa';
 
 const Navbar = () => {
   const { user, logout, userData } = useAuth();
@@ -122,6 +124,8 @@ const Navbar = () => {
         Главная
       </Link>
       
+     
+      
       {/* Вакансии и работа - выпадающее меню */}
       <Menu as="div" className="relative">
         {({ open }) => (
@@ -195,7 +199,7 @@ const Navbar = () => {
                 </Menu.Item>
                 
                 {/* Ссылка на страницу заявок - только для работодателей */}
-                {userData?.role === 'employer' || userData?.role === 'business' ? (
+                {(userData?.role === 'employer' || userData?.role === 'business' || userData?.role === 'admin') && (
                   <Menu.Item>
                     {({ active }) => (
                       <Link
@@ -212,7 +216,7 @@ const Navbar = () => {
                       </Link>
                     )}
                   </Menu.Item>
-                ) : null}
+                )}
                 
                 <Menu.Item>
                   {({ active }) => (
@@ -236,6 +240,9 @@ const Navbar = () => {
         )}
       </Menu>
       
+      {/* Микрозадания - отдельная ссылка */}
+      
+      
       {/* ИИ Сервисы - выпадающее меню */}
       <Menu as="div" className="relative">
         {({ open }) => (
@@ -250,8 +257,9 @@ const Navbar = () => {
               <svg className="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
-              AI Сервисы
-              <span className="ml-1.5 px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full">Новое</span>
+              <span className="hidden md:inline">AI Сервисы</span>
+              <span className="inline md:hidden">AI</span>
+              <span className="ml-1.5 px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full">NEW</span>
               <svg className={`w-4 h-4 ml-1 transform ${open ? 'rotate-180' : 'rotate-0'} transition-transform`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
@@ -297,14 +305,30 @@ const Navbar = () => {
                       to="/networking"
                       className={`${
                         active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
-                      } flex items-center rounded-md px-3 py-2 text-sm transition-colors`}
-                      onClick={() => setMenuOpen(false)}
+                      } group flex items-center px-4 py-2 text-sm`}
                     >
-                      <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <svg className="mr-3 h-5 w-5 text-indigo-400 group-hover:text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       Нетворкинг
                       <span className="ml-1.5 px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full">Новое</span>
+                    </Link>
+                  )}
+                </Menu.Item>
+                
+                <Menu.Item>
+                  {({ active }) => (
+                    <Link
+                      to="/microtasks"
+                      className={`${
+                        active ? 'bg-indigo-100 text-indigo-700 dark:bg-slate-700 dark:text-white' : 'text-slate-700 dark:text-slate-200'
+                      } group flex items-center px-4 py-2 text-sm`}
+                    >
+                      <svg className="mr-3 h-5 w-5 text-indigo-400 group-hover:text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                      Микрозадания
+                      <span className="ml-1.5 px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-full">Новое</span>
                     </Link>
                   )}
                 </Menu.Item>
@@ -494,7 +518,7 @@ const Navbar = () => {
             </Link>
             
             {/* Ссылка на заявки для работодателей */}
-            {(userData?.role === 'employer' || userData?.role === 'business') && (
+            {(userData?.role === 'employer' || userData?.role === 'business' || userData?.role === 'admin') && (
               <Link
                 to="/employer/applications"
                 className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-lighter/80"
